@@ -1,0 +1,30 @@
+# 환경변수 (실제 값 포함)
+.env
+
+# Java / Gradle
+.gradle/
+build/
+out/
+*.class
+*.jar
+!**/build/libs/*.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# macOS
+.DS_Store
+
+# Docker
+*.log

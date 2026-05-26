@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.metrohub.api.domain.congestion.CongestionMapper">
+
+    <resultMap id="CongestionResultMap" type="com.metrohub.api.domain.congestion.Congestion">
+        <id property="id" column="id"/>
+        <result property="lineNumber" column="line_number"/>
+        <result property="stationName" column="station_name"/>
+        <result property="congestionLevel" column="congestion_level"/>
+        <result property="trainNo" column="train_no"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findByStationName" resultMap="CongestionResultMap">
+        SELECT * FROM congestion_info
+        WHERE station_name = #{stationName}
+        ORDER BY updated_at DESC
+    </select>
+
+    <select id="findByLineNumber" resultMap="CongestionResultMap">
+        SELECT * FROM congestion_info
+        WHERE line_number = #{lineNumber}
+        ORDER BY updated_at DESC
+    </select>
+
+    <insert id="upsert">
+        INSERT INTO congestion_info (line_number, station_name, congestion_level, train_no, updated_at)
+        VALUES (#{lineNumber}, #{stationName}, #{congestionLevel}, #{trainNo}, NOW())
+        ON DUPLICATE KEY UPDATE
+            congestion_level = VALUES(congestion_level),
+            train_no         = VALUES(train_no),
+            updated_at       = NOW()
+    </insert>
+
+</mapper>

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subway-notification
+  namespace: metrohub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: subway-notification
+  template:
+    metadata:
+      labels:
+        app: subway-notification
+    spec:
+      containers:
+        - name: subway-notification
+          image: metrohub/subway-notification:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/metrohub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: metrohub
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: metrohub-secrets
+                  key: mysql-password
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:29092"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"

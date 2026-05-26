@@ -1,0 +1,42 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: subway-notification
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/metrohub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    username: ${SPRING_DATASOURCE_USERNAME:metrohub}
+    password: ${SPRING_DATASOURCE_PASSWORD:metrohub}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+      initialization-fail-timeout: -1
+
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: notification-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        reconnect.backoff.ms: 1000
+        reconnect.backoff.max.ms: 10000
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.metrohub.notification.domain
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com.metrohub: DEBUG
+    org.springframework.kafka: INFO

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.metrohub.api.domain.community.CommunityMapper">
+
+    <resultMap id="PostResultMap" type="com.metrohub.api.domain.community.CommunityPost">
+        <id property="id" column="id"/>
+        <result property="lineNumber" column="line_number"/>
+        <result property="userId" column="user_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="alert" column="is_alert"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="authorNickname" column="author_nickname"/>
+    </resultMap>
+
+    <resultMap id="CommentResultMap" type="com.metrohub.api.domain.community.CommunityComment">
+        <id property="id" column="id"/>
+        <result property="postId" column="post_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="authorNickname" column="author_nickname"/>
+    </resultMap>
+
+    <select id="findPostsByLineNumber" resultMap="PostResultMap">
+        SELECT p.*, u.nickname AS author_nickname
+        FROM community_posts p
+        LEFT JOIN users u ON p.user_id = u.id
+        WHERE p.line_number = #{lineNumber}
+        ORDER BY p.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="findPostById" resultMap="PostResultMap">
+        SELECT p.*, u.nickname AS author_nickname
+        FROM community_posts p
+        LEFT JOIN users u ON p.user_id = u.id
+        WHERE p.id = #{id}
+    </select>
+
+    <insert id="insertPost" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO community_posts (line_number, user_id, title, content, is_alert, created_at)
+        VALUES (#{lineNumber}, #{userId}, #{title}, #{content}, #{alert}, NOW())
+    </insert>
+
+    <delete id="deletePost">
+        DELETE FROM community_posts WHERE id = #{id} AND user_id = #{userId}
+    </delete>
+
+    <select id="findCommentsByPostId" resultMap="CommentResultMap">
+        SELECT c.*, u.nickname AS author_nickname
+        FROM community_comments c
+        LEFT JOIN users u ON c.user_id = u.id
+        WHERE c.post_id = #{postId}
+        ORDER BY c.created_at ASC
+    </select>
+
+    <insert id="insertComment" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO community_comments (post_id, user_id, content, created_at)
+        VALUES (#{postId}, #{userId}, #{content}, NOW())
+    </insert>
+
+    <delete id="deleteComment">
+        DELETE FROM community_comments WHERE id = #{id} AND user_id = #{userId}
+    </delete>
+
+</mapper>
