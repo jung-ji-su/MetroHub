@@ -19,14 +19,11 @@
     };
   });
 
-  // 로그인/로그아웃 시 알림 SSE 재연결
+  // 로그인/로그아웃 시 알림 SSE 재연결 — 기존 연결 먼저 정리 후 신규 연결
   $effect(() => {
     const t = $token;
-    if (t) {
-      connectNotificationSSE(t);
-    } else {
-      disconnectNotificationSSE();
-    }
+    disconnectNotificationSSE();
+    if (t) connectNotificationSSE(t);
   });
 
   let { children } = $props();

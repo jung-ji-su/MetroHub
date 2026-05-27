@@ -399,14 +399,19 @@
     return map;
   })();
 
+  let _congestionDebounce = null;
   $effect(() => {
     const updatedLine = $latestCongestionLine;
     if (!updatedLine) return;
-    for (const fav of $favorites) {
-      if ((STATION_LINE_MAP[fav] ?? []).includes(updatedLine)) {
-        fetchStation(fav);
+    // SSE 이벤트가 연속으로 와도 2초 내 한 번만 API 호출
+    clearTimeout(_congestionDebounce);
+    _congestionDebounce = setTimeout(() => {
+      for (const fav of $favorites) {
+        if ((STATION_LINE_MAP[fav] ?? []).includes(updatedLine)) {
+          fetchStation(fav);
+        }
       }
-    }
+    }, 2000);
   });
 
   function formatUpdated(d) {
