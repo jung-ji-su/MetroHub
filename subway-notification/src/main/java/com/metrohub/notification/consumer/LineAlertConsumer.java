@@ -1,5 +1,6 @@
 package com.metrohub.notification.consumer;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metrohub.notification.service.NotificationService;
 import com.metrohub.notification.sse.NotificationSseService;
@@ -26,7 +27,7 @@ public class LineAlertConsumer {
     public void consume(String message) {
         log.info("노선 알림 이벤트 수신: {}", message);
         try {
-            Map<String, Object> data = objectMapper.readValue(message, Map.class);
+            Map<String, Object> data = objectMapper.readValue(message, new TypeReference<>() {});
 
             String lineNumber = (String) data.get("lineNumber");
             String alertType  = (String) data.getOrDefault("alertType", "ALERT");

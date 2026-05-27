@@ -1,6 +1,5 @@
 package com.metrohub.notification.sse;
 
-import com.metrohub.notification.global.config.JwtUtil;
 import com.metrohub.notification.user.UserLookupMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

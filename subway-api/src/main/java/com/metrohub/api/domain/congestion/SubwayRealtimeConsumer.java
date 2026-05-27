@@ -1,5 +1,6 @@
 package com.metrohub.api.domain.congestion;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ public class SubwayRealtimeConsumer {
     @KafkaListener(topics = "subway-realtime", groupId = "subway-api-group")
     public void consume(String message) {
         try {
-            Map<String, Object> data = objectMapper.readValue(message, Map.class);
+            Map<String, Object> data = objectMapper.readValue(message, new TypeReference<>() {});
 
             String stationName    = (String) data.get("station_name");
             String lineNumber     = (String) data.get("line_number");

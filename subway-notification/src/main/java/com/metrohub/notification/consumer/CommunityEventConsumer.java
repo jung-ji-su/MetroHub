@@ -1,5 +1,6 @@
 package com.metrohub.notification.consumer;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.metrohub.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class CommunityEventConsumer {
                         @Header(KafkaHeaders.OFFSET) long offset) {
         log.info("커뮤니티 이벤트 수신 [partition={}, offset={}]", partition, offset);
         try {
-            Map<String, Object> data = objectMapper.readValue(message, Map.class);
+            Map<String, Object> data = objectMapper.readValue(message, new TypeReference<>() {});
 
             String lineNumber = (String) data.get("lineNumber");
             String title      = (String) data.get("title");
