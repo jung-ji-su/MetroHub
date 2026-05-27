@@ -87,6 +87,7 @@ services:
       SPRING_DATASOURCE_USERNAME: metrohub
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SEOUL_API_KEY: ${SEOUL_API_KEY}
     restart: unless-stopped
 
   subway-notification:

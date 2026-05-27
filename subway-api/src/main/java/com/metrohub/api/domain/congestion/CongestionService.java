@@ -1,23 +1,38 @@
 package com.metrohub.api.domain.congestion;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CongestionService {
 
-    private final CongestionMapper congestionMapper;
+    private static final int CACHE_MINUTES = 10;
 
-    @Transactional(readOnly = true)
+    private final CongestionMapper congestionMapper;
+    private final SeoulSubwayApiClient seoulSubwayApiClient;
+
+    @Transactional
     public List<CongestionDto.Response> getCongestionByStation(String stationName) {
-        return congestionMapper.findByStationName(stationName).stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+        List<Congestion> cached = congestionMapper.findByStationName(stationName);
+
+        if (isStale(cached)) {
+            log.info("on-demand 서울 API 호출: station={}", stationName);
+            List<Congestion> fresh = seoulSubwayApiClient.fetchArrivals(stationName);
+            if (!fresh.isEmpty()) {
+                fresh.forEach(congestionMapper::upsert);
+                cached = congestionMapper.findByStationName(stationName);
+            }
+        }
+
+        return cached.stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -30,6 +45,12 @@ public class CongestionService {
     @Transactional
     public void upsertCongestion(Congestion congestion) {
         congestionMapper.upsert(congestion);
+    }
+
+    private boolean isStale(List<Congestion> data) {
+        if (data.isEmpty()) return true;
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(CACHE_MINUTES);
+        return data.stream().noneMatch(c -> c.getUpdatedAt() != null && c.getUpdatedAt().isAfter(cutoff));
     }
 
     private CongestionDto.Response toResponse(Congestion c) {

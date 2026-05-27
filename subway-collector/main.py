@@ -1,5 +1,4 @@
 import logging
-import schedule
 import time
 from dotenv import load_dotenv
 
@@ -14,28 +13,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-producer = SubwayKafkaProducer()
-
-
-def collect_and_publish():
-    logger.info("지하철 실시간 도착정보 수집 시작")
-    arrivals = fetch_all_stations_arrivals(MAJOR_STATIONS)
-    if arrivals:
-        producer.publish_arrivals(arrivals)
-        logger.info("수집 완료: %d건 발행", len(arrivals))
-    else:
-        logger.warning("수집 결과 없음")
-
-
 if __name__ == "__main__":
-    logger.info("subway-collector 시작")
-    collect_and_publish()
+    logger.info("subway-collector 시작: 초기 데이터 1회 수집")
+    producer = SubwayKafkaProducer()
+    try:
+        arrivals = fetch_all_stations_arrivals(MAJOR_STATIONS)
+        if arrivals:
+            producer.publish_arrivals(arrivals)
+            logger.info("초기 수집 완료: %d건 발행", len(arrivals))
+        else:
+            logger.warning("초기 수집 결과 없음 (API 한도 초과 또는 응답 없음)")
+    except Exception as e:
+        logger.error("초기 수집 실패: %s", e, exc_info=True)
 
-    schedule.every(15).minutes.do(collect_and_publish)
-
+    # on-demand 조회는 subway-api가 직접 처리
+    # collector는 이후 대기 상태 유지 (재시작 방지)
+    logger.info("subway-collector 대기 중. on-demand 조회는 subway-api가 처리합니다.")
     while True:
-        try:
-            schedule.run_pending()
-        except Exception as e:
-            logger.error("스케줄 실행 중 예외 발생: %s", e, exc_info=True)
-        time.sleep(1)
+        time.sleep(86400)  # 24시간 대기 (재시작 방지용)
