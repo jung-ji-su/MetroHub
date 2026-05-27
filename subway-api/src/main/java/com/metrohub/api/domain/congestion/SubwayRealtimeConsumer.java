@@ -21,15 +21,16 @@ public class SubwayRealtimeConsumer {
         try {
             Map<String, Object> data = objectMapper.readValue(message, Map.class);
 
-            String stationName = (String) data.get("station_name");
-            String lineNumber   = (String) data.get("line_number");
-            String trainNo      = (String) data.get("train_no");
+            String stationName    = (String) data.get("station_name");
+            String lineNumber     = (String) data.get("line_number");
+            String trainNo        = (String) data.get("train_no");
+            String arrivalMessage = (String) data.get("arrival_message");
 
             Object rawLevel = data.get("congestion_level");
             Integer congestionLevel = null;
             if (rawLevel != null && !rawLevel.toString().isBlank()) {
                 try {
-                    congestionLevel = Integer.parseInt(rawLevel.toString());
+                    congestionLevel = Integer.parseInt(rawLevel.toString().trim().split("\\s+")[0]);
                 } catch (NumberFormatException ignored) {}
             }
 
@@ -42,6 +43,7 @@ public class SubwayRealtimeConsumer {
                     .stationName(stationName)
                     .lineNumber(lineNumber)
                     .trainNo(trainNo)
+                    .arrivalMessage(arrivalMessage)
                     .congestionLevel(congestionLevel)
                     .build();
 

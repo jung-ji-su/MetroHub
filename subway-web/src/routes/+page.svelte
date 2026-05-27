@@ -89,10 +89,13 @@
             <span class="font-semibold text-gray-800">{LINE_NAMES[item.lineNumber] ?? item.lineNumber}</span>
             <span class="text-xs px-2 py-0.5 rounded-full font-medium {ci.cls}">{ci.label}</span>
           </div>
-          {#if item.trainNo}
-            <p class="text-sm text-gray-500">열차번호: {item.trainNo}</p>
+          {#if item.arrivalMessage}
+            <p class="text-sm text-gray-700 font-medium">{item.arrivalMessage}</p>
           {/if}
-          <p class="text-xs text-gray-400 mt-1">{new Date(item.updatedAt).toLocaleTimeString('ko-KR')} 기준</p>
+          {#if item.trainNo}
+            <p class="text-xs text-gray-400 mt-0.5">열차번호: {item.trainNo}</p>
+          {/if}
+          <p class="text-xs text-gray-400 mt-1">{new Date(item.updatedAt + 'Z').toLocaleTimeString('ko-KR')} 기준</p>
         </div>
       {/each}
     </div>

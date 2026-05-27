@@ -31,7 +31,7 @@ if __name__ == "__main__":
     logger.info("subway-collector 시작")
     collect_and_publish()
 
-    schedule.every(30).seconds.do(collect_and_publish)
+    schedule.every(15).minutes.do(collect_and_publish)
 
     while True:
         try:

@@ -15,5 +15,6 @@ public class Congestion {
     private String stationName;
     private Integer congestionLevel;
     private String trainNo;
+    private String arrivalMessage;
     private LocalDateTime updatedAt;
 }

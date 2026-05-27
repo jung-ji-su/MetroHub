@@ -10,12 +10,13 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS congestion_info (
-    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    line_number     VARCHAR(20)  NOT NULL,
-    station_name    VARCHAR(100) NOT NULL,
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+    line_number      VARCHAR(20)  NOT NULL,
+    station_name     VARCHAR(100) NOT NULL,
     congestion_level INT,
-    train_no        VARCHAR(50),
-    updated_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    train_no         VARCHAR(50),
+    arrival_message  VARCHAR(200),
+    updated_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_line_station (line_number, station_name)
 );
 

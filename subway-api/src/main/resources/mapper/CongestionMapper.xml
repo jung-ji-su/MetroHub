@@ -9,6 +9,7 @@
         <result property="stationName" column="station_name"/>
         <result property="congestionLevel" column="congestion_level"/>
         <result property="trainNo" column="train_no"/>
+        <result property="arrivalMessage" column="arrival_message"/>
         <result property="updatedAt" column="updated_at"/>
     </resultMap>
 
@@ -25,11 +26,12 @@
     </select>
 
     <insert id="upsert">
-        INSERT INTO congestion_info (line_number, station_name, congestion_level, train_no, updated_at)
-        VALUES (#{lineNumber}, #{stationName}, #{congestionLevel}, #{trainNo}, NOW())
+        INSERT INTO congestion_info (line_number, station_name, congestion_level, train_no, arrival_message, updated_at)
+        VALUES (#{lineNumber}, #{stationName}, #{congestionLevel}, #{trainNo}, #{arrivalMessage}, NOW())
         ON DUPLICATE KEY UPDATE
             congestion_level = VALUES(congestion_level),
             train_no         = VALUES(train_no),
+            arrival_message  = VALUES(arrival_message),
             updated_at       = NOW()
     </insert>
 

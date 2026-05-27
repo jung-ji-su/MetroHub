@@ -39,6 +39,7 @@ public class CongestionService {
                 .stationName(c.getStationName())
                 .congestionLevel(c.getCongestionLevel())
                 .trainNo(c.getTrainNo())
+                .arrivalMessage(c.getArrivalMessage())
                 .updatedAt(c.getUpdatedAt())
                 .build();
     }
