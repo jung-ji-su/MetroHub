@@ -10,17 +10,26 @@ logger = logging.getLogger(__name__)
 BASE_URL = "http://swopenAPI.seoul.go.kr/api/subway"
 API_KEY = os.getenv("SEOUL_API_KEY", "")
 
+# 이전 성공 데이터 캐시 (서울 API 장애 시 fallback)
+_last_successful_arrivals: dict[str, list[dict]] = {}
+
 
 def fetch_realtime_arrivals(station_name: str) -> list[dict]:
-    """서울 열린데이터광장 지하철 실시간 도착정보 조회"""
+    """서울 열린데이터광장 지하철 실시간 도착정보 조회. 장애 시 이전 성공 데이터 반환."""
     url = f"{BASE_URL}/{API_KEY}/json/realtimeStationArrival/0/50/{station_name}"
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
-        return parse_arrivals(response.json())
+        result = parse_arrivals(response.json())
+        if result:
+            _last_successful_arrivals[station_name] = result
+        return result
     except requests.exceptions.RequestException as e:
         logger.error("API 호출 실패 (station=%s): %s", station_name, e)
-        return []
+        fallback = _last_successful_arrivals.get(station_name, [])
+        if fallback:
+            logger.warning("이전 데이터 fallback 사용 (station=%s, %d건)", station_name, len(fallback))
+        return fallback
 
 
 def parse_arrivals(raw: dict) -> list[dict]:

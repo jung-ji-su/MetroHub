@@ -42,6 +42,18 @@ mybatis:
 jwt:
   secret: ${JWT_SECRET:bWV0cm9odWItc3VwZXItc2VjcmV0LWp3dC1zaWduaW5nLWtleS1mb3ItZGV2LW9ubHk=}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: subway-notification
+
 logging:
   level:
     com.metrohub: DEBUG

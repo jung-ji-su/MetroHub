@@ -18,18 +18,20 @@ spec:
           image: metrohub/subway-notification:latest
           ports:
             - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: metrohub-config
           env:
-            - name: SPRING_DATASOURCE_URL
-              value: "jdbc:mysql://mysql:3306/metrohub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul"
-            - name: SPRING_DATASOURCE_USERNAME
-              value: metrohub
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: metrohub-secrets
                   key: mysql-password
-            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
-              value: "kafka:29092"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: metrohub-secrets
+                  key: jwt-secret
           readinessProbe:
             httpGet:
               path: /actuator/health

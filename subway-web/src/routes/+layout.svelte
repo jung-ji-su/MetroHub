@@ -12,6 +12,7 @@
     unreadCount,
     markAllRead,
   } from '$lib/notificationStore';
+  import { locale, toggleLocale } from '$lib/i18n';
 
   let showNotifPanel = $state(false);
 
@@ -72,6 +73,16 @@
   <main class:pb-[72px]={!isAuthPage}>
     {@render children()}
   </main>
+
+  <!-- 언어 토글 버튼 (인증 페이지 제외) -->
+  {#if !isAuthPage}
+    <button
+      onclick={toggleLocale}
+      class="fixed top-[52px] right-[calc(50%-215px+56px)] z-50 w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm active:bg-gray-50 transition-colors text-xs font-bold text-gray-600"
+    >
+      {$locale === 'ko' ? 'EN' : '한'}
+    </button>
+  {/if}
 
   <!-- 벨 아이콘 (로그인 시, 인증 페이지 제외) -->
   {#if $user && !isAuthPage}

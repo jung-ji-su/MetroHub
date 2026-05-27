@@ -75,6 +75,33 @@ public class CommunityService {
         return toCommentResponse(comment);
     }
 
+    @Transactional
+    public CommunityDto.LikeResponse toggleLike(Long postId, Long userId) {
+        communityMapper.findPostById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        boolean already = communityMapper.existsLike(postId, userId);
+        if (already) {
+            communityMapper.deleteLike(postId, userId);
+        } else {
+            communityMapper.insertLike(postId, userId);
+        }
+        int count = communityMapper.countLikes(postId);
+        return CommunityDto.LikeResponse.builder()
+                .postId(postId)
+                .likeCount(count)
+                .liked(!already)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public CommunityDto.LikeResponse getLikeStatus(Long postId, Long userId) {
+        return CommunityDto.LikeResponse.builder()
+                .postId(postId)
+                .likeCount(communityMapper.countLikes(postId))
+                .liked(userId != null && communityMapper.existsLike(postId, userId))
+                .build();
+    }
+
     private CommunityDto.PostResponse toPostResponse(CommunityPost p) {
         return CommunityDto.PostResponse.builder()
                 .id(p.getId())
@@ -84,6 +111,7 @@ public class CommunityService {
                 .alert(Boolean.TRUE.equals(p.getAlert()))
                 .authorNickname(p.getAuthorNickname())
                 .createdAt(p.getCreatedAt())
+                .likeCount(communityMapper.countLikes(p.getId()))
                 .build();
     }
 

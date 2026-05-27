@@ -14,5 +14,6 @@ public class User {
     private String email;
     private String password;
     private String nickname;
+    private String role; // USER | ADMIN
     private LocalDateTime createdAt;
 }

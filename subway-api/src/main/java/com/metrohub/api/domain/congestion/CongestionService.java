@@ -29,6 +29,9 @@ public class CongestionService {
             if (!fresh.isEmpty()) {
                 fresh.forEach(congestionMapper::upsert);
                 cached = congestionMapper.findByStationName(stationName);
+            } else if (!cached.isEmpty()) {
+                // 서울 API 장애 시 stale 데이터 fallback (빈 응답 대신 이전 데이터 반환)
+                log.warn("서울 API 응답 없음, stale 캐시 데이터 반환: station={}", stationName);
             }
         }
 

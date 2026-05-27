@@ -53,6 +53,22 @@ public class CommunityController {
         return ResponseEntity.ok(communityService.createComment(postId, userId, request));
     }
 
+    @PostMapping("/posts/{postId}/like")
+    public ResponseEntity<CommunityDto.LikeResponse> toggleLike(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal String email) {
+        Long userId = resolveUserId(email);
+        return ResponseEntity.ok(communityService.toggleLike(postId, userId));
+    }
+
+    @GetMapping("/posts/{postId}/like")
+    public ResponseEntity<CommunityDto.LikeResponse> getLikeStatus(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal String email) {
+        Long userId = email != null ? userMapper.findByEmail(email).map(u -> u.getId()).orElse(null) : null;
+        return ResponseEntity.ok(communityService.getLikeStatus(postId, userId));
+    }
+
     private Long resolveUserId(String email) {
         return userMapper.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED))

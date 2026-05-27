@@ -59,6 +59,20 @@ seoul:
   api:
     key: ${SEOUL_API_KEY:}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: subway-api
+
 logging:
   level:
     com.metrohub: DEBUG

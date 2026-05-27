@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     email      VARCHAR(255) NOT NULL UNIQUE,
     password   VARCHAR(255) NOT NULL,
     nickname   VARCHAR(100) NOT NULL,
+    role       VARCHAR(20)  NOT NULL DEFAULT 'USER' COMMENT 'USER | ADMIN',
     created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -51,6 +52,15 @@ CREATE TABLE IF NOT EXISTS complaints (
     created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_user_id (user_id),
     INDEX idx_status (status)
+);
+
+CREATE TABLE IF NOT EXISTS post_likes (
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    post_id    BIGINT   NOT NULL,
+    user_id    BIGINT   NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_post_user (post_id, user_id),
+    INDEX idx_post_id (post_id)
 );
 
 CREATE TABLE IF NOT EXISTS complaint_history (

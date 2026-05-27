@@ -57,6 +57,26 @@ public class ComplaintService {
                 .orElseThrow(() -> new IllegalArgumentException("민원을 찾을 수 없습니다."));
     }
 
+    @Transactional(readOnly = true)
+    public List<ComplaintDto.Response> getAllComplaints(String status, int page, int size) {
+        return complaintMapper.findAll(status, page * size, size).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public long countAllComplaints(String status) {
+        return complaintMapper.countAll(status);
+    }
+
+    @Transactional
+    public ComplaintDto.Response updateStatus(Long id, String status) {
+        complaintMapper.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("민원을 찾을 수 없습니다."));
+        complaintMapper.updateStatus(id, status);
+        return complaintMapper.findById(id).map(this::toResponse).orElseThrow();
+    }
+
     private ComplaintDto.Response toResponse(Complaint c) {
         return ComplaintDto.Response.builder()
                 .id(c.getId())

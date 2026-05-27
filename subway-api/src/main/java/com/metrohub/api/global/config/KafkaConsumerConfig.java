@@ -1,5 +1,6 @@
 package com.metrohub.api.global.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,10 +10,13 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Configuration
 @EnableKafka
 public class KafkaConsumerConfig {
@@ -38,6 +42,13 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, String> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
+        // 실패 시 2초 간격으로 최대 3회 재시도 후 로그 남기고 skip
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(
+                (record, ex) -> log.error("Kafka 메시지 처리 최종 실패 (topic={}, offset={}): {}",
+                        record.topic(), record.offset(), ex.getMessage()),
+                new FixedBackOff(2000L, 3L)
+        );
+        factory.setCommonErrorHandler(errorHandler);
         return factory;
     }
 }

@@ -1,6 +1,6 @@
 <script>
   import { api } from '$lib/api';
-  import { favorites, routes } from '$lib/stores';
+  import { favorites, routes, token } from '$lib/stores';
   import { LINE_META, LINE_STATIONS, SUPPORTED_LINES } from '$lib/lineStations';
   import { trendingStations, lineAlerts, latestCongestionLine, dismissAlert, sseConnected } from '$lib/sseStore';
   import { findRoute, searchStations } from '$lib/routeCalculator';
@@ -75,6 +75,21 @@
     return result;
   });
 
+  // 경로별 실시간 도착 정보 캐시
+  let routeArrivals = $state({});
+
+  async function fetchRouteArrival(routeId, from, lineCode) {
+    routeArrivals = { ...routeArrivals, [routeId]: { loading: true, data: null } };
+    try {
+      const arrivals = await api.congestionByStation(from);
+      // 해당 노선의 첫 도착 열차 필터
+      const match = arrivals.find(a => a.lineNumber === lineCode);
+      routeArrivals = { ...routeArrivals, [routeId]: { loading: false, data: match ?? null } };
+    } catch (_) {
+      routeArrivals = { ...routeArrivals, [routeId]: { loading: false, data: null } };
+    }
+  }
+
   // ── 혼잡도 탭 ───────────────────────────────────────────────────────
   const LINE_NAMES = {
     '1001': '1호선', '1002': '2호선', '1003': '3호선', '1004': '4호선',
@@ -123,12 +138,32 @@
     for (const s of $favorites) fetchStation(s);
   }
 
-  function addFavorite() {
+  // 역이 속한 호선 코드 목록 반환
+  function getLinesForStation(stationName) {
+    return Object.entries(LINE_STATIONS)
+      .filter(([, stations]) => stations.includes(stationName))
+      .map(([lineCode]) => lineCode);
+  }
+
+  async function addFavorite() {
     const name = addInput.trim();
     if (!name) return;
     favorites.add(name);
     addInput = '';
     fetchStation(name);
+    // 로그인 상태이면 해당 역 호선 자동 구독
+    if ($token) {
+      try {
+        const lineCodes = getLinesForStation(name);
+        const existing = await api.getSubscriptions($token);
+        const existingValues = new Set(existing.map(s => s.subValue));
+        for (const lineCode of lineCodes) {
+          if (!existingValues.has(lineCode)) {
+            await api.addSubscription({ subType: 'LINE', subValue: lineCode }, $token);
+          }
+        }
+      } catch (_) { /* 구독 실패는 조용히 무시 */ }
+    }
   }
 
   function removeFavorite(name) {
@@ -530,9 +565,31 @@
                   </div>
                   <p class="text-[13px] font-bold text-gray-700">🏁 {route.to} 도착</p>
                 </div>
-                <p class="text-[11px] text-gray-400 mt-2 ml-7">
-                  총 {segs.length - 1}회 환승 · {segs.reduce((s, g) => s + g.stations.length - 1, 0)}개역
-                </p>
+                <div class="flex items-center justify-between mt-2 ml-7">
+                  <p class="text-[11px] text-gray-400">
+                    총 {segs.length - 1}회 환승 · {segs.reduce((s, g) => s + g.stations.length - 1, 0)}개역
+                  </p>
+                  <button
+                    onclick={() => fetchRouteArrival(route.id, route.from, segs[0]?.lineCode)}
+                    class="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-full active:bg-blue-100 transition-colors"
+                  >
+                    🔴 실시간
+                  </button>
+                </div>
+                {#if routeArrivals[route.id]}
+                  {@const ra = routeArrivals[route.id]}
+                  <div class="mt-2 ml-7 bg-blue-50 rounded-xl px-3 py-2">
+                    {#if ra.loading}
+                      <p class="text-[11px] text-blue-400 animate-pulse">도착 정보 조회 중...</p>
+                    {:else if ra.data}
+                      <p class="text-[11px] font-bold text-blue-700">
+                        출발역 ({route.from}) 다음 열차: {ra.data.arrivalMessage ?? '정보없음'}
+                      </p>
+                    {:else}
+                      <p class="text-[11px] text-gray-400">현재 도착 정보가 없습니다</p>
+                    {/if}
+                  </div>
+                {/if}
               </div>
             {:else if segs === null}
               <p class="px-4 pb-4 text-xs text-red-400">⚠️ 경로를 찾을 수 없어요 (역 이름을 확인해주세요)</p>

@@ -28,6 +28,18 @@ public class CommunityDto {
         private boolean alert;
         private String authorNickname;
         private LocalDateTime createdAt;
+        private int likeCount;
+        private boolean likedByMe;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LikeResponse {
+        private Long postId;
+        private int likeCount;
+        private boolean liked;
     }
 
     @Getter

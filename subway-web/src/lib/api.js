@@ -38,6 +38,8 @@ export const api = {
   createPost:    (data, token)    => request('POST', '/api/community/posts', data, token),
   getComments:   (postId)         => request('GET', `/api/community/posts/${postId}/comments`),
   createComment: (postId, data, token) => request('POST', `/api/community/posts/${postId}/comments`, data, token),
+  toggleLike:   (postId, token)        => request('POST', `/api/community/posts/${postId}/like`, null, token),
+  getLikeStatus: (postId, token)       => request('GET',  `/api/community/posts/${postId}/like`, null, token),
 
   // 민원
   createComplaint: (data, token)  => request('POST',   '/api/complaints', data, token),
@@ -53,4 +55,10 @@ export const api = {
   addSubscription:     (data, token)   => request('POST',   '/api/notifications/subscriptions', data, token, NOTIFICATION_BASE),
   deleteSubscription:  (id, token)     => request('DELETE', `/api/notifications/subscriptions/${id}`, null, token, NOTIFICATION_BASE),
   getMyNotifications:  (token, page=0) => request('GET',    `/api/notifications/my?page=${page}&size=20`, null, token, NOTIFICATION_BASE),
+
+  // 관리자
+  adminGetComplaints:  (token, status='', page=0, size=20) =>
+    request('GET', `/api/admin/complaints?status=${status}&page=${page}&size=${size}`, null, token),
+  adminUpdateComplaintStatus: (id, status, token) =>
+    request('PATCH', `/api/admin/complaints/${id}/status`, { status }, token),
 };

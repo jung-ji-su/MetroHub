@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/sse/**").permitAll()
                 .requestMatchers("/api/trending").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/community/**").permitAll()
+                .requestMatchers("/api/admin/**").authenticated()
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex

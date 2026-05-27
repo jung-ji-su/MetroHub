@@ -18,4 +18,10 @@ public interface CommunityMapper {
     List<CommunityComment> findCommentsByPostId(@Param("postId") Long postId);
     void insertComment(CommunityComment comment);
     void deleteComment(@Param("id") Long id, @Param("userId") Long userId);
+
+    // 좋아요
+    void insertLike(@Param("postId") Long postId, @Param("userId") Long userId);
+    void deleteLike(@Param("postId") Long postId, @Param("userId") Long userId);
+    boolean existsLike(@Param("postId") Long postId, @Param("userId") Long userId);
+    int countLikes(@Param("postId") Long postId);
 }

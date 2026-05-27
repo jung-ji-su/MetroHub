@@ -15,10 +15,13 @@
   const postId = $derived($page.params.id);
   const lineColor = $derived(LINE_COLORS[line] ?? '#6B7280');
 
-  let post     = $state(null);
-  let comments = $state([]);
-  let loading  = $state(true);
-  let error    = $state('');
+  let post       = $state(null);
+  let comments   = $state([]);
+  let loading    = $state(true);
+  let error      = $state('');
+  let likeCount  = $state(0);
+  let likedByMe  = $state(false);
+  let liking     = $state(false);
 
   let commentContent = $state('');
   let submitting     = $state(false);
@@ -31,10 +34,35 @@
     loading = true; error = '';
     try {
       [post, comments] = await Promise.all([api.getPost(id), api.getComments(id)]);
+      likeCount = post.likeCount ?? 0;
+      likedByMe = post.likedByMe ?? false;
+      // 로그인 상태면 내 좋아요 상태 반영
+      if ($token) {
+        try {
+          const ls = await api.getLikeStatus(id, $token);
+          likeCount = ls.likeCount;
+          likedByMe = ls.liked;
+        } catch (_) {}
+      }
     } catch (e) {
       error = e.message;
     } finally {
       loading = false;
+    }
+  }
+
+  async function toggleLike() {
+    if (!$token) { goto('/auth/login'); return; }
+    if (liking) return;
+    liking = true;
+    try {
+      const result = await api.toggleLike(postId, $token);
+      likeCount = result.likeCount;
+      likedByMe = result.liked;
+    } catch (e) {
+      error = e.message;
+    } finally {
+      liking = false;
     }
   }
 
@@ -106,8 +134,25 @@
           <h1 class="text-[18px] font-bold text-gray-900 leading-snug">{post.title}</h1>
         </div>
         <p class="text-xs text-gray-400 mb-4">{post.authorNickname} · {formatDate(post.createdAt)}</p>
-        <div class="text-[15px] text-gray-700 whitespace-pre-wrap leading-relaxed border-t border-gray-100 pt-4">
+        <div class="text-[15px] text-gray-700 whitespace-pre-wrap leading-relaxed border-t border-gray-100 pt-4 mb-4">
           {post.content}
+        </div>
+        <!-- 좋아요 버튼 -->
+        <div class="flex items-center gap-2 pt-3 border-t border-gray-100">
+          <button
+            onclick={toggleLike}
+            disabled={liking}
+            class="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-colors disabled:opacity-40"
+            class:text-white={likedByMe}
+            class:text-gray-500={!likedByMe}
+            class:bg-gray-100={!likedByMe}
+            style={likedByMe ? `background-color: ${lineColor};` : ''}
+          >
+            <svg class="w-4 h-4" fill={likedByMe ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            {likeCount}
+          </button>
         </div>
       </div>
     </div>

@@ -1,14 +1,19 @@
-name: CI
+name: CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ master, main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ master, main, develop ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/metrohub
 
 jobs:
-  build-subway-api:
-    name: Build subway-api
+  # ── 백엔드 빌드 & 테스트 ─────────────────────────────────────────────
+  test-subway-api:
+    name: Test subway-api
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,22 +23,26 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: gradle
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Run Tests
+        working-directory: subway-api
+        run: ./gradlew test --no-daemon
+        env:
+          SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;MODE=MySQL;DATABASE_TO_LOWER=TRUE
+          SPRING_DATASOURCE_USERNAME: sa
+          SPRING_DATASOURCE_PASSWORD: ''
+          JWT_SECRET: dGVzdC1zZWNyZXQta2V5LWZvci11bml0LXRlc3Rpbmctb25seS0zMmJ5dGVz
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          gradle-version: '8.5'
+          name: subway-api-test-results
+          path: subway-api/build/reports/tests/
 
-      - name: Build and Test
-        working-directory: subway-api
-        run: gradle build --no-daemon
-
-      - name: Build Docker image
-        working-directory: subway-api
-        run: docker build -t subway-api:${{ github.sha }} .
-
-  build-subway-notification:
-    name: Build subway-notification
+  test-subway-notification:
+    name: Test subway-notification
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,22 +52,27 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: gradle
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Run Tests
+        working-directory: subway-notification
+        run: ./gradlew test --no-daemon
+        env:
+          SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;MODE=MySQL;DATABASE_TO_LOWER=TRUE
+          SPRING_DATASOURCE_USERNAME: sa
+          SPRING_DATASOURCE_PASSWORD: ''
+          JWT_SECRET: dGVzdC1zZWNyZXQta2V5LWZvci11bml0LXRlc3Rpbmctb25seS0zMmJ5dGVz
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          gradle-version: '8.5'
+          name: subway-notification-test-results
+          path: subway-notification/build/reports/tests/
 
-      - name: Build and Test
-        working-directory: subway-notification
-        run: gradle build --no-daemon
-
-      - name: Build Docker image
-        working-directory: subway-notification
-        run: docker build -t subway-notification:${{ github.sha }} .
-
-  build-subway-collector:
-    name: Build subway-collector
+  # ── Python 린트 ──────────────────────────────────────────────────────
+  lint-collector:
+    name: Lint subway-collector
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -70,14 +84,94 @@ jobs:
 
       - name: Install dependencies
         working-directory: subway-collector
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt flake8
 
-      - name: Lint with flake8
+      - name: Lint
         working-directory: subway-collector
-        run: |
-          pip install flake8
-          flake8 . --max-line-length=120 --exclude=__pycache__
+        run: flake8 . --max-line-length=120 --exclude=__pycache__,venv
 
-      - name: Build Docker image
-        working-directory: subway-collector
-        run: docker build -t subway-collector:${{ github.sha }} .
+  # ── 프론트엔드 빌드 & 타입 체크 ──────────────────────────────────────
+  build-web:
+    name: Build subway-web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: subway-web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: subway-web
+        run: npm ci
+
+      - name: Type check
+        working-directory: subway-web
+        run: npm run check
+        continue-on-error: true
+
+      - name: Build
+        working-directory: subway-web
+        run: npm run build
+        env:
+          VITE_API_BASE: ''
+          VITE_NOTIFICATION_BASE: ''
+
+  # ── Docker 이미지 빌드 & 푸시 (master 브랜치 push 시만) ─────────────
+  docker-publish:
+    name: Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: [test-subway-api, test-subway-notification, lint-collector, build-web]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push subway-api
+        uses: docker/build-push-action@v5
+        with:
+          context: subway-api
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & push subway-notification
+        uses: docker/build-push-action@v5
+        with:
+          context: subway-notification
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-notification:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-notification:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & push subway-collector
+        uses: docker/build-push-action@v5
+        with:
+          context: subway-collector
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-collector:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-collector:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
