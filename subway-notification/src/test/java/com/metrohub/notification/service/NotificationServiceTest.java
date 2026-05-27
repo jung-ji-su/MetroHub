@@ -32,7 +32,7 @@ class NotificationServiceTest {
                 .title("2호선 지연")
                 .body("신호 장애로 지연 운행 중입니다.")
                 .referenceId(null)
-                .read(false)
+                .isRead(false)
                 .createdAt(LocalDateTime.now())
                 .build();
     }
@@ -97,7 +97,7 @@ class NotificationServiceTest {
     @Test
     @DisplayName("알림 카운트 (타입 없음)")
     void countNotifications_noType() {
-        given(notificationMapper.countAll()).willReturn(42L);
+        given(notificationMapper.countAll()).willReturn(42);
 
         assertThat(notificationService.countNotifications(null)).isEqualTo(42L);
     }
@@ -105,7 +105,7 @@ class NotificationServiceTest {
     @Test
     @DisplayName("알림 카운트 (타입 있음)")
     void countNotifications_withType() {
-        given(notificationMapper.countByType("LINE_ALERT")).willReturn(5L);
+        given(notificationMapper.countByType("LINE_ALERT")).willReturn(5);
 
         assertThat(notificationService.countNotifications("LINE_ALERT")).isEqualTo(5L);
     }

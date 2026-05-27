@@ -82,7 +82,7 @@
 </script>
 
 <!-- 헤더 -->
-<header class="px-5 pt-12 pb-4" style="background: #dbeafe; border-bottom: 1px solid #93c5fd;">
+<header class="px-5 pt-12 pb-4" style="background: #ffffff; border-bottom: 1px solid #f3f4f6;">
   <p class="text-xs text-gray-400 font-medium tracking-wide">METROHUB</p>
   <h1 class="text-xl font-bold text-gray-900 leading-tight">MY</h1>
 </header>

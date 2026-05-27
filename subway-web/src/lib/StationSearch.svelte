@@ -5,7 +5,7 @@
   let {
     value      = $bindable(''),
     placeholder = '역 이름 입력 (예: 강남)',
-    onselect,
+    onselect = undefined,
     class: cls = '',
   } = $props();
 

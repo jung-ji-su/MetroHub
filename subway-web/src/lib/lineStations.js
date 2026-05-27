@@ -48,11 +48,15 @@ export const LINE_STATIONS = {
     '쌍용', '아산', '탕정', '배방', '온양온천', '신창'
   ],
   '1002': [
-    '시청', '을지로입구', '을지로3가', '을지로4가', '동대문역사문화공원', '신당', '상왕십리', '왕십리', 
-    '한양대', '뚝섬', '성수', '건대입구', '구의', '강변', '잠실나루', '잠실', '잠실새내', '종합운동장', 
-    '삼성', '선릉', '역삼', '강남', '교대', '서초', '방배', '사당', '낙성대', '서울대입구', 
-    '봉천', '신림', '신대방', '구로디지털단지', '대림', '신도림', '문래', '영등포구청', '당산', 
-    '합정', '홍대입구', '신촌', '이대', '아현', '충정로'
+    '시청', '을지로입구', '을지로3가', '을지로4가', '동대문역사문화공원', '신당', '상왕십리', '왕십리',
+    '한양대', '뚝섬', '성수', '건대입구', '구의', '강변', '잠실나루', '잠실', '잠실새내', '종합운동장',
+    '삼성', '선릉', '역삼', '강남', '교대', '서초', '방배', '사당', '낙성대', '서울대입구',
+    '봉천', '신림', '신대방', '구로디지털단지', '대림', '신도림', '문래', '영등포구청', '당산',
+    '합정', '홍대입구', '신촌', '이대', '아현', '충정로',
+    // 신정지선 (신도림 분기)
+    '도림천', '양천구청', '신정네거리', '까치산',
+    // 성수지선 (성수 분기)
+    '용답', '신답', '용두', '신설동'
   ],
   '1003': [
     '대화', '주엽', '정발산', '마두', '백석', '대곡', '화정', '원당', '원흥', '삼송', 
@@ -197,3 +201,104 @@ export const LINE_STATIONS = {
 }; 
 
 export const SUPPORTED_LINES = Object.keys(LINE_STATIONS);
+
+// 분기/계통 설정
+// trunkEnd: 공통 본선의 마지막 역 (이 역까지 포함)
+// branchStart: 해당 계통의 첫 분기 역 (null이면 본선 그대로 trunkEnd까지만)
+// branchEnd: 해당 계통의 종착역 (null이면 배열 끝까지)
+export const LINE_BRANCHES = {
+  // 1호선: 구로역 분기
+  '1001': {
+    branches: [
+      {
+        id: 'gyeongin', label: '경인선',
+        destKeywords: ['인천', '동인천'],
+        trunkEnd: '구로', branchStart: '구일', branchEnd: '인천',
+      },
+      {
+        id: 'gyeongbu', label: '경부/서동탄',
+        destKeywords: ['수원', '천안', '신창', '서동탄', '병점', '오산', '평택', '금정', '안양'],
+        trunkEnd: '구로', branchStart: '가산디지털단지', branchEnd: null,
+      },
+    ],
+  },
+  // 2호선: 신정지선(신도림 분기) / 성수지선(성수 분기)
+  '1002': {
+    branches: [
+      {
+        id: 'sinjeong', label: '신정지선',
+        destKeywords: ['까치산'],
+        trunkEnd: '충정로', branchStart: '도림천', branchEnd: '까치산',
+      },
+      {
+        id: 'seongsu', label: '성수지선',
+        destKeywords: ['신설동'],
+        trunkEnd: '충정로', branchStart: '용답', branchEnd: '신설동',
+      },
+    ],
+  },
+  // 5호선: 강동역 분기
+  '1005': {
+    branches: [
+      {
+        id: 'hanam', label: '하남선',
+        destKeywords: ['하남', '상일동', '미사', '강일'],
+        trunkEnd: '강동', branchStart: '길동', branchEnd: '하남검단산',
+      },
+      {
+        id: 'macheon', label: '마천선',
+        destKeywords: ['마천', '오금', '거여', '개롱'],
+        trunkEnd: '강동', branchStart: '둔촌동', branchEnd: null,
+      },
+    ],
+  },
+  // 공항철도: 운행 계통 분리
+  '1065': {
+    branches: [
+      {
+        id: 'geomam', label: '검암행',
+        destKeywords: ['검암'],
+        trunkEnd: '검암', branchStart: null, branchEnd: null,
+      },
+      {
+        id: 'airport', label: '인천공항행',
+        destKeywords: ['인천공항'],
+        trunkEnd: null, branchStart: null, branchEnd: null,
+      },
+    ],
+  },
+};
+
+/**
+ * 선택된 계통에 맞는 역 목록 반환.
+ * 본선(trunk) + 해당 지선(branch) 구간만 슬라이스해서 조합한다.
+ */
+export function getBranchStations(lineCode, branchId) {
+  const config = LINE_BRANCHES[lineCode];
+  if (!config) return LINE_STATIONS[lineCode] ?? [];
+  const branch = config.branches.find(b => b.id === branchId);
+  if (!branch) return LINE_STATIONS[lineCode] ?? [];
+
+  const all = LINE_STATIONS[lineCode] ?? [];
+
+  // trunkEnd가 null이면 전체 반환 (공항철도 인천공항행 등)
+  if (branch.trunkEnd === null) return all;
+
+  const trunkEndIdx = all.indexOf(branch.trunkEnd);
+  if (trunkEndIdx === -1) return all;
+
+  // branchStart가 null이면 본선 trunkEnd까지만 (공항철도 검암행 등)
+  if (branch.branchStart === null) return all.slice(0, trunkEndIdx + 1);
+
+  const branchStartIdx = all.indexOf(branch.branchStart);
+  if (branchStartIdx === -1) return all;
+
+  if (branch.branchEnd === null) {
+    return [...all.slice(0, trunkEndIdx + 1), ...all.slice(branchStartIdx)];
+  }
+
+  const branchEndIdx = all.indexOf(branch.branchEnd);
+  if (branchEndIdx === -1) return all;
+
+  return [...all.slice(0, trunkEndIdx + 1), ...all.slice(branchStartIdx, branchEndIdx + 1)];
+}

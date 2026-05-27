@@ -14,7 +14,7 @@
   const direction    = decodeURIComponent($page.url.searchParams.get('direction') ?? '');
   const destination  = decodeURIComponent($page.url.searchParams.get('destination') ?? '');
   const hasTrainInfo = !!trainNo;
-  const lineColor    = LINE_META[lineCode]?.color ?? '#2563EB';
+  const lineColor    = /** @type {any} */(LINE_META)[lineCode]?.color ?? '#2563EB';
 
   let category    = $state('');
   let stationName = $state(trainStation);
@@ -27,42 +27,42 @@
   const CATEGORIES = [
     {
       id: '냉난방',
-      label: '♨️ 냉난방',
+      label: '냉난방',
       icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z" />`,
     },
     {
       id: '청결 불량',
-      label: '🧹 청결',
+      label: '청결',
       icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15M14.25 3.104c.251.023.501.05.75.082M19.8 15a2.25 2.25 0 01.169 2.603L20.04 18a2.25 2.25 0 01-2.121 1.5H6.08a2.25 2.25 0 01-2.12-1.5l-.044-.397A2.25 2.25 0 014.084 15m15.716 0h-15.716" />`,
     },
     {
       id: '시설 파손',
-      label: '⚠️ 시설파손',
+      label: '시설파손',
       icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />`,
     },
     {
       id: '안전 위협',
-      label: '🚨 안전위협',
+      label: '안전위협',
       icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />`,
     },
     {
       id: '직원 불친절',
-      label: '😠 직원불친절',
+      label: '직원불친절',
       icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />`,
     },
     {
       id: '운행 지연',
-      label: '🚆 운행지연',
+      label: '운행지연',
       icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />`,
     },
     {
       id: '의료/응급',
-      label: '🆘 의료/응급',
+      label: '의료/응급',
       icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />`,
     },
     {
       id: '기타',
-      label: '🤔 기타',
+      label: '기타',
       icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`,
     },
   ];
@@ -87,7 +87,7 @@
       await api.createComplaint({ category, stationName, content }, $token);
       return true;
     } catch (e) {
-      error = e.message;
+      error = e instanceof Error ? e.message : String(e);
       return false;
     } finally {
       loading = false;
@@ -119,7 +119,7 @@
 </script>
 
 <!-- 헤더 -->
-<header class="px-5 pt-12 pb-4 sticky top-0 z-40" style="background: #dbeafe; border-bottom: 1px solid #93c5fd;">
+<header class="px-5 pt-12 pb-4 sticky top-0 z-40" style="background: #ffffff; border-bottom: 1px solid #f3f4f6;">
   <div class="flex items-center justify-between">
     <div>
       <p class="text-xs text-gray-400 font-medium tracking-wide">METROHUB</p>

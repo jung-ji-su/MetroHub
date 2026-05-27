@@ -1,10 +1,22 @@
 <script>
   import { api } from '$lib/api';
-  import { favorites, routes, token } from '$lib/stores';
-  import { LINE_META, LINE_STATIONS, SUPPORTED_LINES } from '$lib/lineStations';
+  import { favorites, routes, token, user } from '$lib/stores';
+  import { LINE_META, LINE_STATIONS, LINE_BRANCHES, getBranchStations, SUPPORTED_LINES } from '$lib/lineStations';
   import { trendingStations, lineAlerts, latestCongestionLine, dismissAlert, sseConnected } from '$lib/sseStore';
+  import { notifications, unreadCount, markAllRead } from '$lib/notificationStore';
   import { findRoute, searchStations } from '$lib/routeCalculator';
   import StationSearch from '$lib/StationSearch.svelte';
+
+  let showNotifPanel = $state(false);
+  function toggleNotifPanel() {
+    showNotifPanel = !showNotifPanel;
+    if (showNotifPanel) markAllRead();
+  }
+  function formatNotifTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  }
 
   // ── 시간대별 혼잡도 차트 ────────────────────────────────────────────
   let hourlyData   = $state({});  // { [stationName]: { loading, data: [{hourOfDay, avgCongestion}] } }
@@ -77,6 +89,25 @@
 
   // 경로별 실시간 도착 정보 캐시
   let routeArrivals = $state({});
+
+  let focusStation = $state(null);
+
+  function goToLineMap(lineCode, stationName) {
+    selectedLine = lineCode;
+    activeTab = 'linemap';
+    focusStation = stationName ?? null;
+  }
+
+  // 노선 로딩 완료 후 focusStation으로 스크롤
+  $effect(() => {
+    if (lineLoading || !focusStation || activeTab !== 'linemap') return;
+    const target = focusStation;
+    focusStation = null;
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`station-${target}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
 
   async function fetchRouteArrival(routeId, from, lineCode) {
     routeArrivals = { ...routeArrivals, [routeId]: { loading: true, data: null } };
@@ -193,21 +224,49 @@
   let lineError     = $state('');
   let lastUpdated   = $state(null);
   let filterDir     = $state('전체'); // '전체' | '상행' | '하행' | '외선순환' | '내선순환'
+  let filterBranch  = $state('전체'); // '전체' | branch.id
 
   const lineColor   = $derived(LINE_META[selectedLine]?.color ?? '#6B7280');
   const lineName    = $derived(LINE_META[selectedLine]?.name ?? selectedLine);
-  const stations    = $derived(LINE_STATIONS[selectedLine] ?? []);
   const dirLabels   = $derived(LINE_META[selectedLine]?.dirLabel ?? ['상행', '하행']);
+  const currentBranches = $derived(LINE_BRANCHES[selectedLine]?.branches ?? []);
+
+  // 계통 필터 적용 역 목록 (지도 표시 + 열차 위치 기준)
+  const stations = $derived.by(() => {
+    if (filterBranch === '전체' || !LINE_BRANCHES[selectedLine]) {
+      return LINE_STATIONS[selectedLine] ?? [];
+    }
+    return getBranchStations(selectedLine, filterBranch);
+  });
 
   // 노선도 레이아웃 상수
   const SEGMENT_PX  = 76;  // 역과 역 사이 픽셀 간격
   const AVG_INTER_S = 90;  // 역 간 평균 이동 시간(초)
 
-  // 필터 적용된 열차 목록
+  // 계통 필터 적용
+  const branchTrains = $derived.by(() => {
+    if (filterBranch === '전체' || !LINE_BRANCHES[selectedLine]) return trainData;
+    const branch = LINE_BRANCHES[selectedLine].branches.find(b => b.id === filterBranch);
+    if (!branch) return trainData;
+    return trainData.filter(t => {
+      const dest = t.destination ?? '';
+      const matchesDest = branch.destKeywords.some(kw => dest.includes(kw));
+      // 목적지 정보가 없으면 현재 역이 해당 계통 구간에 있는지 확인
+      const branchStations = getBranchStations(selectedLine, filterBranch);
+      const trunkStations = LINE_STATIONS[selectedLine] ?? [];
+      const trunkEndIdx = trunkStations.indexOf(branch.trunkEnd ?? '');
+      const inBranchSection = trunkEndIdx !== -1 &&
+        trunkStations.indexOf(t.currentStation) > trunkEndIdx &&
+        branchStations.includes(t.currentStation);
+      return matchesDest || inBranchSection;
+    });
+  });
+
+  // 방향 + 계통 필터 적용된 열차 목록
   const filteredTrains = $derived(
     filterDir === '전체'
-      ? trainData
-      : trainData.filter(t => t.direction === filterDir)
+      ? branchTrains
+      : branchTrains.filter(t => t.direction === filterDir)
   );
 
   // 위치 기준 정렬 (상세 패널 prev/next용)
@@ -319,9 +378,10 @@
     }
   }
 
-  // 탭 전환 또는 노선 변경 시 재조회
+  // 탭 전환 또는 노선 변경 시 재조회 + 필터 초기화
   $effect(() => {
     const _line = selectedLine;
+    filterBranch = '전체';
     if (activeTab !== 'linemap') return;
     trainData = [];
     fetchLineTrains();
@@ -362,7 +422,7 @@
 </script>
 
 <!-- ── 헤더 ─────────────────────────────────────────────────────────── -->
-<header class="px-5 pt-12 pb-0 sticky top-0 z-40" style="background: #dbeafe; border-bottom: 1px solid #93c5fd;">
+<header class="px-5 pt-12 pb-0 sticky top-0 z-40" style="background: #ffffff; border-bottom: 1px solid #f3f4f6;">
   <div class="flex items-center justify-between pb-3">
     <div>
       <div class="flex items-center gap-1.5 mb-0.5">
@@ -379,27 +439,93 @@
         {activeTab === 'congestion' ? '실시간 혼잡도' : '실시간 노선도'}
       </h1>
     </div>
-    {#if activeTab === 'congestion'}
-      <button
-        onclick={() => { showSearch = !showSearch; }}
-        class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 active:bg-gray-200 transition-colors"
-      >
-        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 0z" />
-        </svg>
-      </button>
-    {:else}
-      <button
-        onclick={fetchLineTrains}
-        disabled={lineLoading}
-        class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 active:bg-gray-200 transition-colors disabled:opacity-40"
-      >
-        <svg class="w-5 h-5 text-gray-600 {lineLoading ? 'animate-spin' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-        </svg>
-      </button>
-    {/if}
+    <div class="flex items-center gap-2">
+      {#if $user}
+        <button
+          onclick={toggleNotifPanel}
+          class="w-10 h-10 flex items-center justify-center rounded-full bg-white/70 active:bg-white transition-colors relative"
+        >
+          <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+          </svg>
+          {#if $unreadCount > 0}
+            <span class="absolute top-1.5 right-1.5 w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+              {$unreadCount > 9 ? '9+' : $unreadCount}
+            </span>
+          {/if}
+        </button>
+      {/if}
+      {#if activeTab === 'congestion'}
+        <button
+          onclick={() => { showSearch = !showSearch; }}
+          class="w-10 h-10 flex items-center justify-center rounded-full bg-white/70 active:bg-white transition-colors"
+        >
+          <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 0z" />
+          </svg>
+        </button>
+      {:else}
+        <button
+          onclick={fetchLineTrains}
+          disabled={lineLoading}
+          class="w-10 h-10 flex items-center justify-center rounded-full bg-white/70 active:bg-white transition-colors disabled:opacity-40"
+        >
+          <svg class="w-5 h-5 text-gray-700 {lineLoading ? 'animate-spin' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+        </button>
+      {/if}
+    </div>
   </div>
+
+  <!-- 알림 패널 -->
+  {#if showNotifPanel}
+    <button onclick={() => showNotifPanel = false} class="fixed inset-0 z-40 bg-black/20" aria-label="닫기"></button>
+    <div class="fixed top-[86px] left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 px-3">
+      <div class="bg-white rounded-2xl shadow-xl overflow-hidden" style="max-height: 65vh;">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <span class="text-[15px] font-bold text-gray-900">알림</span>
+          <button onclick={() => showNotifPanel = false} class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 active:bg-gray-200">
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="overflow-y-auto" style="max-height: calc(65vh - 48px);">
+          {#if $notifications.length === 0}
+            <div class="flex flex-col items-center justify-center py-12 text-center">
+              <svg class="w-10 h-10 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+              </svg>
+              <p class="text-sm text-gray-400">새로운 알림이 없어요</p>
+            </div>
+          {:else}
+            {#each $notifications as notif}
+              <div class="px-4 py-3 border-b border-gray-50 last:border-0">
+                <div class="flex items-start gap-3">
+                  <div class="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-[13px] font-semibold text-gray-900">{notif.title ?? ''}</p>
+                    <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">{notif.body ?? ''}</p>
+                    {#if notif.createdAt}
+                      <p class="text-[10px] text-gray-300 mt-1">{formatNotifTime(notif.createdAt)}</p>
+                    {/if}
+                  </div>
+                </div>
+              </div>
+            {/each}
+          {/if}
+        </div>
+      </div>
+    </div>
+  {/if}
 
   <!-- 검색바 (혼잡도 탭) -->
   {#if showSearch && activeTab === 'congestion'}
@@ -546,6 +672,11 @@
                           {seg.lineName}
                         </span>
                         <span class="text-[11px] text-gray-400">{seg.stations.length - 1}개역</span>
+                        <button
+                          onclick={() => goToLineMap(seg.line, seg.stations[0])}
+                          class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full active:opacity-60 transition-opacity flex-shrink-0"
+                          style="background-color: {seg.lineColor}20; color: {seg.lineColor};"
+                        >지도 →</button>
                       </div>
                       <p class="text-[13px] font-semibold text-gray-800 mt-0.5">
                         {seg.stations[0]}{#if seg.stations.length > 2}<span class="text-gray-300"> ··· </span>{/if}{seg.stations.at(-1)}
@@ -771,6 +902,24 @@
     </div>
   </div>
 
+  <!-- 계통(분기) 필터 -->
+  {#if currentBranches.length > 0}
+    <div class="flex gap-1.5 px-4 pb-2 overflow-x-auto no-scrollbar">
+      <button
+        onclick={() => filterBranch = '전체'}
+        class="flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all"
+        style="background-color: {filterBranch === '전체' ? lineColor : '#F3F4F6'}; color: {filterBranch === '전체' ? '#fff' : '#6B7280'};"
+      >전체 계통</button>
+      {#each currentBranches as branch}
+        <button
+          onclick={() => filterBranch = branch.id}
+          class="flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all"
+          style="background-color: {filterBranch === branch.id ? lineColor : '#F3F4F6'}; color: {filterBranch === branch.id ? '#fff' : '#6B7280'};"
+        >{branch.label}</button>
+      {/each}
+    </div>
+  {/if}
+
   <!-- 방향 필터 + 업데이트 시각 -->
   <div class="flex items-center justify-between px-4 pb-3">
     <div class="flex gap-1.5">
@@ -852,6 +1001,12 @@
           <span class="text-xs font-semibold" style="color: {useMock ? '#D97706' : lineColor};">
             {filteredTrains.length}개 열차 {useMock ? '(시연)' : '운행 중'}
           </span>
+          {#if filterBranch !== '전체'}
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full text-white text-[10px]"
+                  style="background-color: {lineColor};">
+              {currentBranches.find(b => b.id === filterBranch)?.label}
+            </span>
+          {/if}
           {#if filterDir !== '전체'}
             <span class="text-xs text-gray-400">({filterDir})</span>
           {/if}
@@ -875,6 +1030,7 @@
         <!-- 역 점 + 이름 -->
         {#each stations as station, i}
           <div class="absolute flex items-center gap-3"
+               id="station-{station}"
                style="top: {i * SEGMENT_PX}px; left: 0; right: 0;">
             <!-- 역 원 -->
             <div class="w-12 flex justify-center flex-shrink-0">
