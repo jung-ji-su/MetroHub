@@ -1,9 +1,12 @@
 package com.metrohub.api.domain.community;
 
+import com.metrohub.api.domain.user.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -13,6 +16,7 @@ import java.util.List;
 public class CommunityController {
 
     private final CommunityService communityService;
+    private final UserMapper userMapper;
 
     @GetMapping("/line/{lineNumber}/posts")
     public ResponseEntity<List<CommunityDto.PostResponse>> getPostsByLine(
@@ -31,8 +35,8 @@ public class CommunityController {
     public ResponseEntity<CommunityDto.PostResponse> createPost(
             @AuthenticationPrincipal String email,
             @RequestBody CommunityDto.PostCreateRequest request) {
-        // TODO: email → userId 변환 (UserMapper 조회)
-        return ResponseEntity.ok(communityService.createPost(1L, request));
+        Long userId = resolveUserId(email);
+        return ResponseEntity.ok(communityService.createPost(userId, request));
     }
 
     @GetMapping("/posts/{postId}/comments")
@@ -45,7 +49,13 @@ public class CommunityController {
             @PathVariable Long postId,
             @AuthenticationPrincipal String email,
             @RequestBody CommunityDto.CommentCreateRequest request) {
-        // TODO: email → userId 변환 (UserMapper 조회)
-        return ResponseEntity.ok(communityService.createComment(postId, 1L, request));
+        Long userId = resolveUserId(email);
+        return ResponseEntity.ok(communityService.createComment(postId, userId, request));
+    }
+
+    private Long resolveUserId(String email) {
+        return userMapper.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED))
+                .getId();
     }
 }

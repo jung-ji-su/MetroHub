@@ -26,9 +26,16 @@ def fetch_realtime_arrivals(station_name: str) -> list[dict]:
 def parse_arrivals(raw: dict) -> list[dict]:
     """API 응답에서 열차 도착 정보 파싱"""
     try:
-        result_code = raw.get("errorMessage", {}).get("status", 0)
+        # 인증 오류 등 최상위 레벨 에러 형식: {"status": 500, "code": "...", "message": "..."}
+        if "code" in raw and "realtimeArrivalList" not in raw:
+            logger.warning("API 오류 응답: [%s] %s", raw.get("code"), raw.get("message"))
+            return []
+
+        # 정상 응답 형식: {"errorMessage": {"status": 200, ...}, "realtimeArrivalList": [...]}
+        error_message = raw.get("errorMessage", {}) or {}
+        result_code = error_message.get("status", 0)
         if result_code != 200:
-            logger.warning("API 오류 응답: %s", raw.get("errorMessage"))
+            logger.warning("API 오류 응답: [%s] %s", error_message.get("code"), error_message.get("message"))
             return []
 
         arrivals = raw.get("realtimeArrivalList", [])
