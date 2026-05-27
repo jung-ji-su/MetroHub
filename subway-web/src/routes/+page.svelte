@@ -387,6 +387,24 @@
     fetchLineTrains();
   });
 
+  // 노선도 탭 자동 새로고침 (30초, 필터 유지)
+  async function fetchLineTrainsQuiet() {
+    try {
+      const result = await api.lineTrains(selectedLine);
+      if (result.length > 0) {
+        trainData = result;
+        lastUpdated = new Date();
+        useMock = false;
+      }
+    } catch (_) {}
+  }
+
+  $effect(() => {
+    if (activeTab !== 'linemap') return;
+    const id = setInterval(fetchLineTrainsQuiet, 30_000);
+    return () => clearInterval(id);
+  });
+
   // SSE 혼잡도 업데이트 수신 → 해당 노선의 즐겨찾기 역 자동 갱신
   const STATION_LINE_MAP = (() => {
     const map = {};

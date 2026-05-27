@@ -56,6 +56,7 @@ public class CommunityDto {
     public static class CommentResponse {
         private Long id;
         private Long postId;
+        private Long authorId;
         private String content;
         private String authorNickname;
         private LocalDateTime createdAt;

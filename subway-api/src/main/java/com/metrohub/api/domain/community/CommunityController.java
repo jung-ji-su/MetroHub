@@ -53,6 +53,25 @@ public class CommunityController {
         return ResponseEntity.ok(communityService.createComment(postId, userId, request));
     }
 
+    @GetMapping("/posts/my")
+    public ResponseEntity<List<CommunityDto.PostResponse>> getMyPosts(
+            @AuthenticationPrincipal String email,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Long userId = resolveUserId(email);
+        return ResponseEntity.ok(communityService.getMyPosts(userId, page, size));
+    }
+
+    @DeleteMapping("/posts/{postId}/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal String email) {
+        Long userId = resolveUserId(email);
+        communityService.deleteComment(commentId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/posts/{postId}/like")
     public ResponseEntity<CommunityDto.LikeResponse> toggleLike(
             @PathVariable Long postId,

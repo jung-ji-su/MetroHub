@@ -23,6 +23,15 @@
         <result property="authorNickname" column="author_nickname"/>
     </resultMap>
 
+    <select id="findPostsByUserId" resultMap="PostResultMap">
+        SELECT p.*, u.nickname AS author_nickname
+        FROM community_posts p
+        LEFT JOIN users u ON p.user_id = u.id
+        WHERE p.user_id = #{userId}
+        ORDER BY p.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
     <select id="findPostsByLineNumber" resultMap="PostResultMap">
         SELECT p.*, u.nickname AS author_nickname
         FROM community_posts p

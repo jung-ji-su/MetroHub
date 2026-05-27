@@ -11,6 +11,9 @@ public interface CommunityMapper {
     List<CommunityPost> findPostsByLineNumber(@Param("lineNumber") String lineNumber,
                                               @Param("offset") int offset,
                                               @Param("limit") int limit);
+    List<CommunityPost> findPostsByUserId(@Param("userId") Long userId,
+                                          @Param("offset") int offset,
+                                          @Param("limit") int limit);
     Optional<CommunityPost> findPostById(@Param("id") Long id);
     void insertPost(CommunityPost post);
     void deletePost(@Param("id") Long id, @Param("userId") Long userId);

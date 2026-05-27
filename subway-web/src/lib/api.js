@@ -36,10 +36,12 @@ export const api = {
   getPosts:      (line, page = 0) => request('GET', `/api/community/line/${line}/posts?page=${page}&size=10`),
   getPost:       (id)             => request('GET', `/api/community/posts/${id}`),
   createPost:    (data, token)    => request('POST', '/api/community/posts', data, token),
-  getComments:   (postId)         => request('GET', `/api/community/posts/${postId}/comments`),
-  createComment: (postId, data, token) => request('POST', `/api/community/posts/${postId}/comments`, data, token),
-  toggleLike:   (postId, token)        => request('POST', `/api/community/posts/${postId}/like`, null, token),
-  getLikeStatus: (postId, token)       => request('GET',  `/api/community/posts/${postId}/like`, null, token),
+  getComments:   (postId)              => request('GET',    `/api/community/posts/${postId}/comments`),
+  createComment: (postId, data, token) => request('POST',   `/api/community/posts/${postId}/comments`, data, token),
+  deleteComment: (postId, commentId, token) => request('DELETE', `/api/community/posts/${postId}/comments/${commentId}`, null, token),
+  myPosts:       (token, page = 0)     => request('GET',    `/api/community/posts/my?page=${page}&size=20`, null, token),
+  toggleLike:    (postId, token)       => request('POST',   `/api/community/posts/${postId}/like`, null, token),
+  getLikeStatus: (postId, token)       => request('GET',    `/api/community/posts/${postId}/like`, null, token),
 
   // 민원
   createComplaint: (data, token)  => request('POST',   '/api/complaints', data, token),

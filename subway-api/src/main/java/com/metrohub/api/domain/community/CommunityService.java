@@ -94,6 +94,18 @@ public class CommunityService {
     }
 
     @Transactional(readOnly = true)
+    public List<CommunityDto.PostResponse> getMyPosts(Long userId, int page, int size) {
+        return communityMapper.findPostsByUserId(userId, page * size, size).stream()
+                .map(this::toPostResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteComment(Long commentId, Long userId) {
+        communityMapper.deleteComment(commentId, userId);
+    }
+
+    @Transactional(readOnly = true)
     public CommunityDto.LikeResponse getLikeStatus(Long postId, Long userId) {
         return CommunityDto.LikeResponse.builder()
                 .postId(postId)
@@ -119,6 +131,7 @@ public class CommunityService {
         return CommunityDto.CommentResponse.builder()
                 .id(c.getId())
                 .postId(c.getPostId())
+                .authorId(c.getUserId())
                 .content(c.getContent())
                 .authorNickname(c.getAuthorNickname())
                 .createdAt(c.getCreatedAt())

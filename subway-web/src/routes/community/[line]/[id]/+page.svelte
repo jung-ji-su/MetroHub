@@ -9,6 +9,10 @@
     '5': '#996CAC', '6': '#CD7C2F', '7': '#747F00', '8': '#E6186C',
     '9': '#BDB092', '신분당': '#D31145', '수인분당': '#F5A200',
     '경의중앙': '#77C4A3', '공항': '#0090D2',
+    '경춘': '#10934F', '인천1': '#7CA8D5', '인천2': '#ED8B00',
+    '의정부': '#FDA600', '김포골드': '#A17800', '에버': '#55A43F',
+    '경강': '#0054A6', '우이신설': '#B0CE18', '서해': '#81A914',
+    '신림': '#6789CA', 'gtx-a': '#9A60B3',
   };
 
   const line   = $derived($page.params.line);
@@ -63,6 +67,21 @@
       error = e.message;
     } finally {
       liking = false;
+    }
+  }
+
+  let deletingCommentId = $state(null);
+
+  async function deleteComment(commentId) {
+    if (!$token) return;
+    deletingCommentId = commentId;
+    try {
+      await api.deleteComment(postId, commentId, $token);
+      comments = comments.filter(c => c.id !== commentId);
+    } catch (e) {
+      error = e.message;
+    } finally {
+      deletingCommentId = null;
     }
   }
 
@@ -195,7 +214,28 @@
         <div class="space-y-2">
           {#each comments as comment}
             <div class="bg-white rounded-2xl shadow-sm p-4">
-              <p class="text-xs font-bold text-gray-700 mb-1.5">{comment.authorNickname}</p>
+              <div class="flex items-center justify-between mb-1.5">
+                <p class="text-xs font-bold text-gray-700">{comment.authorNickname}</p>
+                {#if $user && comment.authorId === $user.id}
+                  <button
+                    onclick={() => deleteComment(comment.id)}
+                    disabled={deletingCommentId === comment.id}
+                    class="w-6 h-6 flex items-center justify-center rounded-full text-gray-300 hover:bg-red-50 hover:text-red-400 active:bg-red-100 transition-colors disabled:opacity-40"
+                    aria-label="삭제"
+                  >
+                    {#if deletingCommentId === comment.id}
+                      <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                      </svg>
+                    {:else}
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    {/if}
+                  </button>
+                {/if}
+              </div>
               <p class="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{comment.content}</p>
               <p class="text-[11px] text-gray-400 mt-2">{formatDate(comment.createdAt)}</p>
             </div>
