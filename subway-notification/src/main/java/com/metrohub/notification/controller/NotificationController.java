@@ -2,12 +2,11 @@ package com.metrohub.notification.controller;
 
 import com.metrohub.notification.domain.NotificationDto;
 import com.metrohub.notification.service.NotificationService;
+import com.metrohub.notification.user.UserLookupMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -18,6 +17,7 @@ import java.util.Map;
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final UserLookupMapper userLookupMapper;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getNotifications(
@@ -33,6 +33,23 @@ public class NotificationController {
                 "total", total,
                 "page", page,
                 "size", size
+        ));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<Map<String, Object>> getMyNotifications(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication auth) {
+
+        Long userId = userLookupMapper.findIdByEmail(auth.getName());
+        List<NotificationDto.Response> items = notificationService.getByUser(userId, page, size);
+        long total = notificationService.countByUser(userId);
+
+        return ResponseEntity.ok(Map.of(
+                "items", items,
+                "total", total,
+                "page", page
         ));
     }
 }

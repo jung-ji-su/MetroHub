@@ -1,5 +1,8 @@
 server:
   port: 8081
+  servlet:
+    async:
+      timeout: 1800000
 
 spring:
   application:
@@ -35,6 +38,9 @@ mybatis:
   type-aliases-package: com.metrohub.notification.domain
   configuration:
     map-underscore-to-camel-case: true
+
+jwt:
+  secret: ${JWT_SECRET:bWV0cm9odWItc3VwZXItc2VjcmV0LWp3dC1zaWduaW5nLWtleS1mb3ItZGV2LW9ubHk=}
 
 logging:
   level:

@@ -20,14 +20,20 @@ public class NotificationService {
 
     @Transactional
     public void save(String type, String title, String body, Long referenceId) {
+        saveForUser(null, type, title, body, referenceId);
+    }
+
+    @Transactional
+    public void saveForUser(Long userId, String type, String title, String body, Long referenceId) {
         Notification notification = Notification.builder()
+                .userId(userId)
                 .type(type)
                 .title(title)
                 .body(body)
                 .referenceId(referenceId)
                 .build();
         notificationMapper.insert(notification);
-        log.info("알림 저장: type={}, title={}, referenceId={}", type, title, referenceId);
+        log.info("알림 저장: userId={}, type={}, title={}", userId, type, title);
     }
 
     @Transactional(readOnly = true)
@@ -46,9 +52,22 @@ public class NotificationService {
                 : notificationMapper.countAll();
     }
 
+    @Transactional(readOnly = true)
+    public List<NotificationDto.Response> getByUser(Long userId, int page, int size) {
+        int offset = page * size;
+        return notificationMapper.findByUserId(userId, offset, size)
+                .stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public long countByUser(Long userId) {
+        return notificationMapper.countByUserId(userId);
+    }
+
     private NotificationDto.Response toResponse(Notification n) {
         return NotificationDto.Response.builder()
                 .id(n.getId())
+                .userId(n.getUserId())
                 .type(n.getType())
                 .title(n.getTitle())
                 .body(n.getBody())

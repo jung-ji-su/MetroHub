@@ -4,8 +4,16 @@
   import { token, user } from '$lib/stores';
   import { goto } from '$app/navigation';
 
+  const LINE_COLORS = {
+    '1': '#0052A4', '2': '#00A84D', '3': '#EF7C1C', '4': '#00A5DE',
+    '5': '#996CAC', '6': '#CD7C2F', '7': '#747F00', '8': '#E6186C',
+    '9': '#BDB092', '신분당': '#D31145', '수인분당': '#F5A200',
+    '경의중앙': '#77C4A3', '공항': '#0090D2',
+  };
+
   const line   = $derived($page.params.line);
   const postId = $derived($page.params.id);
+  const lineColor = $derived(LINE_COLORS[line] ?? '#6B7280');
 
   let post     = $state(null);
   let comments = $state([]);
@@ -46,63 +54,109 @@
   }
 
   function formatDate(dt) {
-    return new Date(dt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return new Date(dt).toLocaleDateString('ko-KR', {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
   }
 </script>
 
-<div class="max-w-3xl mx-auto px-4 py-8">
-  <a href="/community/{line}" class="text-sm text-gray-400 hover:text-blue-500">← {line}호선 게시판</a>
+<!-- 헤더 -->
+<header class="px-5 pt-12 pb-4 sticky top-0 z-40" style="background: #dbeafe; border-bottom: 1px solid #93c5fd;">
+  <div class="flex items-center gap-3">
+    <a href="/community/{line}" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 active:bg-gray-200 transition-colors flex-shrink-0">
+      <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+      </svg>
+    </a>
+    <div class="flex items-center gap-2">
+      <div class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: {lineColor};"></div>
+      <h1 class="text-[17px] font-bold text-gray-900 truncate">
+        {line.length <= 2 && !isNaN(line) ? `${line}호선` : `${line}선`} 게시판
+      </h1>
+    </div>
+  </div>
+</header>
 
+<div class="px-4 pt-4 pb-4">
   {#if error}
-    <div class="bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3 mt-4 text-sm">{error}</div>
+    <div class="bg-red-50 rounded-2xl px-4 py-3 text-sm text-red-500 mb-4">{error}</div>
   {/if}
 
   {#if loading}
-    <div class="text-center py-12 text-gray-400">불러오는 중...</div>
-  {:else if post}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-4">
-      <div class="flex items-center gap-2 mb-2">
-        {#if post.alert}
-          <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">알림</span>
-        {/if}
-        <h1 class="text-xl font-bold text-gray-800">{post.title}</h1>
-      </div>
-      <p class="text-sm text-gray-400 mb-4">{post.authorNickname} · {formatDate(post.createdAt)}</p>
-      <div class="text-gray-700 whitespace-pre-wrap leading-relaxed border-t border-gray-100 pt-4">
-        {post.content}
+    <div class="bg-white rounded-2xl shadow-sm p-5 mb-4">
+      <div class="h-5 bg-gray-100 rounded-lg w-2/3 mb-4 animate-pulse"></div>
+      <div class="h-3 bg-gray-100 rounded-lg w-1/3 mb-6 animate-pulse"></div>
+      <div class="space-y-2">
+        <div class="h-3 bg-gray-100 rounded-lg animate-pulse"></div>
+        <div class="h-3 bg-gray-100 rounded-lg w-5/6 animate-pulse"></div>
+        <div class="h-3 bg-gray-100 rounded-lg w-4/6 animate-pulse"></div>
       </div>
     </div>
 
-    <!-- 댓글 -->
-    <div class="mt-6">
-      <h2 class="font-semibold text-gray-700 mb-3">댓글 {comments.length}개</h2>
+  {:else if post}
+    <!-- 게시글 본문 -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden mb-4"
+         style="border-left: 4px solid {lineColor};">
+      <div class="p-5">
+        <div class="flex items-start gap-2 mb-2">
+          {#if post.alert}
+            <span class="flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded-full text-white" style="background-color: {lineColor};">공지</span>
+          {/if}
+          <h1 class="text-[18px] font-bold text-gray-900 leading-snug">{post.title}</h1>
+        </div>
+        <p class="text-xs text-gray-400 mb-4">{post.authorNickname} · {formatDate(post.createdAt)}</p>
+        <div class="text-[15px] text-gray-700 whitespace-pre-wrap leading-relaxed border-t border-gray-100 pt-4">
+          {post.content}
+        </div>
+      </div>
+    </div>
+
+    <!-- 댓글 섹션 -->
+    <div class="mb-4">
+      <p class="text-sm font-bold text-gray-900 px-1 mb-3">댓글 {comments.length}개</p>
 
       {#if $user}
-        <div class="bg-white rounded-xl border border-gray-200 p-3 mb-4">
-          <textarea bind:value={commentContent} placeholder="댓글을 입력하세요" rows="2"
-            class="w-full resize-none focus:outline-none text-sm text-gray-700"></textarea>
-          <div class="flex justify-end mt-2">
-            <button onclick={submitComment} disabled={submitting || !commentContent.trim()}
-              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-sm disabled:opacity-50">
-              {submitting ? '등록 중...' : '댓글 등록'}
-            </button>
-          </div>
+        <div class="bg-white rounded-2xl shadow-sm p-3 mb-3 flex gap-2">
+          <input
+            bind:value={commentContent}
+            placeholder="댓글을 입력하세요"
+            onkeydown={(e) => e.key === 'Enter' && !e.shiftKey && submitComment()}
+            class="flex-1 bg-gray-100 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
+          />
+          <button
+            onclick={submitComment}
+            disabled={submitting || !commentContent.trim()}
+            class="text-white text-sm font-semibold px-4 rounded-xl disabled:opacity-40 active:opacity-80 transition-opacity flex-shrink-0"
+            style="background-color: {lineColor};"
+          >
+            {submitting ? '...' : '등록'}
+          </button>
         </div>
       {:else}
-        <a href="/auth/login" class="block text-center text-sm text-blue-600 bg-blue-50 rounded-lg py-3 mb-4 hover:bg-blue-100">
+        <a
+          href="/auth/login"
+          class="block text-center text-sm font-semibold py-3.5 rounded-2xl mb-3"
+          style="background-color: {lineColor}15; color: {lineColor};"
+        >
           로그인 후 댓글을 작성할 수 있습니다
         </a>
       {/if}
 
-      <div class="space-y-3">
-        {#each comments as comment}
-          <div class="bg-white rounded-xl border border-gray-100 p-4">
-            <p class="text-sm font-medium text-gray-700 mb-1">{comment.authorNickname}</p>
-            <p class="text-sm text-gray-600 whitespace-pre-wrap">{comment.content}</p>
-            <p class="text-xs text-gray-400 mt-1">{formatDate(comment.createdAt)}</p>
-          </div>
-        {/each}
-      </div>
+      {#if comments.length === 0}
+        <p class="text-sm text-gray-400 text-center py-6">아직 댓글이 없어요</p>
+      {:else}
+        <div class="space-y-2">
+          {#each comments as comment}
+            <div class="bg-white rounded-2xl shadow-sm p-4">
+              <p class="text-xs font-bold text-gray-700 mb-1.5">{comment.authorNickname}</p>
+              <p class="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{comment.content}</p>
+              <p class="text-[11px] text-gray-400 mt-2">{formatDate(comment.createdAt)}</p>
+            </div>
+          {/each}
+        </div>
+      {/if}
     </div>
   {/if}
 </div>

@@ -64,12 +64,34 @@ CREATE TABLE IF NOT EXISTS complaint_history (
 
 CREATE TABLE IF NOT EXISTS notifications (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id      BIGINT       NULL,
     type         VARCHAR(50)  NOT NULL,
     title        VARCHAR(255) NOT NULL,
     body         TEXT         NOT NULL,
     reference_id BIGINT,
     is_read      TINYINT(1)   NOT NULL DEFAULT 0,
     created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user_id (user_id),
     INDEX idx_type (type),
     INDEX idx_created_at (created_at)
+);
+
+CREATE TABLE IF NOT EXISTS notification_subscriptions (
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id    BIGINT      NOT NULL,
+    sub_type   VARCHAR(20) NOT NULL COMMENT 'LINE or STATION',
+    sub_value  VARCHAR(50) NOT NULL COMMENT '노선코드 or 역명',
+    created_at DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_user_sub (user_id, sub_type, sub_value),
+    INDEX idx_sub_type_value (sub_type, sub_value)
+);
+
+CREATE TABLE IF NOT EXISTS congestion_hourly (
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    station_name   VARCHAR(100)   NOT NULL,
+    hour_of_day    TINYINT        NOT NULL COMMENT '0-23',
+    avg_congestion DECIMAL(5, 2)  NOT NULL DEFAULT 0,
+    sample_count   INT            NOT NULL DEFAULT 0,
+    updated_at     DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_station_hour (station_name, hour_of_day)
 );

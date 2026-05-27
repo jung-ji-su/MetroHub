@@ -45,6 +45,9 @@ services:
         kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --topic subway-realtime --partitions 1 --replication-factor 1 &&
         kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --topic community-events --partitions 1 --replication-factor 1 &&
         kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --topic complaint-events --partitions 1 --replication-factor 1 &&
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --topic subway.congestion.updated --partitions 1 --replication-factor 1 &&
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --topic subway.line.alert --partitions 1 --replication-factor 1 &&
+        kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --topic subway.trending.updated --partitions 1 --replication-factor 1 &&
         echo 'Topics created successfully'
       "
     restart: "no"

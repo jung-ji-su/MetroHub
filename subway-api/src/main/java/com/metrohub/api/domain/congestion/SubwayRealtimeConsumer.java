@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalTime;
 import java.util.Map;
 
 @Slf4j
@@ -14,6 +15,7 @@ import java.util.Map;
 public class SubwayRealtimeConsumer {
 
     private final CongestionService congestionService;
+    private final CongestionHourlyMapper congestionHourlyMapper;
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "subway-realtime", groupId = "subway-api-group")
@@ -48,6 +50,13 @@ public class SubwayRealtimeConsumer {
                     .build();
 
             congestionService.upsertCongestion(congestion);
+
+            // 시간대별 혼잡도 누적 (데이터 있을 때만)
+            if (congestionLevel != null) {
+                int hour = LocalTime.now().getHour();
+                congestionHourlyMapper.upsert(stationName, hour, congestionLevel);
+            }
+
             log.debug("혼잡도 업데이트 완료: station={}, line={}, level={}", stationName, lineNumber, congestionLevel);
 
         } catch (Exception e) {

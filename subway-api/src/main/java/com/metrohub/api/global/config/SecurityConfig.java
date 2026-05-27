@@ -34,6 +34,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/users/register", "/api/users/login").permitAll()
                 .requestMatchers("/api/congestion/**").permitAll()
+                .requestMatchers("/api/line/**").permitAll()
+                .requestMatchers("/api/sse/**").permitAll()
+                .requestMatchers("/api/trending").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/community/**").permitAll()
                 .anyRequest().authenticated()
             )

@@ -12,4 +12,5 @@ public interface ComplaintMapper {
     Optional<Complaint> findById(@Param("id") Long id);
     List<Complaint> findByUserId(@Param("userId") Long userId);
     void updateStatus(@Param("id") Long id, @Param("status") String status);
+    void deleteByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 }

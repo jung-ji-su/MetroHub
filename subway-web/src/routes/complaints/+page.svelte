@@ -2,83 +2,264 @@
   import { api } from '$lib/api';
   import { token, user } from '$lib/stores';
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
+  import { LINE_META } from '$lib/lineStations';
+  import StationSearch from '$lib/StationSearch.svelte';
+
+  // URL 파라미터에서 열차 정보 파싱 (노선도에서 넘어온 경우)
+  const trainNo      = $page.url.searchParams.get('trainNo') ?? '';
+  const lineCode     = $page.url.searchParams.get('lineCode') ?? '';
+  const lineName     = decodeURIComponent($page.url.searchParams.get('lineName') ?? '');
+  const trainStation = decodeURIComponent($page.url.searchParams.get('station') ?? '');
+  const direction    = decodeURIComponent($page.url.searchParams.get('direction') ?? '');
+  const destination  = decodeURIComponent($page.url.searchParams.get('destination') ?? '');
+  const hasTrainInfo = !!trainNo;
+  const lineColor    = LINE_META[lineCode]?.color ?? '#2563EB';
 
   let category    = $state('');
-  let stationName = $state('');
+  let stationName = $state(trainStation);
   let content     = $state('');
   let error       = $state('');
-  let success     = $state('');
+  let success     = $state(false);
+  let smsSent     = $state(false);
   let loading     = $state(false);
 
-  const CATEGORIES = ['시설 파손', '청결 불량', '안전 위협', '직원 불친절', '운행 지연', '기타'];
-  const STATIONS   = ['서울역', '강남', '홍대입구', '잠실', '신촌', '건대입구', '사당', '신림', '수원', '인천'];
+  const CATEGORIES = [
+    {
+      id: '냉난방',
+      label: '♨️ 냉난방',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z" />`,
+    },
+    {
+      id: '청결 불량',
+      label: '🧹 청결',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15M14.25 3.104c.251.023.501.05.75.082M19.8 15a2.25 2.25 0 01.169 2.603L20.04 18a2.25 2.25 0 01-2.121 1.5H6.08a2.25 2.25 0 01-2.12-1.5l-.044-.397A2.25 2.25 0 014.084 15m15.716 0h-15.716" />`,
+    },
+    {
+      id: '시설 파손',
+      label: '⚠️ 시설파손',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />`,
+    },
+    {
+      id: '안전 위협',
+      label: '🚨 안전위협',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />`,
+    },
+    {
+      id: '직원 불친절',
+      label: '😠 직원불친절',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />`,
+    },
+    {
+      id: '운행 지연',
+      label: '🚆 운행지연',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />`,
+    },
+    {
+      id: '의료/응급',
+      label: '🆘 의료/응급',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />`,
+    },
+    {
+      id: '기타',
+      label: '🤔 기타',
+      icon: `<path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`,
+    },
+  ];
 
-  async function submit() {
-    if (!$token) { goto('/auth/login'); return; }
-    error = ''; success = ''; loading = true;
+  function buildSmsBody() {
+    const lines = ['[MetroHub 민원]'];
+    if (hasTrainInfo) {
+      lines.push(`노선: ${lineName}`);
+      lines.push(`열차번호: ${trainNo}`);
+      lines.push(`위치: ${trainStation}역 ${direction}`);
+    }
+    lines.push(`역: ${stationName}`);
+    lines.push(`유형: ${category}`);
+    lines.push(`내용: ${content}`);
+    return lines.join('\n');
+  }
+
+  async function doSubmit() {
+    if (!$token) { goto('/auth/login'); return false; }
+    error = ''; loading = true;
     try {
       await api.createComplaint({ category, stationName, content }, $token);
-      success = '민원이 접수되었습니다. 내 민원 목록에서 진행상황을 확인할 수 있습니다.';
-      category = ''; stationName = ''; content = '';
+      return true;
     } catch (e) {
       error = e.message;
+      return false;
     } finally {
       loading = false;
     }
   }
+
+  function resetForm() {
+    category = ''; stationName = trainStation; content = '';
+  }
+
+  async function submitApp() {
+    const ok = await doSubmit();
+    if (ok) { smsSent = false; success = true; resetForm(); }
+  }
+
+  async function submitWithSms() {
+    const smsBody = buildSmsBody(); // 폼 초기화 전에 미리 저장
+    const ok = await doSubmit();
+    if (ok) {
+      smsSent = true; success = true; resetForm();
+      // 앱 전환 후 SMS 앱 열기 (120 = 다산콜센터)
+      setTimeout(() => {
+        window.location.href = `sms:120?body=${encodeURIComponent(smsBody)}`;
+      }, 200);
+    }
+  }
+
+  const canSubmit = $derived(!!category && !!stationName.trim() && !!content.trim() && !loading);
 </script>
 
-<div class="max-w-2xl mx-auto px-4 py-8">
-  <div class="mb-6 flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-gray-800">민원 접수</h1>
-    <a href="/complaints/my" class="text-sm text-blue-600 hover:underline">내 민원 목록 →</a>
+<!-- 헤더 -->
+<header class="px-5 pt-12 pb-4 sticky top-0 z-40" style="background: #dbeafe; border-bottom: 1px solid #93c5fd;">
+  <div class="flex items-center justify-between">
+    <div>
+      <p class="text-xs text-gray-400 font-medium tracking-wide">METROHUB</p>
+      <h1 class="text-xl font-bold text-gray-900 leading-tight">민원 접수</h1>
+    </div>
+    <a
+      href="/complaints/my"
+      class="text-xs font-semibold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full active:opacity-70"
+    >내 민원</a>
   </div>
+</header>
+
+<div class="px-4 pt-5 pb-6 space-y-6">
 
   {#if !$user}
-    <div class="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-4 text-center">
-      <p class="text-yellow-700 mb-2">민원 접수는 로그인 후 이용할 수 있습니다.</p>
-      <a href="/auth/login" class="text-blue-600 font-medium hover:underline">로그인하기</a>
+    <div class="flex flex-col items-center justify-center pt-12 pb-8 text-center">
+      <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+        <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+        </svg>
+      </div>
+      <p class="text-gray-700 font-semibold mb-1">로그인이 필요해요</p>
+      <p class="text-sm text-gray-400 mb-5">민원 접수는 로그인 후 이용할 수 있습니다</p>
+      <a href="/auth/login" class="bg-blue-600 text-white text-sm font-bold px-8 py-3 rounded-2xl active:bg-blue-700 transition-colors">
+        로그인하기
+      </a>
     </div>
+
+  {:else if success}
+    <div class="flex flex-col items-center justify-center pt-12 pb-8 text-center">
+      <div class="w-16 h-16 rounded-full flex items-center justify-center mb-4
+                  {smsSent ? 'bg-orange-50' : 'bg-green-50'}">
+        <svg class="w-8 h-8 {smsSent ? 'text-orange-500' : 'text-green-500'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+        </svg>
+      </div>
+      <p class="text-gray-900 font-bold text-lg mb-1">민원이 접수되었습니다</p>
+      <p class="text-sm text-gray-400 mb-6">
+        {#if smsSent}앱 접수 완료. 문자 전송 화면이 열렸어요.{:else}내 민원 목록에서 진행상황을 확인할 수 있어요{/if}
+      </p>
+      <div class="flex gap-3">
+        <a href="/complaints/my" class="bg-blue-600 text-white text-sm font-bold px-6 py-3 rounded-2xl active:bg-blue-700 transition-colors">
+          내 민원 보기
+        </a>
+        <button
+          onclick={() => { success = false; smsSent = false; }}
+          class="bg-gray-100 text-gray-700 text-sm font-bold px-6 py-3 rounded-2xl active:bg-gray-200 transition-colors"
+        >
+          추가 접수
+        </button>
+      </div>
+    </div>
+
   {:else}
-    {#if success}
-      <div class="bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 mb-4 text-sm">{success}</div>
-    {/if}
     {#if error}
-      <div class="bg-red-50 border border-red-200 text-red-600 rounded-lg px-4 py-3 mb-4 text-sm">{error}</div>
+      <div class="bg-red-50 rounded-2xl px-4 py-3 text-sm text-red-500">{error}</div>
     {/if}
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1.5">민원 유형</label>
-        <select bind:value={category} class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-          <option value="">선택하세요</option>
-          {#each CATEGORIES as cat}
-            <option value={cat}>{cat}</option>
-          {/each}
-        </select>
+    <!-- 열차 정보 카드 (노선도에서 넘어온 경우) -->
+    {#if hasTrainInfo}
+      <div class="rounded-2xl px-4 py-3.5" style="background: #fff7ed; border: 1.5px solid #fed7aa;">
+        <div class="flex items-center gap-2 mb-1.5">
+          <span class="text-xs font-bold px-2.5 py-0.5 rounded-full text-white" style="background: {lineColor};">
+            {lineName}
+          </span>
+          <span class="text-sm font-bold text-gray-800">{destination || direction}</span>
+        </div>
+        <div class="flex items-center gap-3 text-xs text-gray-500">
+          <span>🚉 {trainStation}역</span>
+          <span>🚇 {trainNo}</span>
+          {#if direction}<span>→ {direction}</span>{/if}
+        </div>
       </div>
+    {/if}
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1.5">해당 역</label>
-        <select bind:value={stationName} class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-          <option value="">선택하세요</option>
-          {#each STATIONS as s}
-            <option value={s}>{s}</option>
-          {/each}
-        </select>
+    <!-- 민원 유형 선택 -->
+    <section>
+      <h2 class="text-[15px] font-bold text-gray-900 mb-3">
+        민원 유형
+        {#if category}<span class="text-blue-600 font-semibold ml-1">✓</span>{/if}
+      </h2>
+      <div class="grid grid-cols-4 gap-2">
+        {#each CATEGORIES as cat}
+          {@const selected = category === cat.id}
+          <button
+            onclick={() => category = selected ? '' : cat.id}
+            class="flex flex-col items-center justify-center py-4 rounded-2xl transition-all active:scale-95"
+            style="background-color: {selected ? '#EFF6FF' : '#F9FAFB'}; border: 2px solid {selected ? '#3B82F6' : 'transparent'};"
+          >
+            <svg class="w-6 h-6 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"
+                 style="color: {selected ? '#2563EB' : '#9CA3AF'};">
+              {@html cat.icon}
+            </svg>
+            <span class="text-[10px] font-semibold leading-tight text-center"
+                  style="color: {selected ? '#2563EB' : '#6B7280'};">{cat.label}</span>
+          </button>
+        {/each}
       </div>
+    </section>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1.5">내용</label>
-        <textarea bind:value={content} rows="5" placeholder="민원 내용을 상세하게 입력해주세요"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm">
-        </textarea>
-      </div>
+    <!-- 해당 역 -->
+    <section>
+      <h2 class="text-[15px] font-bold text-gray-900 mb-3">🚉 해당 역</h2>
+      <StationSearch bind:value={stationName} placeholder="역 이름 입력 (예: 강남)" />
+    </section>
 
-      <button onclick={submit} disabled={loading || !category || !stationName || !content}
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50">
-        {loading ? '접수 중...' : '민원 접수하기'}
+    <!-- 내용 -->
+    <section>
+      <h2 class="text-[15px] font-bold text-gray-900 mb-3">상세 내용</h2>
+      <textarea
+        bind:value={content}
+        placeholder="불편사항을 자세하게 입력해주세요"
+        rows="5"
+        class="w-full bg-gray-100 rounded-2xl px-4 py-4 text-[15px] text-gray-900 placeholder-gray-400
+               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors resize-none"
+      ></textarea>
+    </section>
+
+    <!-- 제출 버튼 -->
+    <div class="flex gap-3">
+      <button
+        onclick={submitApp}
+        disabled={!canSubmit}
+        class="flex-1 bg-blue-600 text-white text-[14px] font-bold py-4 rounded-2xl
+               disabled:opacity-40 active:bg-blue-700 transition-colors">
+        {loading ? '접수 중...' : '앱 내 접수'}
+      </button>
+      <button
+        onclick={submitWithSms}
+        disabled={!canSubmit}
+        class="flex-1 text-[14px] font-bold py-4 rounded-2xl transition-colors
+               disabled:opacity-40 active:opacity-80"
+        style="background: #fff7ed; color: #ea580c; border: 1.5px solid #fed7aa;">
+        {loading ? '접수 중...' : '앱 + 문자 전송'}
       </button>
     </div>
+
+    <!-- SMS 안내 -->
+    <p class="text-[11px] text-gray-400 text-center -mt-3">
+      '앱 + 문자'는 다산콜센터(120)로 문자 앱을 열어드려요. 내용 확인 후 직접 전송하시면 됩니다.
+    </p>
   {/if}
 </div>

@@ -12,6 +12,7 @@ import java.util.List;
 public class CongestionController {
 
     private final CongestionService congestionService;
+    private final CongestionHourlyMapper congestionHourlyMapper;
 
     @GetMapping("/station/{stationName}")
     public ResponseEntity<List<CongestionDto.Response>> getByStation(@PathVariable String stationName) {
@@ -21,5 +22,10 @@ public class CongestionController {
     @GetMapping("/line/{lineNumber}")
     public ResponseEntity<List<CongestionDto.Response>> getByLine(@PathVariable String lineNumber) {
         return ResponseEntity.ok(congestionService.getCongestionByLine(lineNumber));
+    }
+
+    @GetMapping("/station/{stationName}/hourly")
+    public ResponseEntity<List<CongestionHourlyDto>> getHourly(@PathVariable String stationName) {
+        return ResponseEntity.ok(congestionHourlyMapper.findByStation(stationName));
     }
 }

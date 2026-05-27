@@ -53,5 +53,13 @@ class SubwayKafkaProducer:
         except Exception as e:
             logger.error("Kafka flush 실패: %s", e)
 
+    def publish_event(self, topic: str, key: str, value: dict) -> None:
+        """지정 토픽에 단건 이벤트 발행"""
+        try:
+            self._producer.send(topic, key=key, value=value)
+            self._producer.flush(timeout=5)
+        except Exception as e:
+            logger.error("이벤트 발행 실패 (topic=%s, key=%s): %s", topic, key, e)
+
     def close(self) -> None:
         self._producer.close()

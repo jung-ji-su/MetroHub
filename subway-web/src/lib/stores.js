@@ -46,7 +46,36 @@ function createFavoritesStore() {
   };
 }
 
+function createRoutesStore() {
+  const initial = browser ? JSON.parse(localStorage.getItem('metrohub_routes') || '[]') : [];
+  const { subscribe, update, set } = writable(initial);
+
+  function save(list) {
+    if (browser) localStorage.setItem('metrohub_routes', JSON.stringify(list));
+  }
+
+  return {
+    subscribe,
+    add(from, to) {
+      update(list => {
+        const id = Date.now();
+        const next = [...list, { id, from, to }];
+        save(next);
+        return next;
+      });
+    },
+    remove(id) {
+      update(list => {
+        const next = list.filter(r => r.id !== id);
+        save(next);
+        return next;
+      });
+    },
+  };
+}
+
 export const auth      = createAuthStore();
 export const token     = derived(auth, ($auth) => $auth?.token ?? null);
 export const user      = derived(auth, ($auth) => $auth ? { email: $auth.email, nickname: $auth.nickname } : null);
 export const favorites = createFavoritesStore();
+export const routes    = createRoutesStore();

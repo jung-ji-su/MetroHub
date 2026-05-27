@@ -38,6 +38,15 @@ public class ComplaintController {
         return ResponseEntity.ok(complaintService.getComplaint(id));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteComplaint(
+            @PathVariable Long id,
+            @AuthenticationPrincipal String email) {
+        Long userId = resolveUserId(email);
+        complaintService.deleteComplaint(userId, id);
+        return ResponseEntity.noContent().build();
+    }
+
     private Long resolveUserId(String email) {
         return userMapper.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED))

@@ -45,6 +45,11 @@ public class ComplaintService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void deleteComplaint(Long userId, Long id) {
+        complaintMapper.deleteByIdAndUserId(id, userId);
+    }
+
     @Transactional(readOnly = true)
     public ComplaintDto.Response getComplaint(Long id) {
         return complaintMapper.findById(id)

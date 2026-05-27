@@ -11,6 +11,7 @@ public class NotificationDto {
     @Builder
     public static class Response {
         private Long id;
+        private Long userId;
         private String type;
         private String title;
         private String body;

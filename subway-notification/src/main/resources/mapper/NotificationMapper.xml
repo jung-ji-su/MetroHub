@@ -6,6 +6,7 @@
 
     <resultMap id="notificationResultMap" type="com.metrohub.notification.domain.Notification">
         <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
         <result property="type" column="type"/>
         <result property="title" column="title"/>
         <result property="body" column="body"/>
@@ -15,8 +16,8 @@
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO notifications (type, title, body, reference_id)
-        VALUES (#{type}, #{title}, #{body}, #{referenceId})
+        INSERT INTO notifications (user_id, type, title, body, reference_id)
+        VALUES (#{userId}, #{type}, #{title}, #{body}, #{referenceId})
     </insert>
 
     <select id="findAll" resultMap="notificationResultMap">
@@ -40,6 +41,18 @@
 
     <select id="countByType" resultType="int">
         SELECT COUNT(*) FROM notifications WHERE type = #{type}
+    </select>
+
+    <select id="findByUserId" resultMap="notificationResultMap">
+        SELECT id, user_id, type, title, body, reference_id, is_read, created_at
+        FROM notifications
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*) FROM notifications WHERE user_id = #{userId}
     </select>
 
 </mapper>

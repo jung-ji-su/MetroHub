@@ -1,5 +1,8 @@
 server:
   port: 8080
+  servlet:
+    async:
+      timeout: 1800000  # SSE 30분
 
 spring:
   application:

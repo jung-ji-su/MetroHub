@@ -30,4 +30,8 @@
         UPDATE complaints SET status = #{status} WHERE id = #{id}
     </update>
 
+    <delete id="deleteByIdAndUserId">
+        DELETE FROM complaints WHERE id = #{id} AND user_id = #{userId}
+    </delete>
+
 </mapper>

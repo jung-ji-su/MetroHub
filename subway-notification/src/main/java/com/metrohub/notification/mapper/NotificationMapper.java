@@ -17,7 +17,13 @@ public interface NotificationMapper {
                                   @Param("offset") int offset,
                                   @Param("size") int size);
 
+    List<Notification> findByUserId(@Param("userId") Long userId,
+                                    @Param("offset") int offset,
+                                    @Param("size") int size);
+
     int countAll();
 
     int countByType(@Param("type") String type);
+
+    int countByUserId(@Param("userId") Long userId);
 }
