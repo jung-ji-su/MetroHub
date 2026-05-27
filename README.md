@@ -1,17 +1,22 @@
-# MetroHub - 지하철 통합 플랫폼
+# MetroHub 🚇
 
-지하철 실시간 혼잡도 조회, 호선별 커뮤니티, 민원 신청 기능을 제공하는 마이크로서비스 플랫폼입니다.
+**서울 지하철 실시간 통합 플랫폼** — 혼잡도 조회, 실시간 노선도, 경로 탐색, 알림, 커뮤니티, 민원 접수를 하나의 모바일 웹앱에서.
 
-## 기술 스택
+---
 
-| 서비스 | 기술 |
-|--------|------|
-| subway-collector | Python 3.11, kafka-python, schedule |
-| subway-api | Java 17, Spring Boot 3.2, MyBatis, MySQL, Spring Security, JWT |
-| subway-notification | Java 17, Spring Boot 3.2, Spring Kafka |
-| 인프라 | Apache Kafka, Zookeeper, MySQL 8 |
-| CI/CD | GitHub Actions |
-| 배포 | Docker, Docker Compose |
+## 주요 기능
+
+| 기능 | 설명 |
+|------|------|
+| 🔴 **실시간 혼잡도** | 역별·호선별 혼잡도 실시간 조회 및 시간대별 바차트 |
+| 🚃 **실시간 노선도** | 열차 위치 추적 + 상행/하행 방향 애니메이션 + 상세 패널 |
+| 🗺️ **경로 탐색** | 0-1 BFS 최소환승 알고리즘으로 최적 경로 시각화 |
+| 🔔 **실시간 알림** | SSE 기반 푸시 알림 + 호선별 알림 구독 설정 |
+| 💬 **커뮤니티** | 호선별 게시판 + 댓글 |
+| 📋 **민원 접수** | 역·열차 기반 민원 등록 및 처리 현황 조회 |
+| 🏆 **트렌딩** | 실시간 조회 급상승 역 위젯 |
+
+---
 
 ## 아키텍처
 
@@ -19,120 +24,166 @@
 [서울 열린데이터 API]
         │
         ▼
-[subway-collector] ──(subway-realtime)──▶ [Kafka]
-                                              │
-                         ┌────────────────────┼────────────────────┐
-                         ▼                    ▼                    ▼
-                   [subway-api]      [community-events]   [complaint-events]
-                   (REST API)               │                      │
-                   MySQL ◀──┘         [subway-notification] ◀──────┘
+[subway-collector]  ──(subway-realtime)──────────────────────────────────┐
+        │                                                                 │
+        └──(subway.congestion.updated / subway.line.alert)──► [Kafka]    │
+                                                                  │       │
+                              ┌───────────────────────────────────┤       │
+                              ▼                                   ▼       ▼
+                        [subway-api]                  [subway-notification]
+                        Spring Boot :8080             Spring Boot :8081
+                        JWT Auth                      JWT Auth (SSE)
+                        MySQL                         MySQL
+                        SSE (공개 이벤트)              SSE (사용자별 알림)
+                              │
+                              ▼
+                        [subway-web]
+                        SvelteKit 5 (Svelte runes)
+                        Tailwind CSS
 ```
 
-## 주요 API
+### 서비스별 역할
 
-### 인증
-- `POST /api/users/register` - 회원가입
-- `POST /api/users/login` - 로그인 (JWT 토큰 발급)
-- `GET  /api/users/me` - 내 프로필
+| 서비스 | 역할 | 포트 |
+|--------|------|------|
+| **subway-collector** | Python 스케줄러, 서울 API 폴링 → Kafka 이벤트 발행 | — |
+| **subway-api** | 메인 REST API, JWT 인증, 혼잡도·커뮤니티·민원·노선도 | 8080 |
+| **subway-notification** | 알림 구독 관리, Kafka 수신 → 사용자별 SSE push | 8081 |
+| **subway-web** | SvelteKit 5 모바일 웹앱 (토스/카카오T 스타일 UI) | 5173 |
 
-### 혼잡도
-- `GET /api/congestion/station/{stationName}` - 역별 혼잡도
-- `GET /api/congestion/line/{lineNumber}` - 호선별 혼잡도
+---
 
-### 커뮤니티
-- `GET  /api/community/line/{lineNumber}/posts` - 호선별 게시글 목록
-- `POST /api/community/posts` - 게시글 작성
-- `GET  /api/community/posts/{postId}/comments` - 댓글 목록
-- `POST /api/community/posts/{postId}/comments` - 댓글 작성
+## 기술 스택
 
-### 민원
-- `POST /api/complaints` - 민원 접수
-- `GET  /api/complaints/my` - 내 민원 목록
-- `GET  /api/complaints/{id}` - 민원 상세
+```
+Backend    Java 17 · Spring Boot 3.2 · MyBatis · Spring Security · JWT (jjwt 0.12)
+Messaging  Apache Kafka · Zookeeper
+Database   MySQL 8
+Frontend   SvelteKit 5 (Svelte runes) · Tailwind CSS · Vite
+Infra      Docker · Docker Compose · Nginx
+CI/CD      Jenkins (Jenkinsfile) · Kubernetes (k8s/)
+```
 
-## 로컬 실행 방법
+---
 
-### 사전 요구사항
-- Docker 및 Docker Compose 설치
-- 서울 열린데이터광장 API 키 발급 ([https://data.seoul.go.kr](https://data.seoul.go.kr))
+## 빠른 시작
 
-### 환경 변수 설정
+### 1. 환경 변수 설정
 
 ```bash
 cp .env.example .env
 ```
 
-`.env` 파일을 열어 값을 채워 넣습니다:
+`.env` 파일을 열어 값을 채웁니다:
 
 ```env
-SEOUL_API_KEY=발급받은_API_키
-MYSQL_ROOT_PASSWORD=안전한_루트_비밀번호
-MYSQL_PASSWORD=metrohub_db_비밀번호
-JWT_SECRET=Base64_인코딩된_시크릿_키
+SEOUL_API_KEY=발급받은_실시간지하철_API_키
+MYSQL_ROOT_PASSWORD=루트_비밀번호
+MYSQL_PASSWORD=metrohub_비밀번호
+JWT_SECRET=Base64인코딩된_32바이트_이상_시크릿
 ```
 
-> JWT_SECRET은 32바이트 이상의 문자열을 Base64 인코딩한 값이어야 합니다.
-> 예시: `echo -n "your-super-secret-key-at-least-32-chars" | base64`
+> **API 키**: [서울 열린데이터광장](https://data.seoul.go.kr) → 지하철 실시간 도착정보 (`realtimeStationArrival`)
+>
+> **JWT_SECRET 생성 예시**
+> ```bash
+> echo -n "your-super-secret-key-at-least-32-chars!!" | base64
+> ```
 
-### 실행
+### 2. 실행
 
 ```bash
-# 전체 서비스 실행
+# 전체 서비스 (Kafka + MySQL + API + Notification + Collector) 실행
 docker-compose up -d
 
-# 로그 확인
-docker-compose logs -f
-
-# 특정 서비스 로그
-docker-compose logs -f subway-api
+# 프론트엔드 개발 서버
+cd subway-web && npm install && npm run dev
 ```
 
-### 서비스 포트
+### 3. 접속
 
-| 서비스 | 포트 |
+| 서비스 | 주소 |
 |--------|------|
+| 웹앱 | http://localhost:5173 |
 | subway-api | http://localhost:8080 |
 | subway-notification | http://localhost:8081 |
 | MySQL | localhost:3306 |
 | Kafka | localhost:9092 |
-| Zookeeper | localhost:2181 |
-
-### 종료
 
 ```bash
+# 로그 확인
+docker-compose logs -f subway-api
+docker-compose logs -f subway-notification
+
+# 전체 종료 (볼륨 유지)
 docker-compose down
 
-# 볼륨 포함 완전 삭제
+# 데이터 포함 완전 초기화
 docker-compose down -v
 ```
 
-## 개발 환경 설정
+---
 
-### subway-collector (Python)
+## API 레퍼런스
 
-```bash
-cd subway-collector
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp ../.env.example .env
-python main.py
+### 인증 (`subway-api :8080`)
+
+```
+POST /api/users/register    회원가입
+POST /api/users/login       로그인 → JWT 토큰 반환
+GET  /api/users/me          내 프로필          [JWT]
 ```
 
-### subway-api (Spring Boot)
+### 혼잡도
 
-```bash
-cd subway-api
-# 로컬 MySQL, Kafka가 실행 중인 상태에서
-gradle bootRun
+```
+GET /api/congestion/station/{역명}              실시간 혼잡도
+GET /api/congestion/line/{호선번호}             호선 전체 혼잡도
+GET /api/congestion/station/{역명}/hourly      시간대별 평균 혼잡도 (0–23시)
 ```
 
-### subway-notification (Spring Boot)
+### 실시간 노선도
 
-```bash
-cd subway-notification
-gradle bootRun
 ```
+GET /api/line/{lineCode}/trains    열차 위치 목록 (5분 캐시)
+```
+
+### 커뮤니티
+
+```
+GET  /api/community/line/{line}/posts          게시글 목록 (페이지네이션)
+GET  /api/community/posts/{id}                 게시글 상세
+POST /api/community/posts                      게시글 작성   [JWT]
+GET  /api/community/posts/{id}/comments        댓글 목록
+POST /api/community/posts/{id}/comments        댓글 작성     [JWT]
+```
+
+### 민원
+
+```
+POST   /api/complaints          민원 접수         [JWT]
+GET    /api/complaints/my       내 민원 목록       [JWT]
+GET    /api/complaints/{id}     민원 상세
+DELETE /api/complaints/{id}     민원 삭제         [JWT]
+```
+
+### SSE 이벤트 (`subway-api :8080`)
+
+```
+GET /api/sse/subscribe    공개 이벤트 스트림 (혼잡도 업데이트, 노선 알림, 트렌딩)
+```
+
+### 알림 구독 (`subway-notification :8081`)
+
+```
+GET    /api/notifications/stream              SSE 연결 (?token=JWT)        [JWT]
+GET    /api/notifications/my                  내 알림 목록 (페이지네이션)   [JWT]
+GET    /api/notifications/subscriptions       구독 목록                    [JWT]
+POST   /api/notifications/subscriptions       구독 추가                    [JWT]
+DELETE /api/notifications/subscriptions/{id}  구독 해제                    [JWT]
+```
+
+---
 
 ## 프로젝트 구조
 
@@ -140,28 +191,116 @@ gradle bootRun
 MetroHub/
 ├── docker-compose.yml
 ├── .env.example
+├── Jenkinsfile
+├── k8s/                            # Kubernetes 매니페스트
+├── nginx/                          # Nginx 설정
 ├── mysql/
-│   └── init.sql                    # DB 초기 스키마
-├── .github/
-│   └── workflows/
-│       └── ci.yml                  # GitHub Actions CI
+│   └── init.sql                    # DB 초기 스키마 (users, complaints, notifications, subscriptions, congestion_hourly)
+│
 ├── subway-collector/               # Python 데이터 수집기
 │   ├── collector/
 │   │   ├── subway_api.py           # 서울 열린데이터 API 클라이언트
-│   │   └── kafka_producer.py       # Kafka 프로듀서
+│   │   ├── kafka_producer.py       # subway-realtime Kafka 프로듀서
+│   │   └── event_publisher.py      # subway.congestion.updated / subway.line.alert 발행
 │   └── main.py                     # 스케줄러 (30초 주기)
-├── subway-api/                     # Spring Boot 메인 API
+│
+├── subway-api/                     # Spring Boot 메인 API (:8080)
 │   └── src/main/java/com/metrohub/api/
 │       ├── domain/
-│       │   ├── congestion/         # 혼잡도 도메인
-│       │   ├── community/          # 커뮤니티 도메인
-│       │   ├── complaint/          # 민원 도메인
-│       │   └── user/               # 사용자 도메인
+│       │   ├── congestion/         # 혼잡도 + 실시간 노선도 + 시간대별 통계
+│       │   ├── community/          # 커뮤니티 게시판
+│       │   ├── complaint/          # 민원
+│       │   ├── user/               # 사용자 인증
+│       │   ├── sse/                # 공개 SSE 스트림
+│       │   ├── event/              # Kafka Consumer (혼잡도·알림·트렌딩)
+│       │   └── trending/           # 트렌딩 역
 │       └── global/
-│           ├── config/             # Security, Kafka, JWT 설정
-│           └── exception/          # 전역 예외 처리
-└── subway-notification/            # Spring Boot 알림 서비스
-    └── src/main/java/com/metrohub/notification/
-        ├── consumer/               # Kafka Consumer
-        └── config/                 # Kafka Consumer 설정
+│           └── config/             # Security, JWT, Kafka 설정
+│
+├── subway-notification/            # Spring Boot 알림 서비스 (:8081)
+│   └── src/main/java/com/metrohub/notification/
+│       ├── controller/             # 알림 목록 API
+│       ├── sse/                    # 사용자별 SSE 엔드포인트
+│       ├── subscription/           # 호선 구독 관리
+│       ├── consumer/               # Kafka Consumer (subway.line.alert)
+│       ├── user/                   # 이메일 → userId 조회
+│       └── global/config/          # JWT Auth Filter, Security Config
+│
+└── subway-web/                     # SvelteKit 5 프론트엔드
+    └── src/
+        ├── lib/
+        │   ├── api.js              # API 클라이언트 (subway-api + notification dual base)
+        │   ├── stores.js           # favorites, routes localStorage 스토어
+        │   ├── sseStore.js         # 공개 SSE (혼잡도·알림·트렌딩)
+        │   ├── notificationStore.js # 인증된 SSE (사용자 알림)
+        │   ├── lineStations.js     # 호선별 역 순서 + 메타데이터
+        │   ├── routeCalculator.js  # 0-1 BFS 최소환승 경로 탐색
+        │   └── StationSearch.svelte # 역 자동완성 컴포넌트
+        └── routes/
+            ├── +layout.svelte      # 헤더 (벨 아이콘 + 알림 패널)
+            ├── +page.svelte        # 메인 (혼잡도 + 노선도 + 경로 탭)
+            ├── my/                 # 마이페이지 + 구독 설정
+            ├── auth/               # 로그인 / 회원가입
+            ├── community/          # 커뮤니티 게시판
+            └── complaints/         # 민원 접수 + 내 민원 목록
 ```
+
+---
+
+## 개발 환경 개별 실행
+
+### subway-collector
+
+```bash
+cd subway-collector
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python main.py
+```
+
+### subway-api
+
+```bash
+cd subway-api
+# 로컬 MySQL, Kafka 실행 중 상태에서
+./gradlew bootRun
+```
+
+### subway-notification
+
+```bash
+cd subway-notification
+./gradlew bootRun
+```
+
+### subway-web
+
+```bash
+cd subway-web
+npm install
+cp .env.example .env   # VITE_API_BASE, VITE_NOTIFICATION_BASE 설정
+npm run dev
+```
+
+**`.env` 예시 (subway-web)**
+
+```env
+VITE_API_BASE=http://localhost:8080
+VITE_NOTIFICATION_BASE=http://localhost:8081
+```
+
+---
+
+## 데이터베이스 스키마 주요 테이블
+
+| 테이블 | 설명 |
+|--------|------|
+| `users` | 회원 (email, password_hash, nickname) |
+| `congestion` | 실시간 혼잡도 캐시 |
+| `congestion_hourly` | 시간대별 누적 평균 혼잡도 (ON DUPLICATE KEY 점진적 평균) |
+| `community_posts` | 커뮤니티 게시글 |
+| `community_comments` | 댓글 |
+| `complaints` | 민원 (RECEIVED → IN_PROGRESS → COMPLETED) |
+| `notifications` | 사용자별 알림 (user_id nullable = 전체 알림) |
+| `notification_subscriptions` | 호선 구독 (user_id + sub_type + sub_value UNIQUE) |
