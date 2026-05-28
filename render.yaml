@@ -1,0 +1,62 @@
+services:
+  - type: web
+    name: metrohub-api
+    runtime: docker
+    dockerfilePath: ./subway-api/Dockerfile
+    dockerContext: ./subway-api
+    region: singapore
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: JAVA_TOOL_OPTIONS
+        value: -Xms256m -Xmx384m
+      - key: KAFKA_SECURITY_PROTOCOL
+        value: SASL_SSL
+      - key: KAFKA_SASL_MECHANISM
+        value: SCRAM-SHA-256
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_KAFKA_BOOTSTRAP_SERVERS
+        sync: false
+      - key: KAFKA_SASL_JAAS_CONFIG
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: SEOUL_API_KEY
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+
+  - type: web
+    name: metrohub-notification
+    runtime: docker
+    dockerfilePath: ./subway-notification/Dockerfile
+    dockerContext: ./subway-notification
+    region: singapore
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: JAVA_TOOL_OPTIONS
+        value: -Xms256m -Xmx384m
+      - key: KAFKA_SECURITY_PROTOCOL
+        value: SASL_SSL
+      - key: KAFKA_SASL_MECHANISM
+        value: SCRAM-SHA-256
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_KAFKA_BOOTSTRAP_SERVERS
+        sync: false
+      - key: KAFKA_SASL_JAAS_CONFIG
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
