@@ -26,6 +26,7 @@ spring:
       security.protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
       sasl.mechanism: ${KAFKA_SASL_MECHANISM:}
       sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG:}
+      ssl.endpoint.identification.algorithm: https
     consumer:
       group-id: notification-group
       auto-offset-reset: earliest
