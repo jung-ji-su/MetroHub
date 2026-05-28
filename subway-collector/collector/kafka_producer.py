@@ -7,7 +7,12 @@ from kafka.errors import NoBrokersAvailable
 
 logger = logging.getLogger(__name__)
 
-KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+KAFKA_BOOTSTRAP_SERVERS   = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+KAFKA_SECURITY_PROTOCOL   = os.getenv("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
+KAFKA_SASL_MECHANISM      = os.getenv("KAFKA_SASL_MECHANISM", "")
+KAFKA_SASL_USERNAME       = os.getenv("KAFKA_SASL_USERNAME", "")
+KAFKA_SASL_PASSWORD       = os.getenv("KAFKA_SASL_PASSWORD", "")
+
 TOPIC_SUBWAY_REALTIME = "subway-realtime"
 
 MAX_RETRIES = 10
@@ -16,15 +21,24 @@ RETRY_DELAY_SEC = 5
 
 def create_producer() -> KafkaProducer:
     """Kafka 브로커 연결 재시도 포함 프로듀서 생성"""
+    kwargs = dict(
+        bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
+        value_serializer=lambda v: json.dumps(v, ensure_ascii=False).encode("utf-8"),
+        key_serializer=lambda k: k.encode("utf-8") if k else None,
+        retries=3,
+        acks="all",
+    )
+    if KAFKA_SECURITY_PROTOCOL != "PLAINTEXT":
+        kwargs.update(
+            security_protocol=KAFKA_SECURITY_PROTOCOL,
+            sasl_mechanism=KAFKA_SASL_MECHANISM,
+            sasl_plain_username=KAFKA_SASL_USERNAME,
+            sasl_plain_password=KAFKA_SASL_PASSWORD,
+        )
+
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            producer = KafkaProducer(
-                bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
-                value_serializer=lambda v: json.dumps(v, ensure_ascii=False).encode("utf-8"),
-                key_serializer=lambda k: k.encode("utf-8") if k else None,
-                retries=3,
-                acks="all",
-            )
+            producer = KafkaProducer(**kwargs)
             logger.info("Kafka 연결 성공 (%s)", KAFKA_BOOTSTRAP_SERVERS)
             return producer
         except NoBrokersAvailable:
