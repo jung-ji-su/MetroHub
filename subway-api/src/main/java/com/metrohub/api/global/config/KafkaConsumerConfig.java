@@ -1,9 +1,9 @@
 package com.metrohub.api.global.config;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -13,27 +13,23 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.util.backoff.FixedBackOff;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 @Configuration
 @EnableKafka
+@RequiredArgsConstructor
 public class KafkaConsumerConfig {
 
-    @Value("${spring.kafka.bootstrap-servers}")
-    private String bootstrapServers;
+    private final KafkaConfig kafkaConfig;
 
     @Bean
     public ConsumerFactory<String, String> consumerFactory() {
-        Map<String, Object> config = new HashMap<>();
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        Map<String, Object> config = kafkaConfig.saslProps();
         config.put(ConsumerConfig.GROUP_ID_CONFIG, "subway-api-group");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
-        config.put(ConsumerConfig.RECONNECT_BACKOFF_MS_CONFIG, 1000L);
-        config.put(ConsumerConfig.RECONNECT_BACKOFF_MAX_MS_CONFIG, 10000L);
         return new DefaultKafkaConsumerFactory<>(config);
     }
 

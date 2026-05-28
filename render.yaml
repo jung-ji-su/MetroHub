@@ -22,7 +22,9 @@ services:
         sync: false
       - key: SPRING_KAFKA_BOOTSTRAP_SERVERS
         sync: false
-      - key: KAFKA_SASL_JAAS_CONFIG
+      - key: KAFKA_SASL_USERNAME
+        sync: false
+      - key: KAFKA_SASL_PASSWORD
         sync: false
       - key: JWT_SECRET
         sync: false
@@ -58,7 +60,9 @@ services:
         sync: false
       - key: SPRING_KAFKA_BOOTSTRAP_SERVERS
         sync: false
-      - key: KAFKA_SASL_JAAS_CONFIG
+      - key: KAFKA_SASL_USERNAME
+        sync: false
+      - key: KAFKA_SASL_PASSWORD
         sync: false
       - key: JWT_SECRET
         sync: false
