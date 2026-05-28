@@ -7,8 +7,6 @@ server:
 spring:
   application:
     name: subway-api
-  main:
-    lazy-initialization: true
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/metrohub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
@@ -85,6 +83,11 @@ management:
     health:
       show-details: when_authorized
     prometheus:
+      enabled: true
+  health:
+    kafka:
+      enabled: false
+    db:
       enabled: true
   metrics:
     tags:
