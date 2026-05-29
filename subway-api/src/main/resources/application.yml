@@ -8,6 +8,9 @@ spring:
   application:
     name: subway-api
 
+  main:
+    lazy-initialization: true
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/metrohub?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
     username: ${SPRING_DATASOURCE_USERNAME:metrohub}
@@ -17,8 +20,9 @@ spring:
       maximum-pool-size: 5
       minimum-idle: 1
       connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
+      idle-timeout: 300000
+      max-lifetime: 600000
+      keepalive-time: 30000
       connection-test-query: SELECT 1
       initialization-fail-timeout: -1
 
@@ -87,7 +91,7 @@ management:
     kafka:
       enabled: false
     db:
-      enabled: true
+      enabled: false
   metrics:
     tags:
       application: subway-api
