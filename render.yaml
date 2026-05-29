@@ -9,7 +9,7 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: JAVA_TOOL_OPTIONS
-        value: -Xms256m -Xmx384m
+        value: -Xms256m -Xmx384m -XX:TieredStopAtLevel=1 -XX:+UseSerialGC
       - key: KAFKA_SECURITY_PROTOCOL
         value: SASL_SSL
       - key: KAFKA_SASL_MECHANISM
@@ -47,7 +47,7 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: JAVA_TOOL_OPTIONS
-        value: -Xms256m -Xmx384m
+        value: -Xms256m -Xmx384m -XX:TieredStopAtLevel=1 -XX:+UseSerialGC
       - key: KAFKA_SECURITY_PROTOCOL
         value: SASL_SSL
       - key: KAFKA_SASL_MECHANISM
