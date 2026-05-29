@@ -92,6 +92,10 @@ management:
       enabled: false
     db:
       enabled: false
+    diskspace:
+      enabled: false
+    ping:
+      enabled: true
   metrics:
     tags:
       application: subway-api
