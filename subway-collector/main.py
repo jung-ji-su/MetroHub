@@ -25,8 +25,8 @@ def main():
         try:
             arrivals = fetch_all_stations_arrivals(MAJOR_STATIONS)
             if arrivals:
-                producer.publish_arrivals(arrivals)       # subway-realtime (기존)
-                event_publisher.publish_all(arrivals)     # 신규 이벤트 토픽들
+                producer.publish_arrivals(arrivals)  # subway-realtime
+                event_publisher.publish_all(arrivals)  # 이벤트 토픽들
                 logger.info("수집 완료: %d건 발행", len(arrivals))
             else:
                 logger.warning("수집 결과 없음 (API 한도 초과 또는 운행 없음)")

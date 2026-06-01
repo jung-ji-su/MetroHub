@@ -4,8 +4,8 @@ from collections import defaultdict
 logger = logging.getLogger(__name__)
 
 TOPIC_CONGESTION_UPDATED = "subway.congestion.updated"
-TOPIC_LINE_ALERT         = "subway.line.alert"
-TOPIC_TRENDING_UPDATED   = "subway.trending.updated"
+TOPIC_LINE_ALERT = "subway.line.alert"
+TOPIC_TRENDING_UPDATED = "subway.trending.updated"
 
 SPIKE_THRESHOLD = 20  # 이전 대비 혼잡도 급등 기준
 
