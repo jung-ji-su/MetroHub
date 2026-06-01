@@ -17,6 +17,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class CommunityServiceTest {
@@ -142,5 +143,59 @@ class CommunityServiceTest {
                 communityService.createComment(999L, 10L, new CommunityDto.CommentCreateRequest("내용")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("게시글을 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("처음 좋아요 → insertLike 호출, liked=true")
+    void toggleLike_firstLike() {
+        given(communityMapper.findPostById(1L)).willReturn(Optional.of(post));
+        given(communityMapper.existsLike(1L, 10L)).willReturn(false);
+        willDoNothing().given(communityMapper).insertLike(1L, 10L);
+        given(communityMapper.countLikes(1L)).willReturn(1);
+
+        CommunityDto.LikeResponse result = communityService.toggleLike(1L, 10L);
+
+        assertThat(result.isLiked()).isTrue();
+        assertThat(result.getLikeCount()).isEqualTo(1);
+        then(communityMapper).should().insertLike(1L, 10L);
+        then(communityMapper).should(never()).deleteLike(anyLong(), anyLong());
+    }
+
+    @Test
+    @DisplayName("이미 좋아요 → deleteLike 호출, liked=false")
+    void toggleLike_unlike() {
+        given(communityMapper.findPostById(1L)).willReturn(Optional.of(post));
+        given(communityMapper.existsLike(1L, 10L)).willReturn(true);
+        willDoNothing().given(communityMapper).deleteLike(1L, 10L);
+        given(communityMapper.countLikes(1L)).willReturn(0);
+
+        CommunityDto.LikeResponse result = communityService.toggleLike(1L, 10L);
+
+        assertThat(result.isLiked()).isFalse();
+        assertThat(result.getLikeCount()).isEqualTo(0);
+        then(communityMapper).should().deleteLike(1L, 10L);
+        then(communityMapper).should(never()).insertLike(anyLong(), anyLong());
+    }
+
+    @Test
+    @DisplayName("내 게시글 목록 조회")
+    void getMyPosts_success() {
+        given(communityMapper.findPostsByUserId(10L, 0, 5)).willReturn(List.of(post));
+
+        List<CommunityDto.PostResponse> result = communityService.getMyPosts(10L, 0, 5);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getTitle()).isEqualTo("테스트 제목");
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 성공")
+    void deleteComment_success() {
+        willDoNothing().given(communityMapper).deleteComment(1L, 10L);
+
+        assertThatCode(() -> communityService.deleteComment(1L, 10L))
+                .doesNotThrowAnyException();
+
+        then(communityMapper).should().deleteComment(1L, 10L);
     }
 }
