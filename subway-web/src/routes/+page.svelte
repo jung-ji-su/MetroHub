@@ -1088,6 +1088,7 @@
           {@const leftPx = trainLeftPx(train)}
           {@const up = isUpward(train)}
           {@const isSelected = selectedTrain?.trainNo === train.trainNo}
+          {@const trainColor = useMock ? '#F59E0B' : (train.express ? '#EF4444' : lineColor)}
           {#if topPx !== null}
             <button
               onclick={() => selectedTrain = isSelected ? null : train}
@@ -1103,13 +1104,13 @@
               <!-- 상행 위쪽 화살표 -->
               {#if up}
                 <svg width="10" height="7" viewBox="0 0 10 7" class="mb-0.5 flex-shrink-0">
-                  <polygon points="5,0 10,7 0,7" fill="{useMock ? '#F59E0B' : lineColor}"/>
+                  <polygon points="5,0 10,7 0,7" fill="{trainColor}"/>
                 </svg>
               {/if}
 
               <!-- 지하철 차량 SVG (탑뷰, 상행은 180° 회전) -->
-              <div class="train-car {isSelected ? 'selected' : ''} {up ? 'up' : ''}"
-                   style="background: {useMock ? '#F59E0B' : lineColor}; box-shadow: 0 3px 10px {lineColor}66;">
+              <div class="train-car {isSelected ? 'selected' : ''} {up ? 'up' : ''} {train.express ? 'express' : ''}"
+                   style="background: {trainColor}; box-shadow: 0 3px 10px {trainColor}66;">
                 <svg width="20" height="30" viewBox="0 0 20 30" fill="none">
                   <rect x="1" y="1" width="18" height="28" rx="5" fill="white" opacity="0.25"/>
                   <rect x="3.5" y="3"  width="13" height="7"  rx="2" fill="white" opacity="0.55"/>
@@ -1121,15 +1122,17 @@
               <!-- 하행 아래쪽 화살표 -->
               {#if !up}
                 <svg width="10" height="7" viewBox="0 0 10 7" class="mt-0.5 flex-shrink-0">
-                  <polygon points="5,7 10,0 0,0" fill="{useMock ? '#F59E0B' : lineColor}"/>
+                  <polygon points="5,7 10,0 0,0" fill="{trainColor}"/>
                 </svg>
               {/if}
 
               <!-- 선택 시 ETA 말풍선 (아이콘 아래 중앙) -->
               {#if isSelected}
                 <div class="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white rounded-xl px-2 py-1 shadow-lg whitespace-nowrap border z-30"
-                     style="border-color: {lineColor}40;">
-                  <p class="text-[11px] font-bold" style="color: {lineColor};">{train.destination ?? train.direction}</p>
+                     style="border-color: {trainColor}40;">
+                  <p class="text-[11px] font-bold" style="color: {trainColor};">
+                    {#if train.express}<span class="text-red-500 mr-1">급행</span>{/if}{train.destination ?? train.direction}
+                  </p>
                   <p class="text-[10px] text-gray-400">{etaLabel(train.etaSeconds)}</p>
                 </div>
               {/if}
@@ -1152,11 +1155,11 @@
 <!-- ── 선택된 열차 하단 상세 패널 ─────────────────────────────────── -->
 {#if selectedTrain && activeTab === 'linemap'}
   <!-- 딤 배경 -->
-  <div class="fixed inset-0 z-40" onclick={() => selectedTrain = null} role="presentation"></div>
+  <div class="fixed inset-0 z-[55]" onclick={() => selectedTrain = null} role="presentation"></div>
 
   <!-- 패널 -->
-  <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white z-50 rounded-t-3xl shadow-2xl"
-       style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom));">
+  <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white z-[60] rounded-t-3xl shadow-2xl"
+       style="padding-bottom: calc(56px + max(1rem, env(safe-area-inset-bottom)));">
     <!-- 드래그 핸들 -->
     <div class="flex justify-center pt-3 pb-1">
       <div class="w-10 h-1 bg-gray-200 rounded-full"></div>

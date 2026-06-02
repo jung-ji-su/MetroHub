@@ -76,6 +76,7 @@ public class SubwayLineService {
                 .destination(d.getDestination())
                 .arrivalMessage(d.getArrivalMessage())
                 .etaSeconds(d.getEtaSeconds())
+                .express(d.getTrainStatus() != null && d.getTrainStatus().contains("급행"))
                 .build())
             .collect(Collectors.toList());
 

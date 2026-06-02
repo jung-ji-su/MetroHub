@@ -54,14 +54,15 @@ public class SeoulSubwayApiClient {
     @Builder
     @AllArgsConstructor
     public static class ArrivalDetail {
-        private String trainNo;
-        private String lineCode;        // subwayId (e.g. "1002")
-        private String queriedStation;  // 조회한 역
-        private String currentStation;  // arvlMsg3: 열차 현재 위치역
-        private String direction;       // updnLine: "상행" / "하행" / "외선순환" 등
-        private String destination;     // trainLineNm: "성수행", "외선순환" 등
-        private String arrivalMessage;  // arvlMsg2
-        private int    etaSeconds;      // barvlDt (초)
+        private String  trainNo;
+        private String  lineCode;        // subwayId (e.g. "1002")
+        private String  queriedStation;  // 조회한 역
+        private String  currentStation;  // arvlMsg3: 열차 현재 위치역
+        private String  direction;       // updnLine: "상행" / "하행" / "외선순환" 등
+        private String  destination;     // trainLineNm: "성수행", "외선순환" 등
+        private String  arrivalMessage;  // arvlMsg2
+        private int     etaSeconds;      // barvlDt (초)
+        private String  trainStatus;     // btrainSttus: "일반" / "급행" / "특급"
     }
 
     public List<ArrivalDetail> fetchArrivalDetails(String stationName) {
@@ -98,6 +99,7 @@ public class SeoulSubwayApiClient {
                     int eta = 0;
                     try { eta = Integer.parseInt(String.valueOf(item.getOrDefault("barvlDt", "0"))); }
                     catch (NumberFormatException ignored) {}
+                    String status = (String) item.getOrDefault("btrainSttus", "일반");
                     return ArrivalDetail.builder()
                         .trainNo((String) item.get("btrainNo"))
                         .lineCode((String) item.get("subwayId"))
@@ -107,6 +109,7 @@ public class SeoulSubwayApiClient {
                         .destination((String) item.get("trainLineNm"))
                         .arrivalMessage((String) item.get("arvlMsg2"))
                         .etaSeconds(eta)
+                        .trainStatus(status)
                         .build();
                 })
                 .filter(d -> d.getTrainNo() != null && d.getLineCode() != null)
