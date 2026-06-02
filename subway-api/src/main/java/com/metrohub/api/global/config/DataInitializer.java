@@ -60,13 +60,19 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     private void seedAdminAccount() {
+        String encodedPw = passwordEncoder.encode("1234");
         if (userMapper.findByNickname("dev").isEmpty()) {
             userMapper.insert(User.builder()
                     .nickname("dev")
-                    .password(passwordEncoder.encode("1234"))
+                    .password(encodedPw)
                     .role("ADMIN")
                     .build());
             log.info("dev 관리자 계정 생성 완료");
+        } else {
+            jdbcTemplate.update(
+                "UPDATE users SET password = ?, role = 'ADMIN' WHERE nickname = 'dev'",
+                encodedPw);
+            log.info("dev 관리자 계정 비밀번호·롤 재설정 완료");
         }
     }
 }
