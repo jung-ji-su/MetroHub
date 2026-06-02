@@ -10,15 +10,9 @@
     disconnectNotificationSSE,
   } from '$lib/notificationStore';
 
-  function connectNotif(t) {
-    connectNotificationSSE(t, {
-      onAuthError: () => { auth.logout(); goto('/auth/login'); }
-    });
-  }
-
   onMount(() => {
     connectSSE();
-    if ($token) connectNotif($token);
+    if ($token) connectNotificationSSE($token);
     return () => {
       disconnectSSE();
       disconnectNotificationSSE();
@@ -29,7 +23,7 @@
   $effect(() => {
     const t = $token;
     disconnectNotificationSSE();
-    if (t) connectNotif(t);
+    if (t) connectNotificationSSE(t);
   });
 
   let { children } = $props();

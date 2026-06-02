@@ -6,7 +6,7 @@ export const notifications       = writable([]);  // [{ id, type, title, body, c
 export const unreadCount         = writable(0);
 export const notifConnected      = writable(false);
 export const notifRetryExhausted = writable(false);
-export const notifAuthError      = writable(false); // 401 발생 시 — layout에서 로그아웃 처리
+export const notifAuthError      = writable(false); // 401 — 알림 SSE 중단 (로그아웃은 하지 않음)
 
 let eventSource    = null;
 let reconnectTimer = null;
@@ -14,14 +14,12 @@ let retryCount     = 0;
 const MAX_RETRIES  = 5;
 const BASE_DELAY   = 5000;
 
-let savedToken   = null;
-let onAuthErrCb  = null;
+let savedToken = null;
 
-export function connectNotificationSSE(token, { onAuthError } = {}) {
+export function connectNotificationSSE(token) {
   if (!token || eventSource) return;
   retryCount = 0;
   savedToken = token;
-  onAuthErrCb = onAuthError ?? null;
   notifRetryExhausted.set(false);
   notifAuthError.set(false);
 
@@ -33,8 +31,8 @@ export function connectNotificationSSE(token, { onAuthError } = {}) {
         { headers: { Authorization: `Bearer ${savedToken}` } }
       );
       if (res.status === 401) {
+        // 알림 서비스 인증 실패 — 재시도 없이 중단 (메인 앱 로그아웃 X)
         notifAuthError.set(true);
-        onAuthErrCb?.();
         return;
       }
     } catch (_) {
@@ -80,7 +78,7 @@ export function connectNotificationSSE(token, { onAuthError } = {}) {
 export function retryNotificationSSE() {
   if (!savedToken) return;
   disconnectNotificationSSE();
-  connectNotificationSSE(savedToken, { onAuthError: onAuthErrCb ?? undefined });
+  connectNotificationSSE(savedToken);
 }
 
 export function disconnectNotificationSSE() {
