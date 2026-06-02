@@ -103,11 +103,21 @@ class ComplaintServiceTest {
     @Test
     @DisplayName("민원 삭제 성공")
     void deleteComplaint_success() {
-        willDoNothing().given(complaintMapper).deleteByIdAndUserId(1L, 10L);
+        given(complaintMapper.deleteByIdAndUserId(1L, 10L)).willReturn(1);
 
         assertThatCode(() -> complaintService.deleteComplaint(10L, 1L))
                 .doesNotThrowAnyException();
 
         then(complaintMapper).should().deleteByIdAndUserId(1L, 10L);
+    }
+
+    @Test
+    @DisplayName("없는 민원 삭제 시 예외 발생")
+    void deleteComplaint_notFound_throws() {
+        given(complaintMapper.deleteByIdAndUserId(999L, 10L)).willReturn(0);
+
+        assertThatThrownBy(() -> complaintService.deleteComplaint(10L, 999L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("민원을 찾을 수 없거나");
     }
 }
