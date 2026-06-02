@@ -239,8 +239,8 @@
         {#if stationError}
           <p class="text-xs text-red-400 px-1 mb-2">{stationError}</p>
         {/if}
-        {@const stationSubs = subscriptions.filter(s => s.subType === 'STATION')}
-        {#if stationSubs.length > 0}
+        {#if subscriptions.filter(s => s.subType === 'STATION').length > 0}
+          {@const stationSubs = subscriptions.filter(s => s.subType === 'STATION')}
           <div class="flex flex-wrap gap-2 mt-1">
             {#each stationSubs as sub}
               <div class="flex items-center gap-1 bg-blue-50 text-blue-700 text-[13px] font-bold px-3 py-1.5 rounded-xl border border-blue-100">
