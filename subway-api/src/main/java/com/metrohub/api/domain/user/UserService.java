@@ -53,7 +53,7 @@ public class UserService {
                 .build();
         refreshTokenMapper.insert(refreshToken);
         return UserDto.LoginResponse.builder()
-                .token(jwtUtil.generateToken(user.getEmail()))
+                .token(jwtUtil.generateToken(user.getEmail(), user.getRole()))
                 .refreshToken(refreshTokenValue)
                 .email(user.getEmail())
                 .nickname(user.getNickname())
@@ -79,7 +79,7 @@ public class UserService {
                 .build();
         refreshTokenMapper.insert(next);
         return UserDto.LoginResponse.builder()
-                .token(jwtUtil.generateToken(user.getEmail()))
+                .token(jwtUtil.generateToken(user.getEmail(), user.getRole()))
                 .refreshToken(newRefreshToken)
                 .email(user.getEmail())
                 .nickname(user.getNickname())

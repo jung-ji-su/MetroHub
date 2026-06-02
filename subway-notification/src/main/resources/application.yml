@@ -55,10 +55,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus,metrics
+        include: health
   endpoint:
-    prometheus:
-      enabled: true
+    health:
+      show-details: never
   health:
     kafka:
       enabled: false
@@ -68,9 +68,6 @@ management:
       enabled: false
     ping:
       enabled: true
-  metrics:
-    tags:
-      application: subway-notification
 
 logging:
   level:

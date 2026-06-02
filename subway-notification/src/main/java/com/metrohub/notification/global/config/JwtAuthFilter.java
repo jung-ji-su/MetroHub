@@ -34,15 +34,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    // Bearer 헤더 우선, 없으면 ?token= 쿼리 파라미터 (SSE용)
     private String resolveToken(HttpServletRequest request) {
         String bearer = request.getHeader("Authorization");
         if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer ")) {
             return bearer.substring(7);
-        }
-        String param = request.getParameter("token");
-        if (StringUtils.hasText(param)) {
-            return param;
         }
         return null;
     }

@@ -37,6 +37,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                // SSE 연결은 streamToken으로 자체 인증 — JWT Bearer 불필요
+                .requestMatchers("/api/notifications/stream").permitAll()
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex

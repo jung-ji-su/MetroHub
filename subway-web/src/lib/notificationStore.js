@@ -24,22 +24,32 @@ export function connectNotificationSSE(token) {
   notifAuthError.set(false);
 
   async function connect() {
-    // EventSource는 4xx 상태코드를 구분 못함 → fetch로 사전 인증 체크
+    // 단회용 streamToken 발급 (JWT를 SSE URL에 노출하지 않음)
+    let streamToken;
     try {
       const res = await fetch(
-        `${NOTIFICATION_BASE}/api/notifications/my?page=0&size=1`,
-        { headers: { Authorization: `Bearer ${savedToken}` } }
+        `${NOTIFICATION_BASE}/api/notifications/stream-token`,
+        { method: 'POST', headers: { Authorization: `Bearer ${savedToken}` } }
       );
       if (res.status === 401) {
-        // 알림 서비스 인증 실패 — 재시도 없이 중단 (메인 앱 로그아웃 X)
         notifAuthError.set(true);
         return;
       }
+      if (!res.ok) throw new Error('stream-token 발급 실패');
+      const data = await res.json();
+      streamToken = data.streamToken;
     } catch (_) {
-      // 네트워크 에러는 무시하고 SSE 연결 시도 (오프라인 상태 등)
+      // 네트워크 에러는 무시하고 재시도 흐름으로
     }
 
-    const url = `${NOTIFICATION_BASE}/api/notifications/stream?token=${encodeURIComponent(savedToken)}`;
+    if (!streamToken) {
+      const delay = Math.min(BASE_DELAY * Math.pow(2, retryCount), 90000);
+      retryCount++;
+      reconnectTimer = setTimeout(() => connect(), delay);
+      return;
+    }
+
+    const url = `${NOTIFICATION_BASE}/api/notifications/stream?streamToken=${encodeURIComponent(streamToken)}`;
     eventSource = new EventSource(url);
 
     eventSource.addEventListener('connected', () => {

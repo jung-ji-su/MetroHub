@@ -75,9 +75,11 @@ seoul:
 springdoc:
   api-docs:
     path: /v3/api-docs
+    enabled: ${SWAGGER_ENABLED:false}
   swagger-ui:
     path: /swagger-ui.html
     tags-sorter: alpha
+    enabled: ${SWAGGER_ENABLED:false}
   info:
     title: MetroHub API
     version: v1
@@ -96,12 +98,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus,metrics
+        include: health
   endpoint:
     health:
-      show-details: when_authorized
-    prometheus:
-      enabled: true
+      show-details: never
   health:
     kafka:
       enabled: false
@@ -111,9 +111,6 @@ management:
       enabled: false
     ping:
       enabled: true
-  metrics:
-    tags:
-      application: subway-api
 
 logging:
   level:

@@ -100,6 +100,7 @@ export const api = {
   deleteSubscription:       (id, token)     => request('DELETE', `/api/notifications/subscriptions/${id}`, null, token, NOTIFICATION_BASE),
   getMyNotifications:       (token, page=0) => request('GET',    `/api/notifications/my?page=${page}&size=20`, null, token, NOTIFICATION_BASE),
   markAllNotificationsRead: (token)         => request('POST',   '/api/notifications/my/read-all', null, token, NOTIFICATION_BASE),
+  getStreamToken:           (token)         => request('POST',   '/api/notifications/stream-token', null, token, NOTIFICATION_BASE),
 
   // 관리자
   adminGetComplaints:  (token, status='', page=0, size=20) =>
