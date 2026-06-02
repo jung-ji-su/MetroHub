@@ -35,13 +35,13 @@ if ($LASTEXITCODE -ne 0) {
 if (-not $Api) {
     Write-Header "인프라 서비스 시작 (MySQL · Kafka · Zookeeper)"
     Set-Location $Root
-    docker compose up -d mysql kafka kafka-init zookeeper | Out-Null
+    docker-compose up -d mysql kafka kafka-init zookeeper | Out-Null
 
-    Write-Info "MySQL/Kafka 준비 대기 중..."
+    Write-Info "MySQL 준비 대기 중..."
     $retries = 0
-    while ($retries -lt 20) {
-        $ready = docker compose exec -T mysql mysqladmin ping -h localhost -u root -proot --silent 2>&1
-        if ($ready -match "alive") { break }
+    while ($retries -lt 30) {
+        $ready = docker-compose exec -T mysql mysql -u metrohub -pmetrohub metrohub -e "SELECT 1" 2>&1
+        if ($LASTEXITCODE -eq 0) { break }
         Start-Sleep -Seconds 3
         $retries++
     }
@@ -51,8 +51,12 @@ if (-not $Api) {
 # ── dev 계정 초기화 (--Reset 옵션) ─────────────────────────
 if ($Reset) {
     Write-Header "dev 관리자 계정 초기화"
-    docker compose exec -T mysql mysql -u root -proot metrohub -e "DELETE FROM users WHERE nickname='dev';" 2>&1 | Out-Null
-    Write-Ok "dev 계정 삭제 완료 — API 재시작 시 dev/1234 로 자동 재생성됩니다"
+    $result = docker-compose exec -T mysql mysql -u root -proot metrohub -e "DELETE FROM users WHERE nickname='dev';" 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Ok "dev 계정 삭제 완료 — API 재시작 시 dev/1234 로 자동 재생성됩니다"
+    } else {
+        Write-Warn "dev 계정 삭제 실패 (이미 없거나 DB 연결 오류): $result"
+    }
 }
 
 # ── subway-api bootRun ─────────────────────────────────────

@@ -21,8 +21,29 @@ public class DataInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        if (!waitForConnection()) {
+            log.error("DB 연결 실패 — 스키마 초기화 건너뜀");
+            return;
+        }
         applySchemaUpdates();
         seedAdminAccount();
+    }
+
+    private boolean waitForConnection() {
+        for (int i = 1; i <= 12; i++) {
+            try {
+                jdbcTemplate.queryForObject("SELECT 1", Integer.class);
+                log.info("DB 연결 확인 완료");
+                return true;
+            } catch (Exception e) {
+                log.warn("DB 연결 대기 ({}/12)... {}", i, e.getMessage());
+                try { Thread.sleep(3_000); } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return false;
+                }
+            }
+        }
+        return false;
     }
 
     private void applySchemaUpdates() {
