@@ -3,7 +3,7 @@ import { browser } from '$app/environment';
 
 function createAuthStore() {
   const initial = browser ? JSON.parse(localStorage.getItem('metrohub_auth') || 'null') : null;
-  const { subscribe, set } = writable(initial);
+  const { subscribe, set, update } = writable(initial);
 
   return {
     subscribe,
@@ -12,7 +12,18 @@ function createAuthStore() {
       set(data);
     },
     logout() {
-      if (browser) localStorage.removeItem('metrohub_auth');
+      if (browser) {
+        const stored = JSON.parse(localStorage.getItem('metrohub_auth') || 'null');
+        // refresh token 서버측 무효화 (fire-and-forget)
+        if (stored?.refreshToken) {
+          fetch('/api/users/logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken: stored.refreshToken })
+          }).catch(() => {});
+        }
+        localStorage.removeItem('metrohub_auth');
+      }
       set(null);
     }
   };

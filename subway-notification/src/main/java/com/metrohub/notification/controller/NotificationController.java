@@ -38,6 +38,14 @@ public class NotificationController {
         ));
     }
 
+    @PostMapping("/my/read-all")
+    public ResponseEntity<Void> markAllRead(Authentication auth) {
+        Long userId = userLookupMapper.findIdByEmail(auth.getName());
+        if (userId == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.");
+        notificationService.markAllRead(userId);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/my")
     public ResponseEntity<Map<String, Object>> getMyNotifications(
             @RequestParam(defaultValue = "0") int page,

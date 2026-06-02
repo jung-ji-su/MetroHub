@@ -19,7 +19,9 @@ public interface CommunityMapper {
     void deletePost(@Param("id") Long id, @Param("userId") Long userId);
 
     List<CommunityComment> findCommentsByPostId(@Param("postId") Long postId);
+    Optional<CommunityComment> findCommentById(@Param("id") Long id);
     void insertComment(CommunityComment comment);
+    void updateComment(@Param("id") Long id, @Param("userId") Long userId, @Param("content") String content);
     void deleteComment(@Param("id") Long id, @Param("userId") Long userId);
 
     // 좋아요

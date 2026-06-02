@@ -60,7 +60,40 @@
     }
   }
 
+  let deletingPost = $state(false);
+
+  async function deletePost() {
+    if (!$token || !post) return;
+    if (!confirm('게시글을 삭제할까요?')) return;
+    deletingPost = true;
+    try {
+      await api.deletePost(postId, $token);
+      goto(`/community/${line}`);
+    } catch (e) {
+      error = e.message;
+      deletingPost = false;
+    }
+  }
+
   let deletingCommentId = $state(null);
+  let editingCommentId  = $state(null);
+  let editingContent    = $state('');
+
+  function startEditComment(comment) {
+    editingCommentId = comment.id;
+    editingContent   = comment.content;
+  }
+
+  async function saveEditComment(commentId) {
+    if (!editingContent.trim()) return;
+    try {
+      const updated = await api.updateComment(postId, commentId, { content: editingContent }, $token);
+      comments = comments.map(c => c.id === commentId ? { ...c, content: updated.content } : c);
+      editingCommentId = null;
+    } catch (e) {
+      error = e.message;
+    }
+  }
 
   async function deleteComment(commentId) {
     if (!$token) return;
@@ -146,8 +179,8 @@
         <div class="text-[15px] text-gray-700 whitespace-pre-wrap leading-relaxed border-t border-gray-100 pt-4 mb-4">
           {post.content}
         </div>
-        <!-- 좋아요 버튼 -->
-        <div class="flex items-center gap-2 pt-3 border-t border-gray-100">
+        <!-- 좋아요 + 삭제 -->
+        <div class="flex items-center justify-between pt-3 border-t border-gray-100">
           <button
             onclick={toggleLike}
             disabled={liking}
@@ -162,6 +195,15 @@
             </svg>
             {likeCount}
           </button>
+          {#if $user && post.authorNickname === $user.nickname}
+            <button
+              onclick={deletePost}
+              disabled={deletingPost}
+              class="text-xs text-red-400 font-semibold px-3 py-1.5 rounded-full hover:bg-red-50 active:bg-red-100 transition-colors disabled:opacity-40"
+            >
+              {deletingPost ? '삭제 중...' : '게시글 삭제'}
+            </button>
+          {/if}
         </div>
       </div>
     </div>
@@ -208,26 +250,60 @@
               <div class="flex items-center justify-between mb-1.5">
                 <p class="text-xs font-bold text-gray-700">{comment.authorNickname}</p>
                 {#if $user && comment.authorId === $user.id}
-                  <button
-                    onclick={() => deleteComment(comment.id)}
-                    disabled={deletingCommentId === comment.id}
-                    class="w-6 h-6 flex items-center justify-center rounded-full text-gray-300 hover:bg-red-50 hover:text-red-400 active:bg-red-100 transition-colors disabled:opacity-40"
-                    aria-label="삭제"
-                  >
-                    {#if deletingCommentId === comment.id}
-                      <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                      </svg>
-                    {:else}
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                  <div class="flex items-center gap-1">
+                    {#if editingCommentId !== comment.id}
+                      <button
+                        onclick={() => startEditComment(comment)}
+                        class="w-6 h-6 flex items-center justify-center rounded-full text-gray-300 hover:bg-blue-50 hover:text-blue-400 active:bg-blue-100 transition-colors"
+                        aria-label="수정"
+                      >
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
+                        </svg>
+                      </button>
                     {/if}
-                  </button>
+                    <button
+                      onclick={() => deleteComment(comment.id)}
+                      disabled={deletingCommentId === comment.id}
+                      class="w-6 h-6 flex items-center justify-center rounded-full text-gray-300 hover:bg-red-50 hover:text-red-400 active:bg-red-100 transition-colors disabled:opacity-40"
+                      aria-label="삭제"
+                    >
+                      {#if deletingCommentId === comment.id}
+                        <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                        </svg>
+                      {:else}
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      {/if}
+                    </button>
+                  </div>
                 {/if}
               </div>
-              <p class="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{comment.content}</p>
+              {#if editingCommentId === comment.id}
+                <div class="flex gap-2 mt-1">
+                  <textarea
+                    bind:value={editingContent}
+                    rows="2"
+                    class="flex-1 bg-gray-100 rounded-xl px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors resize-none"
+                  ></textarea>
+                  <div class="flex flex-col gap-1">
+                    <button
+                      onclick={() => saveEditComment(comment.id)}
+                      class="text-white text-xs font-bold px-3 py-1.5 rounded-xl"
+                      style="background-color: {lineColor};"
+                    >저장</button>
+                    <button
+                      onclick={() => editingCommentId = null}
+                      class="text-gray-400 text-xs font-semibold px-3 py-1.5 rounded-xl bg-gray-100"
+                    >취소</button>
+                  </div>
+                </div>
+              {:else}
+                <p class="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{comment.content}</p>
+              {/if}
               <p class="text-[11px] text-gray-400 mt-2">{formatDate(comment.createdAt)}</p>
             </div>
           {/each}

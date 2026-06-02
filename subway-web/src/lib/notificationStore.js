@@ -88,8 +88,13 @@ export function disconnectNotificationSSE() {
   notifConnected.set(false);
 }
 
-export function markAllRead() {
+export async function markAllRead(token) {
   unreadCount.set(0);
+  if (!token) return;
+  try {
+    const { api } = await import('./api');
+    await api.markAllNotificationsRead(token);
+  } catch (_) {}
 }
 
 export function clearNotifications() {

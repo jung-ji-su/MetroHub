@@ -101,6 +101,23 @@ public class CommunityService {
     }
 
     @Transactional
+    public CommunityDto.CommentResponse updateComment(Long commentId, Long userId, String content) {
+        communityMapper.findCommentById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+        communityMapper.updateComment(commentId, userId, content);
+        return communityMapper.findCommentById(commentId)
+                .map(this::toCommentResponse)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+    }
+
+    @Transactional
+    public void deletePost(Long postId, Long userId) {
+        communityMapper.findPostById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        communityMapper.deletePost(postId, userId);
+    }
+
+    @Transactional
     public void deleteComment(Long commentId, Long userId) {
         communityMapper.deleteComment(commentId, userId);
     }

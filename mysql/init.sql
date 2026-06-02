@@ -97,6 +97,16 @@ CREATE TABLE IF NOT EXISTS notification_subscriptions (
     INDEX idx_sub_type_value (sub_type, sub_value)
 );
 
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id    BIGINT       NOT NULL,
+    token      VARCHAR(255) NOT NULL UNIQUE,
+    expires_at DATETIME     NOT NULL,
+    created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_token (token),
+    INDEX idx_user_id (user_id)
+);
+
 CREATE TABLE IF NOT EXISTS congestion_hourly (
     id             BIGINT AUTO_INCREMENT PRIMARY KEY,
     station_name   VARCHAR(100)   NOT NULL,

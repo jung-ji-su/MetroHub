@@ -63,6 +63,27 @@ public class CommunityController {
         return ResponseEntity.ok(communityService.getMyPosts(userId, page, size));
     }
 
+    @DeleteMapping("/posts/{postId}")
+    public ResponseEntity<Void> deletePost(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal String email) {
+        Long userId = resolveUserId(email);
+        communityService.deletePost(postId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/posts/{postId}/comments/{commentId}")
+    public ResponseEntity<CommunityDto.CommentResponse> updateComment(
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal String email,
+            @RequestBody java.util.Map<String, String> body) {
+        Long userId = resolveUserId(email);
+        String content = body.getOrDefault("content", "").trim();
+        if (content.isEmpty()) return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(communityService.updateComment(commentId, userId, content));
+    }
+
     @DeleteMapping("/posts/{postId}/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable Long postId,

@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -26,5 +28,19 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<UserDto.Response> getProfile(@AuthenticationPrincipal String email) {
         return ResponseEntity.ok(userService.getProfile(email));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<UserDto.LoginResponse> refresh(@Valid @RequestBody UserDto.RefreshRequest request) {
+        return ResponseEntity.ok(userService.refresh(request.getRefreshToken()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestBody Map<String, String> body) {
+        String refreshToken = body.get("refreshToken");
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            userService.logout(refreshToken);
+        }
+        return ResponseEntity.noContent().build();
     }
 }

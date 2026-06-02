@@ -48,7 +48,16 @@ public class UserDto {
     @AllArgsConstructor
     public static class LoginResponse {
         private String token;
+        private String refreshToken;
         private String email;
         private String nickname;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RefreshRequest {
+        @NotBlank
+        private String refreshToken;
     }
 }

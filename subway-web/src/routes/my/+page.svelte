@@ -42,9 +42,12 @@
     { code: '1009', name: '9호선', color: '#BDB092' },
   ];
 
-  let subscriptions = $state([]);
-  let subLoading    = $state(false);
-  let toggling      = $state(new Set());
+  let subscriptions    = $state([]);
+  let subLoading       = $state(false);
+  let toggling         = $state(new Set());
+  let stationInput     = $state('');
+  let stationSubLoading = $state(false);
+  let stationError     = $state('');
 
   onMount(async () => {
     if ($token) await loadSubscriptions();
@@ -83,6 +86,40 @@
     } finally {
       toggling = new Set([...toggling].filter(c => c !== lineCode));
     }
+  }
+
+  function getStationSubId(name) {
+    return subscriptions.find(s => s.subType === 'STATION' && s.subValue === name)?.id;
+  }
+
+  function isStationSubscribed(name) {
+    return subscriptions.some(s => s.subType === 'STATION' && s.subValue === name);
+  }
+
+  async function addStationSubscription() {
+    const name = stationInput.trim();
+    if (!name) return;
+    if (isStationSubscribed(name)) { stationError = '이미 구독 중인 역입니다.'; return; }
+    stationSubLoading = true;
+    stationError = '';
+    try {
+      await api.addSubscription({ subType: 'STATION', subValue: name }, $token);
+      stationInput = '';
+      await loadSubscriptions();
+    } catch (e) {
+      stationError = e.message;
+    } finally {
+      stationSubLoading = false;
+    }
+  }
+
+  async function removeStationSubscription(name) {
+    const id = getStationSubId(name);
+    if (!id) return;
+    try {
+      await api.deleteSubscription(id, $token);
+      await loadSubscriptions();
+    } catch (_) {}
   }
 </script>
 
@@ -171,6 +208,59 @@
           </div>
         </div>
       {/if}
+    </div>
+
+    <!-- 역 알림 구독 -->
+    <div class="mb-5">
+      <div class="flex items-center gap-2 px-1 mb-3">
+        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+        </svg>
+        <h2 class="text-[14px] font-bold text-gray-700">역 알림 구독</h2>
+        <span class="text-xs text-gray-400">특정 역 이슈 알림</span>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm p-3">
+        <div class="flex gap-2 mb-2">
+          <input
+            bind:value={stationInput}
+            placeholder="역 이름 입력 (예: 강남)"
+            onkeydown={(e) => e.key === 'Enter' && addStationSubscription()}
+            class="flex-1 bg-gray-100 rounded-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
+          />
+          <button
+            onclick={addStationSubscription}
+            disabled={stationSubLoading || !stationInput.trim()}
+            class="bg-blue-600 text-white text-sm font-bold px-4 rounded-xl disabled:opacity-40 active:bg-blue-700 transition-colors flex-shrink-0"
+          >
+            {stationSubLoading ? '...' : '추가'}
+          </button>
+        </div>
+        {#if stationError}
+          <p class="text-xs text-red-400 px-1 mb-2">{stationError}</p>
+        {/if}
+        {@const stationSubs = subscriptions.filter(s => s.subType === 'STATION')}
+        {#if stationSubs.length > 0}
+          <div class="flex flex-wrap gap-2 mt-1">
+            {#each stationSubs as sub}
+              <div class="flex items-center gap-1 bg-blue-50 text-blue-700 text-[13px] font-bold px-3 py-1.5 rounded-xl border border-blue-100">
+                <span>{sub.subValue}</span>
+                <button
+                  onclick={() => removeStationSubscription(sub.subValue)}
+                  class="w-4 h-4 flex items-center justify-center text-blue-300 hover:text-blue-500"
+                  aria-label="구독 해제"
+                >
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            {/each}
+          </div>
+        {:else}
+          <p class="text-xs text-gray-400 text-center py-2">구독 중인 역이 없어요</p>
+        {/if}
+      </div>
     </div>
 
     <!-- 로그아웃 -->

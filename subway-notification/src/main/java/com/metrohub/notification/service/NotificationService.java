@@ -64,6 +64,11 @@ public class NotificationService {
         return notificationMapper.countByUserId(userId);
     }
 
+    @Transactional
+    public void markAllRead(Long userId) {
+        notificationMapper.markAllReadByUserId(userId);
+    }
+
     private NotificationDto.Response toResponse(Notification n) {
         return NotificationDto.Response.builder()
                 .id(n.getId())

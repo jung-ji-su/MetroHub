@@ -9,6 +9,7 @@
   let loading     = $state(true);
   let error       = $state('');
   let currentPage = $state(0);
+  let deletingId  = $state(null);
 
   onMount(async () => {
     if (!$token) { goto('/auth/login'); return; }
@@ -24,6 +25,21 @@
       error = e instanceof Error ? e.message : String(e);
     } finally {
       loading = false;
+    }
+  }
+
+  async function deletePost(e, postId) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm('게시글을 삭제할까요?')) return;
+    deletingId = postId;
+    try {
+      await api.deletePost(postId, $token);
+      posts = posts.filter(p => p.id !== postId);
+    } catch (err) {
+      error = err.message;
+    } finally {
+      deletingId = null;
     }
   }
 
@@ -107,14 +123,23 @@
           </div>
           <div class="flex items-center justify-between mt-1">
             <p class="text-xs text-gray-400">{formatDate(post.createdAt)}</p>
-            {#if post.likeCount > 0}
-              <div class="flex items-center gap-1 text-xs text-gray-400">
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                {post.likeCount}
-              </div>
-            {/if}
+            <div class="flex items-center gap-2">
+              {#if post.likeCount > 0}
+                <div class="flex items-center gap-1 text-xs text-gray-400">
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                  {post.likeCount}
+                </div>
+              {/if}
+              <button
+                onclick={(e) => deletePost(e, post.id)}
+                disabled={deletingId === post.id}
+                class="text-[11px] text-red-400 font-semibold px-2 py-0.5 rounded-lg hover:bg-red-50 active:bg-red-100 transition-colors disabled:opacity-40"
+              >
+                {deletingId === post.id ? '...' : '삭제'}
+              </button>
+            </div>
           </div>
         </a>
       {/each}

@@ -26,4 +26,6 @@ public interface NotificationMapper {
     int countByType(@Param("type") String type);
 
     int countByUserId(@Param("userId") Long userId);
+
+    void markAllReadByUserId(@Param("userId") Long userId);
 }

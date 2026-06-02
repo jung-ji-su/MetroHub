@@ -65,10 +65,22 @@
         ORDER BY c.created_at ASC
     </select>
 
+    <select id="findCommentById" resultMap="CommentResultMap">
+        SELECT c.*, u.nickname AS author_nickname
+        FROM community_comments c
+        LEFT JOIN users u ON c.user_id = u.id
+        WHERE c.id = #{id}
+    </select>
+
     <insert id="insertComment" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO community_comments (post_id, user_id, content, created_at)
         VALUES (#{postId}, #{userId}, #{content}, NOW())
     </insert>
+
+    <update id="updateComment">
+        UPDATE community_comments SET content = #{content}
+        WHERE id = #{id} AND user_id = #{userId}
+    </update>
 
     <delete id="deleteComment">
         DELETE FROM community_comments WHERE id = #{id} AND user_id = #{userId}
