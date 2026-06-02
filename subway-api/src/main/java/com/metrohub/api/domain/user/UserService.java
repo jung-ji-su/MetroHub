@@ -54,6 +54,7 @@ public class UserService {
                 .token(jwtUtil.generateToken(user.getNickname(), user.getRole()))
                 .refreshToken(refreshTokenValue)
                 .nickname(user.getNickname())
+                .role(user.getRole())
                 .build();
     }
 

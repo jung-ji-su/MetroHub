@@ -46,6 +46,7 @@ public class UserDto {
         private String token;
         private String refreshToken;
         private String nickname;
+        private String role;
     }
 
     @Getter

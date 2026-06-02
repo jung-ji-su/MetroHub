@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.metrohub.api.domain.admin.AdminMapper">
+
+    <select id="countTotalUsers" resultType="long">
+        SELECT COUNT(*) FROM users
+    </select>
+
+    <select id="countTodayUsers" resultType="long">
+        SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURDATE()
+    </select>
+
+    <select id="countTotalPosts" resultType="long">
+        SELECT COUNT(*) FROM community_posts
+    </select>
+
+    <select id="countTodayPosts" resultType="long">
+        SELECT COUNT(*) FROM community_posts WHERE DATE(created_at) = CURDATE()
+    </select>
+
+    <select id="countTotalComments" resultType="long">
+        SELECT COUNT(*) FROM community_comments
+    </select>
+
+    <select id="countTotalComplaints" resultType="long">
+        SELECT COUNT(*) FROM complaints
+    </select>
+
+    <select id="countComplaintsByStatus" resultType="map">
+        SELECT status, COUNT(*) AS cnt FROM complaints GROUP BY status
+    </select>
+
+    <resultMap id="LinePostCountResultMap" type="com.metrohub.api.domain.admin.AdminDto$LinePostCount">
+        <result property="lineNumber" column="line_number"/>
+        <result property="count"      column="cnt"/>
+    </resultMap>
+
+    <select id="countPostsByLine" resultMap="LinePostCountResultMap">
+        SELECT line_number, COUNT(*) AS cnt
+        FROM community_posts
+        GROUP BY line_number
+        ORDER BY cnt DESC
+        LIMIT 7
+    </select>
+
+    <resultMap id="RecentUserResultMap" type="com.metrohub.api.domain.admin.AdminDto$RecentUser">
+        <result property="id"        column="id"/>
+        <result property="nickname"  column="nickname"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findRecentUsers" resultMap="RecentUserResultMap">
+        SELECT id, nickname, created_at
+        FROM users
+        ORDER BY created_at DESC
+        LIMIT 5
+    </select>
+
+    <resultMap id="RecentComplaintResultMap" type="com.metrohub.api.domain.admin.AdminDto$RecentComplaint">
+        <result property="id"          column="id"/>
+        <result property="category"    column="category"/>
+        <result property="stationName" column="station_name"/>
+        <result property="status"      column="status"/>
+        <result property="createdAt"   column="created_at"/>
+    </resultMap>
+
+    <select id="findRecentComplaints" resultMap="RecentComplaintResultMap">
+        SELECT id, category, station_name, status, created_at
+        FROM complaints
+        ORDER BY created_at DESC
+        LIMIT 5
+    </select>
+
+</mapper>

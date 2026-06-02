@@ -103,6 +103,8 @@ export const api = {
   getStreamToken:           (token)         => request('POST',   '/api/notifications/stream-token', null, token, NOTIFICATION_BASE),
 
   // 관리자
+  adminGetDashboard: (token) =>
+    request('GET', '/api/admin/dashboard', null, token),
   adminGetComplaints:  (token, status='', page=0, size=20) =>
     request('GET', `/api/admin/complaints?status=${status}&page=${page}&size=${size}`, null, token),
   adminUpdateComplaintStatus: (id, status, token) =>
