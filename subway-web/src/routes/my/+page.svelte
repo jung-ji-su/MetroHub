@@ -138,7 +138,6 @@
       </div>
       <div class="min-w-0">
         <p class="font-bold text-gray-900 text-[17px] truncate">{$user.nickname}</p>
-        <p class="text-sm text-gray-400 truncate mt-0.5">{$user.email}</p>
       </div>
     </div>
 

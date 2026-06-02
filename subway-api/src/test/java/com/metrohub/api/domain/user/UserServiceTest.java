@@ -31,86 +31,85 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        registerRequest = new UserDto.RegisterRequest("test@test.com", "password123", "테스터");
+        registerRequest = new UserDto.RegisterRequest("테스터", "pass1234");
 
         user = User.builder()
                 .id(1L)
-                .email("test@test.com")
-                .password("encoded-password")
                 .nickname("테스터")
+                .password("encoded-password")
+                .role("USER")
                 .build();
     }
 
     @Test
     @DisplayName("회원가입 성공")
     void register_success() {
-        given(userMapper.existsByEmail(anyString())).willReturn(false);
+        given(userMapper.existsByNickname(anyString())).willReturn(false);
         given(passwordEncoder.encode(anyString())).willReturn("encoded-password");
         willDoNothing().given(userMapper).insert(any(User.class));
 
         UserDto.Response response = userService.register(registerRequest);
 
-        assertThat(response.getEmail()).isEqualTo("test@test.com");
         assertThat(response.getNickname()).isEqualTo("테스터");
         then(userMapper).should().insert(any(User.class));
     }
 
     @Test
-    @DisplayName("중복 이메일 회원가입 실패")
-    void register_duplicateEmail_throws() {
-        given(userMapper.existsByEmail("test@test.com")).willReturn(true);
+    @DisplayName("중복 닉네임 회원가입 실패")
+    void register_duplicateNickname_throws() {
+        given(userMapper.existsByNickname("테스터")).willReturn(true);
 
         assertThatThrownBy(() -> userService.register(registerRequest))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("이미 사용 중인 이메일");
+                .hasMessageContaining("이미 사용 중인 닉네임");
     }
 
     @Test
     @DisplayName("로그인 성공")
     void login_success() {
-        UserDto.LoginRequest req = new UserDto.LoginRequest("test@test.com", "password123");
+        UserDto.LoginRequest req = new UserDto.LoginRequest("테스터", "pass1234");
 
-        given(userMapper.findByEmail("test@test.com")).willReturn(Optional.of(user));
-        given(passwordEncoder.matches("password123", "encoded-password")).willReturn(true);
-        given(jwtUtil.generateToken(eq("test@test.com"), any())).willReturn("jwt-token");
+        given(userMapper.findByNickname("테스터")).willReturn(Optional.of(user));
+        given(passwordEncoder.matches("pass1234", "encoded-password")).willReturn(true);
+        given(jwtUtil.generateToken(eq("테스터"), any())).willReturn("jwt-token");
 
         UserDto.LoginResponse response = userService.login(req);
 
         assertThat(response.getToken()).isEqualTo("jwt-token");
-        assertThat(response.getEmail()).isEqualTo("test@test.com");
+        assertThat(response.getNickname()).isEqualTo("테스터");
     }
 
     @Test
-    @DisplayName("존재하지 않는 이메일로 로그인 실패")
+    @DisplayName("존재하지 않는 닉네임으로 로그인 실패")
     void login_userNotFound_throws() {
-        UserDto.LoginRequest req = new UserDto.LoginRequest("notfound@test.com", "password123");
+        UserDto.LoginRequest req = new UserDto.LoginRequest("없는유저", "pass1234");
 
-        given(userMapper.findByEmail("notfound@test.com")).willReturn(Optional.empty());
+        given(userMapper.findByNickname("없는유저")).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.login(req))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("이메일 또는 비밀번호");
+                .hasMessageContaining("아이디 또는 비밀번호");
     }
 
     @Test
     @DisplayName("비밀번호 불일치 로그인 실패")
     void login_wrongPassword_throws() {
-        UserDto.LoginRequest req = new UserDto.LoginRequest("test@test.com", "wrong");
+        UserDto.LoginRequest req = new UserDto.LoginRequest("테스터", "wrong");
 
-        given(userMapper.findByEmail("test@test.com")).willReturn(Optional.of(user));
+        given(userMapper.findByNickname("테스터")).willReturn(Optional.of(user));
         given(passwordEncoder.matches("wrong", "encoded-password")).willReturn(false);
 
         assertThatThrownBy(() -> userService.login(req))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("이메일 또는 비밀번호");
+                .hasMessageContaining("아이디 또는 비밀번호");
     }
 
     @Test
     @DisplayName("프로필 조회 성공")
     void getProfile_success() {
-        given(userMapper.findByEmail("test@test.com")).willReturn(Optional.of(user));
+        given(userMapper.findByNickname("테스터")).willReturn(Optional.of(user));
 
-        UserDto.Response response = userService.getProfile("test@test.com");
+        UserDto.Response response = userService.getProfile("테스터");
 
         assertThat(response.getId()).isEqualTo(1L);
         assertThat(response.getNickname()).isEqualTo("테스터");
@@ -119,9 +118,9 @@ class UserServiceTest {
     @Test
     @DisplayName("존재하지 않는 사용자 프로필 조회 실패")
     void getProfile_notFound_throws() {
-        given(userMapper.findByEmail("notfound@test.com")).willReturn(Optional.empty());
+        given(userMapper.findByNickname("없는유저")).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.getProfile("notfound@test.com"))
+        assertThatThrownBy(() -> userService.getProfile("없는유저"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("사용자를 찾을 수 없습니다");
     }

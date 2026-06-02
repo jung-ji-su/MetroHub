@@ -49,7 +49,7 @@ public class ComplaintController {
     }
 
     private Long resolveUserId(String email) {
-        return userMapper.findByEmail(email)
+        return userMapper.findByNickname(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED))
                 .getId();
     }

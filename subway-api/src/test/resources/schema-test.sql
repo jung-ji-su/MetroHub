@@ -1,8 +1,9 @@
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    email VARCHAR(255) NULL,
     password VARCHAR(255) NOT NULL,
-    nickname VARCHAR(100) NOT NULL,
+    nickname VARCHAR(100) NOT NULL UNIQUE,
+    role VARCHAR(20) NOT NULL DEFAULT 'USER',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -46,6 +47,13 @@ CREATE TABLE IF NOT EXISTS community_comments (
     content TEXT,
     author_nickname VARCHAR(100),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS post_likes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    post_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    UNIQUE KEY uq_post_user (post_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS refresh_tokens (

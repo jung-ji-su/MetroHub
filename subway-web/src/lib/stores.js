@@ -87,6 +87,6 @@ function createRoutesStore() {
 
 export const auth      = createAuthStore();
 export const token     = derived(auth, ($auth) => $auth?.token ?? null);
-export const user      = derived(auth, ($auth) => $auth ? { email: $auth.email, nickname: $auth.nickname } : null);
+export const user      = derived(auth, ($auth) => $auth ? { nickname: $auth.nickname } : null);
 export const favorites = createFavoritesStore();
 export const routes    = createRoutesStore();

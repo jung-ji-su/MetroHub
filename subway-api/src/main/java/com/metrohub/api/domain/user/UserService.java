@@ -22,40 +22,37 @@ public class UserService {
 
     @Transactional
     public UserDto.Response register(UserDto.RegisterRequest request) {
-        if (userMapper.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        if (userMapper.existsByNickname(request.getNickname())) {
+            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
         }
         User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getNickname())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role("USER")
                 .build();
         userMapper.insert(user);
         return UserDto.Response.builder()
                 .id(user.getId())
-                .email(user.getEmail())
                 .nickname(user.getNickname())
                 .build();
     }
 
     @Transactional
     public UserDto.LoginResponse login(UserDto.LoginRequest request) {
-        User user = userMapper.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다."));
+        User user = userMapper.findByNickname(request.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다."));
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다.");
+            throw new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다.");
         }
         String refreshTokenValue = UUID.randomUUID().toString();
-        RefreshToken refreshToken = RefreshToken.builder()
+        refreshTokenMapper.insert(RefreshToken.builder()
                 .userId(user.getId())
                 .token(refreshTokenValue)
                 .expiresAt(LocalDateTime.now().plusDays(REFRESH_EXPIRY_DAYS))
-                .build();
-        refreshTokenMapper.insert(refreshToken);
+                .build());
         return UserDto.LoginResponse.builder()
-                .token(jwtUtil.generateToken(user.getEmail(), user.getRole()))
+                .token(jwtUtil.generateToken(user.getNickname(), user.getRole()))
                 .refreshToken(refreshTokenValue)
-                .email(user.getEmail())
                 .nickname(user.getNickname())
                 .build();
     }
@@ -72,16 +69,14 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         String newRefreshToken = UUID.randomUUID().toString();
         refreshTokenMapper.deleteByToken(refreshTokenValue);
-        RefreshToken next = RefreshToken.builder()
+        refreshTokenMapper.insert(RefreshToken.builder()
                 .userId(user.getId())
                 .token(newRefreshToken)
                 .expiresAt(LocalDateTime.now().plusDays(REFRESH_EXPIRY_DAYS))
-                .build();
-        refreshTokenMapper.insert(next);
+                .build());
         return UserDto.LoginResponse.builder()
-                .token(jwtUtil.generateToken(user.getEmail(), user.getRole()))
+                .token(jwtUtil.generateToken(user.getNickname(), user.getRole()))
                 .refreshToken(newRefreshToken)
-                .email(user.getEmail())
                 .nickname(user.getNickname())
                 .build();
     }
@@ -92,12 +87,11 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserDto.Response getProfile(String email) {
-        User user = userMapper.findByEmail(email)
+    public UserDto.Response getProfile(String nickname) {
+        User user = userMapper.findByNickname(nickname)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         return UserDto.Response.builder()
                 .id(user.getId())
-                .email(user.getEmail())
                 .nickname(user.getNickname())
                 .createdAt(user.getCreatedAt())
                 .build();

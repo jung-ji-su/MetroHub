@@ -13,20 +13,20 @@
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO users (email, password, nickname, created_at)
-        VALUES (#{email}, #{password}, #{nickname}, NOW())
+        INSERT INTO users (email, password, nickname, role, created_at)
+        VALUES (#{email}, #{password}, #{nickname}, COALESCE(#{role}, 'USER'), NOW())
     </insert>
 
-    <select id="findByEmail" resultMap="UserResultMap">
-        SELECT * FROM users WHERE email = #{email}
+    <select id="findByNickname" resultMap="UserResultMap">
+        SELECT * FROM users WHERE nickname = #{nickname}
     </select>
 
     <select id="findById" resultMap="UserResultMap">
         SELECT * FROM users WHERE id = #{id}
     </select>
 
-    <select id="existsByEmail" resultType="boolean">
-        SELECT COUNT(*) > 0 FROM users WHERE email = #{email}
+    <select id="existsByNickname" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM users WHERE nickname = #{nickname}
     </select>
 
 </mapper>

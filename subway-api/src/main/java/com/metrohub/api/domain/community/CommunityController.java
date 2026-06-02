@@ -106,12 +106,12 @@ public class CommunityController {
     public ResponseEntity<CommunityDto.LikeResponse> getLikeStatus(
             @PathVariable Long postId,
             @AuthenticationPrincipal String email) {
-        Long userId = email != null ? userMapper.findByEmail(email).map(u -> u.getId()).orElse(null) : null;
+        Long userId = email != null ? userMapper.findByNickname(email).map(u -> u.getId()).orElse(null) : null;
         return ResponseEntity.ok(communityService.getLikeStatus(postId, userId));
     }
 
     private Long resolveUserId(String email) {
-        return userMapper.findByEmail(email)
+        return userMapper.findByNickname(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED))
                 .getId();
     }
