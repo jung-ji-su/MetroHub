@@ -140,7 +140,6 @@
 
   let resultsMap  = $state({});
   let searchInput = $state('');
-  let addInput    = $state('');
   let showSearch  = $state(false);
 
   async function fetchStation(name) {
@@ -153,9 +152,12 @@
     }
   }
 
-  async function fetchAllFavorites() {
-    for (const s of $favorites) fetchStation(s);
-  }
+  // 즐겨찾기 초기 로드
+  $effect(() => {
+    for (const s of $favorites) {
+      if (!resultsMap[s]) fetchStation(s);
+    }
+  });
 
   // 역이 속한 호선 코드 목록 반환
   function getLinesForStation(stationName) {
@@ -164,16 +166,16 @@
       .map(([lineCode]) => lineCode);
   }
 
-  async function addFavorite() {
-    const name = addInput.trim();
-    if (!name) return;
-    favorites.add(name);
-    addInput = '';
-    fetchStation(name);
+  async function addFavorite(name) {
+    if (!name?.trim()) return;
+    favorites.add(name.trim());
+    fetchStation(name.trim());
+    showSearch = false;
+    searchInput = '';
     // 로그인 상태이면 해당 역 호선 자동 구독
     if ($token) {
       try {
-        const lineCodes = getLinesForStation(name);
+        const lineCodes = getLinesForStation(name.trim());
         const existing = await api.getSubscriptions($token);
         const existingValues = new Set(existing.map(s => s.subValue));
         for (const lineCode of lineCodes) {
@@ -181,7 +183,7 @@
             await api.addSubscription({ subType: 'LINE', subValue: lineCode }, $token);
           }
         }
-      } catch (_) { /* 구독 실패는 조용히 무시 */ }
+      } catch (_) {}
     }
   }
 
@@ -192,12 +194,12 @@
     resultsMap = next;
   }
 
-  async function doSearch() {
-    const name = searchInput.trim();
-    if (!name) return;
+  async function doSearch(name) {
+    const n = (name ?? searchInput).trim();
+    if (!n) return;
     showSearch = false;
-    await fetchStation(name);
     searchInput = '';
+    await fetchStation(n);
   }
 
   function formatTime(dt) {
@@ -375,7 +377,9 @@
     fetchLineTrains();
   });
 
-  // 노선도 탭 자동 새로고침 (30초, 필터 유지)
+  const LINE_REFRESH_MS = Number(import.meta.env.VITE_LINE_REFRESH_MS) || 30_000;
+
+  // 노선도 탭 자동 새로고침 (기본 30초, VITE_LINE_REFRESH_MS로 조정 가능)
   async function fetchLineTrainsQuiet() {
     try {
       const result = await api.lineTrains(selectedLine);
@@ -389,7 +393,7 @@
 
   $effect(() => {
     if (activeTab !== 'linemap') return;
-    const id = setInterval(fetchLineTrainsQuiet, 30_000);
+    const id = setInterval(fetchLineTrainsQuiet, LINE_REFRESH_MS);
     return () => clearInterval(id);
   });
 
@@ -552,19 +556,13 @@
 
   <!-- 검색바 (혼잡도 탭) -->
   {#if showSearch && activeTab === 'congestion'}
-    <div class="flex gap-2 pb-3">
-      <input
+    <div class="pb-3">
+      <StationSearch
         bind:value={searchInput}
-        onkeydown={(e) => e.key === 'Enter' && doSearch()}
-        placeholder="역 이름 검색 (예: 강남)"
-        autofocus
-        class="flex-1 bg-gray-100 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        placeholder="역 이름 검색 후 선택해서 추가"
+        onselect={(name) => addFavorite(name)}
+        class="w-full"
       />
-      <button
-        onclick={doSearch}
-        disabled={!searchInput.trim()}
-        class="bg-blue-600 text-white text-sm font-semibold px-4 rounded-xl disabled:opacity-40 active:bg-blue-700 transition-colors"
-      >조회</button>
     </div>
   {/if}
 
@@ -777,11 +775,26 @@
         <div>
           <div class="flex items-center justify-between mb-2 px-1">
             <span class="text-[15px] font-bold text-gray-900">🚉 {station}</span>
-            <button onclick={() => fetchStation(station)} class="active:opacity-60">
-              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-              </svg>
-            </button>
+            <div class="flex items-center gap-2">
+              <button onclick={() => fetchStation(station)} class="active:opacity-60" title="새로고침">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+              </button>
+              {#if $favorites.includes(station)}
+                <button onclick={() => removeFavorite(station)} class="active:opacity-60" title="즐겨찾기 삭제">
+                  <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                  </svg>
+                </button>
+              {:else}
+                <button onclick={() => addFavorite(station)} class="active:opacity-60" title="즐겨찾기 추가">
+                  <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                  </svg>
+                </button>
+              {/if}
+            </div>
           </div>
 
           {#if result.loading}
