@@ -26,20 +26,36 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     private void applySchemaUpdates() {
-        // V3: email nullable (TiDB-safe, idempotent)
-        try {
-            jdbcTemplate.execute("ALTER TABLE users MODIFY COLUMN email VARCHAR(255) NULL DEFAULT NULL");
-            log.info("users.email nullable 적용 완료");
-        } catch (Exception e) {
-            log.debug("users.email 컬럼 수정 skip: {}", e.getMessage());
-        }
+        // V2: refresh_tokens 테이블 (없으면 생성)
+        exec("CREATE TABLE IF NOT EXISTS refresh_tokens (" +
+             "id BIGINT AUTO_INCREMENT PRIMARY KEY," +
+             "user_id BIGINT NOT NULL," +
+             "token VARCHAR(255) NOT NULL UNIQUE," +
+             "expires_at DATETIME NOT NULL," +
+             "created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+             "INDEX idx_token (token)," +
+             "INDEX idx_user_id (user_id)" +
+             ")", "refresh_tokens 테이블 생성");
 
-        // V3: nickname unique index (skip if already exists)
+        // V2: community_posts 인덱스
+        exec("ALTER TABLE community_posts ADD INDEX idx_created_at (created_at)",
+             "community_posts idx_created_at 추가");
+
+        // V3: users.email nullable
+        exec("ALTER TABLE users MODIFY COLUMN email VARCHAR(255) NULL DEFAULT NULL",
+             "users.email nullable 적용");
+
+        // V3: nickname 유니크 인덱스
+        exec("ALTER TABLE users ADD UNIQUE INDEX idx_nickname_unique (nickname)",
+             "idx_nickname_unique 생성");
+    }
+
+    private void exec(String sql, String label) {
         try {
-            jdbcTemplate.execute("ALTER TABLE users ADD UNIQUE INDEX idx_nickname_unique (nickname)");
-            log.info("idx_nickname_unique 인덱스 생성 완료");
+            jdbcTemplate.execute(sql);
+            log.info("스키마 업데이트 완료: {}", label);
         } catch (Exception e) {
-            log.debug("idx_nickname_unique 인덱스 skip: {}", e.getMessage());
+            log.debug("스키마 업데이트 skip (이미 적용됨): {} — {}", label, e.getMessage());
         }
     }
 

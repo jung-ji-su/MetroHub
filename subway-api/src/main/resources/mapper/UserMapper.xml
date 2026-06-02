@@ -13,8 +13,8 @@
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO users (email, password, nickname, role, created_at)
-        VALUES (#{email}, #{password}, #{nickname}, COALESCE(#{role}, 'USER'), NOW())
+        INSERT INTO users (password, nickname, role, created_at)
+        VALUES (#{password}, #{nickname}, COALESCE(#{role}, 'USER'), NOW())
     </insert>
 
     <select id="findByNickname" resultMap="UserResultMap">
