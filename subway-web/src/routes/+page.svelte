@@ -1131,7 +1131,7 @@
                 <div class="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white rounded-xl px-2 py-1 shadow-lg whitespace-nowrap border z-30"
                      style="border-color: {trainColor}40;">
                   <p class="text-[11px] font-bold" style="color: {trainColor};">
-                    {#if train.express}<span class="text-red-500 mr-1">급행</span>{/if}{train.destination ?? train.direction}
+                    {train.express ? '[급행] ' : ''}{train.destination ?? train.direction}
                   </p>
                   <p class="text-[10px] text-gray-400">{etaLabel(train.etaSeconds)}</p>
                 </div>

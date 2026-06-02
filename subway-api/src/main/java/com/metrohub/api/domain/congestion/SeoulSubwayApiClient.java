@@ -99,7 +99,7 @@ public class SeoulSubwayApiClient {
                     int eta = 0;
                     try { eta = Integer.parseInt(String.valueOf(item.getOrDefault("barvlDt", "0"))); }
                     catch (NumberFormatException ignored) {}
-                    String status = (String) item.getOrDefault("btrainSttus", "일반");
+                    String trainStatus = (String) item.getOrDefault("btrainSttus", "일반");
                     return ArrivalDetail.builder()
                         .trainNo((String) item.get("btrainNo"))
                         .lineCode((String) item.get("subwayId"))
@@ -109,7 +109,7 @@ public class SeoulSubwayApiClient {
                         .destination((String) item.get("trainLineNm"))
                         .arrivalMessage((String) item.get("arvlMsg2"))
                         .etaSeconds(eta)
-                        .trainStatus(status)
+                        .trainStatus(trainStatus)
                         .build();
                 })
                 .filter(d -> d.getTrainNo() != null && d.getLineCode() != null)
