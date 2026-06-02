@@ -22,7 +22,7 @@ class JwtUtilTest {
     @Test
     @DisplayName("토큰 생성 후 이메일 추출 성공")
     void generateAndExtract() {
-        String token = jwtUtil.generateToken("user@test.com");
+        String token = jwtUtil.generateToken("user@test.com", "USER");
 
         assertThat(token).isNotBlank();
         assertThat(jwtUtil.extractEmail(token)).isEqualTo("user@test.com");
@@ -31,7 +31,7 @@ class JwtUtilTest {
     @Test
     @DisplayName("유효한 토큰 검증 성공")
     void isTokenValid_validToken_true() {
-        String token = jwtUtil.generateToken("user@test.com");
+        String token = jwtUtil.generateToken("user@test.com", "USER");
 
         assertThat(jwtUtil.isTokenValid(token)).isTrue();
     }
@@ -39,7 +39,7 @@ class JwtUtilTest {
     @Test
     @DisplayName("변조된 토큰 검증 실패")
     void isTokenValid_tamperedToken_false() {
-        String token = jwtUtil.generateToken("user@test.com");
+        String token = jwtUtil.generateToken("user@test.com", "USER");
         String tampered = token.substring(0, token.length() - 5) + "XXXXX";
 
         assertThat(jwtUtil.isTokenValid(tampered)).isFalse();
@@ -49,7 +49,7 @@ class JwtUtilTest {
     @DisplayName("만료된 토큰 검증 실패")
     void isTokenValid_expiredToken_false() {
         JwtUtil shortLived = new JwtUtil(SECRET, 1L);
-        String token = shortLived.generateToken("user@test.com");
+        String token = shortLived.generateToken("user@test.com", "USER");
 
         try { Thread.sleep(10); } catch (InterruptedException ignored) {}
 

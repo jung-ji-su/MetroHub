@@ -20,6 +20,7 @@ import static org.mockito.BDDMockito.*;
 class UserServiceTest {
 
     @Mock UserMapper userMapper;
+    @Mock RefreshTokenMapper refreshTokenMapper;
     @Mock PasswordEncoder passwordEncoder;
     @Mock JwtUtil jwtUtil;
 
@@ -71,7 +72,7 @@ class UserServiceTest {
 
         given(userMapper.findByEmail("test@test.com")).willReturn(Optional.of(user));
         given(passwordEncoder.matches("password123", "encoded-password")).willReturn(true);
-        given(jwtUtil.generateToken("test@test.com")).willReturn("jwt-token");
+        given(jwtUtil.generateToken(eq("test@test.com"), any())).willReturn("jwt-token");
 
         UserDto.LoginResponse response = userService.login(req);
 
