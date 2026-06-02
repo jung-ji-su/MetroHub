@@ -84,6 +84,9 @@ info:
     description: 서울 지하철 실시간 통합 플랫폼
 
 management:
+  info:
+    env:
+      enabled: true
   endpoints:
     web:
       exposure:
