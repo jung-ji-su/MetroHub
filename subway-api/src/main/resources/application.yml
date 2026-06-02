@@ -55,6 +55,12 @@ mybatis:
     default-fetch-size: 100
     default-statement-timeout: 30
 
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
+    locations: classpath:db/migration
+
 jwt:
   secret: ${JWT_SECRET:bWV0cm9odWItc3VwZXItc2VjcmV0LWp3dC1zaWduaW5nLWtleS1mb3ItZGV2LW9ubHk=}
   expiration: 3600000

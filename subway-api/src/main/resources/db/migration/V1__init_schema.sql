@@ -1,12 +1,11 @@
-CREATE DATABASE IF NOT EXISTS metrohub CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE metrohub;
+-- MetroHub 초기 스키마 (기존 운영 DB는 baseline-on-migrate로 이 버전을 건너뜀)
 
 CREATE TABLE IF NOT EXISTS users (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     email      VARCHAR(255) NOT NULL UNIQUE,
     password   VARCHAR(255) NOT NULL,
     nickname   VARCHAR(100) NOT NULL,
-    role       VARCHAR(20)  NOT NULL DEFAULT 'USER' COMMENT 'USER | ADMIN',
+    role       VARCHAR(20)  NOT NULL DEFAULT 'USER',
     created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -89,8 +88,8 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE TABLE IF NOT EXISTS notification_subscriptions (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id    BIGINT      NOT NULL,
-    sub_type   VARCHAR(20) NOT NULL COMMENT 'LINE or STATION',
-    sub_value  VARCHAR(50) NOT NULL COMMENT '노선코드 or 역명',
+    sub_type   VARCHAR(20) NOT NULL,
+    sub_value  VARCHAR(50) NOT NULL,
     created_at DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uq_user_sub (user_id, sub_type, sub_value),
     INDEX idx_sub_type_value (sub_type, sub_value)
@@ -99,7 +98,7 @@ CREATE TABLE IF NOT EXISTS notification_subscriptions (
 CREATE TABLE IF NOT EXISTS congestion_hourly (
     id             BIGINT AUTO_INCREMENT PRIMARY KEY,
     station_name   VARCHAR(100)   NOT NULL,
-    hour_of_day    TINYINT        NOT NULL COMMENT '0-23',
+    hour_of_day    TINYINT        NOT NULL,
     avg_congestion DECIMAL(5, 2)  NOT NULL DEFAULT 0,
     sample_count   INT            NOT NULL DEFAULT 0,
     updated_at     DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
