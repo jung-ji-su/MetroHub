@@ -3,6 +3,8 @@ import { writable } from 'svelte/store';
 const API_BASE = import.meta.env.VITE_API_BASE || '';
 
 export const sseConnected         = writable(false);
+export const sseRetryExhausted    = writable(false);
+export const lastSseUpdate        = writable(null); // Date | null
 export const trendingStations     = writable([]);   // [{ stationName, score }]
 export const lineAlerts           = writable({});    // lineNumber → { alertType, message, severity }
 export const latestCongestionLine = writable(null); // 가장 최근 갱신된 노선코드
@@ -19,6 +21,7 @@ const alertTimers = [];
 export function connectSSE() {
   if (eventSource) return;
   retryCount = 0;
+  sseRetryExhausted.set(false);
 
   function connect() {
     eventSource = new EventSource(`${API_BASE}/api/sse/stream`);
@@ -26,12 +29,14 @@ export function connectSSE() {
     eventSource.addEventListener('connected', () => {
       retryCount = 0;
       sseConnected.set(true);
+      sseRetryExhausted.set(false);
     });
 
     eventSource.addEventListener('congestion.updated', (e) => {
       try {
         const data = JSON.parse(e.data);
         latestCongestionLine.set(data.lineNumber);
+        lastSseUpdate.set(new Date());
       } catch (_) {}
     });
 
@@ -39,6 +44,7 @@ export function connectSSE() {
       try {
         const data = JSON.parse(e.data);
         lineAlerts.update(prev => ({ ...prev, [data.lineNumber]: data }));
+        lastSseUpdate.set(new Date());
         // 5분 후 자동 해제 — 타이머를 목록에 등록해 disconnect 시 정리
         const t = setTimeout(() => {
           lineAlerts.update(prev => {
@@ -55,6 +61,7 @@ export function connectSSE() {
       try {
         const data = JSON.parse(e.data);
         trendingStations.set(data.stations ?? []);
+        lastSseUpdate.set(new Date());
       } catch (_) {}
     });
 
@@ -63,7 +70,10 @@ export function connectSSE() {
       eventSource?.close();
       eventSource = null;
 
-      if (retryCount >= MAX_RETRIES) return; // 최대 재시도 후 중단
+      if (retryCount >= MAX_RETRIES) {
+        sseRetryExhausted.set(true);
+        return;
+      }
 
       const delay = Math.min(BASE_DELAY * Math.pow(2, retryCount), 90_000);
       retryCount++;
@@ -72,6 +82,11 @@ export function connectSSE() {
   }
 
   connect();
+}
+
+export function retrySSE() {
+  disconnectSSE();
+  connectSSE();
 }
 
 export function disconnectSSE() {

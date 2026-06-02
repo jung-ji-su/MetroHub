@@ -49,8 +49,9 @@
           required
           autocomplete="email"
           placeholder="example@email.com"
+          disabled={loading}
           class="w-full bg-gray-100 rounded-2xl px-4 py-4 text-[15px] text-gray-900 placeholder-gray-400
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors disabled:opacity-60"
         />
       </div>
 
@@ -62,8 +63,9 @@
           required
           autocomplete="username"
           placeholder="사용할 닉네임"
+          disabled={loading}
           class="w-full bg-gray-100 rounded-2xl px-4 py-4 text-[15px] text-gray-900 placeholder-gray-400
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors disabled:opacity-60"
         />
       </div>
 
@@ -76,8 +78,9 @@
           minlength="6"
           autocomplete="new-password"
           placeholder="6자 이상"
+          disabled={loading}
           class="w-full bg-gray-100 rounded-2xl px-4 py-4 text-[15px] text-gray-900 placeholder-gray-400
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors disabled:opacity-60"
         />
       </div>
 

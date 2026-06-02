@@ -186,8 +186,9 @@
             bind:value={commentContent}
             placeholder="댓글을 입력하세요"
             onkeydown={(e) => e.key === 'Enter' && !e.shiftKey && submitComment()}
+            disabled={submitting}
             class="flex-1 bg-gray-100 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400
-                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors disabled:opacity-60"
           />
           <button
             onclick={submitComment}

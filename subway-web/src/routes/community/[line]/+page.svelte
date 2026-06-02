@@ -225,15 +225,17 @@
     <input
       bind:value={title}
       placeholder="제목"
+      disabled={submitting}
       class="w-full bg-gray-100 rounded-2xl px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400
-             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors mb-3"
+             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors mb-3 disabled:opacity-60"
     />
     <textarea
       bind:value={content}
       placeholder="내용을 입력하세요"
       rows="4"
+      disabled={submitting}
       class="w-full bg-gray-100 rounded-2xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400
-             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors resize-none mb-3"
+             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors resize-none mb-3 disabled:opacity-60"
     ></textarea>
 
     <div class="flex items-center justify-between">

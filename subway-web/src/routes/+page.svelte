@@ -2,8 +2,8 @@
   import { api } from '$lib/api';
   import { favorites, routes, token, user } from '$lib/stores';
   import { LINE_META, LINE_STATIONS, LINE_BRANCHES, getBranchStations, SUPPORTED_LINES } from '$lib/lineStations';
-  import { trendingStations, lineAlerts, latestCongestionLine, dismissAlert, sseConnected } from '$lib/sseStore';
-  import { notifications, unreadCount, markAllRead } from '$lib/notificationStore';
+  import { trendingStations, lineAlerts, latestCongestionLine, dismissAlert, sseConnected, sseRetryExhausted, lastSseUpdate, retrySSE } from '$lib/sseStore';
+  import { notifications, unreadCount, markAllRead, notifRetryExhausted, retryNotificationSSE } from '$lib/notificationStore';
   import { findRoute, searchStations } from '$lib/routeCalculator';
   import StationSearch from '$lib/StationSearch.svelte';
 
@@ -451,11 +451,23 @@
       <div class="flex items-center gap-1.5 mb-0.5">
         <p class="text-xs text-gray-400 font-medium tracking-wide">METROHUB</p>
         <div class="flex items-center gap-1">
-          <div class="w-1.5 h-1.5 rounded-full {$sseConnected ? 'bg-green-400 animate-pulse' : 'bg-gray-300'}"
-               title="{$sseConnected ? 'LIVE' : '연결 중...'}"></div>
-          <span class="text-[10px] font-semibold {$sseConnected ? 'text-green-500' : 'text-gray-400'}">
-            {$sseConnected ? 'LIVE' : '연결 중'}
-          </span>
+          {#if $sseRetryExhausted}
+            <button
+              onclick={retrySSE}
+              class="flex items-center gap-1 text-[10px] font-semibold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full active:bg-orange-100 transition-colors"
+            >
+              <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+              재연결
+            </button>
+          {:else}
+            <div class="w-1.5 h-1.5 rounded-full {$sseConnected ? 'bg-green-400 animate-pulse' : 'bg-gray-300'}"
+                 title="{$sseConnected ? 'LIVE' : '연결 중...'}"></div>
+            <span class="text-[10px] font-semibold {$sseConnected ? 'text-green-500' : 'text-gray-400'}">
+              {$sseConnected ? 'LIVE' : '연결 중'}
+            </span>
+          {/if}
         </div>
       </div>
       <h1 class="text-xl font-bold text-gray-900 leading-tight">
@@ -584,6 +596,22 @@
     {/each}
   </div>
 </header>
+
+<!-- 실시간 연결 끊김 배너 -->
+{#if $sseRetryExhausted}
+  <div class="mx-4 mt-3 bg-orange-50 rounded-2xl px-4 py-2.5 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-2">
+      <svg class="w-4 h-4 text-orange-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+      </svg>
+      <span class="text-xs font-semibold text-orange-600">실시간 데이터가 오래됐을 수 있어요</span>
+    </div>
+    <button
+      onclick={retrySSE}
+      class="text-xs font-bold text-orange-600 bg-orange-100 px-3 py-1 rounded-full active:bg-orange-200 flex-shrink-0"
+    >재연결</button>
+  </div>
+{/if}
 
 <!-- ══════════════════════════════════════════════════════════════════ -->
 <!-- 혼잡도 탭                                                          -->

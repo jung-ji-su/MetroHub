@@ -44,8 +44,9 @@
           required
           autocomplete="email"
           placeholder="example@email.com"
+          disabled={loading}
           class="w-full bg-gray-100 rounded-2xl px-4 py-4 text-[15px] text-gray-900 placeholder-gray-400
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors disabled:opacity-60"
         />
       </div>
 
@@ -57,8 +58,9 @@
           required
           autocomplete="current-password"
           placeholder="비밀번호를 입력하세요"
+          disabled={loading}
           class="w-full bg-gray-100 rounded-2xl px-4 py-4 text-[15px] text-gray-900 placeholder-gray-400
-                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors"
+                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors disabled:opacity-60"
         />
       </div>
 
