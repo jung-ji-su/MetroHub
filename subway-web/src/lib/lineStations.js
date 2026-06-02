@@ -202,6 +202,37 @@ export const LINE_STATIONS = {
 
 export const SUPPORTED_LINES = Object.keys(LINE_STATIONS);
 
+// 커뮤니티·알림 등 short code 기반 노선 정보 (DB lineNumber 값과 일치)
+export const LINE_META_SHORT = {
+  '1':      { label: '1호선',       color: '#0052A4', short: '1'   },
+  '2':      { label: '2호선',       color: '#00A84D', short: '2'   },
+  '3':      { label: '3호선',       color: '#EF7C1C', short: '3'   },
+  '4':      { label: '4호선',       color: '#00A5DE', short: '4'   },
+  '5':      { label: '5호선',       color: '#996CAC', short: '5'   },
+  '6':      { label: '6호선',       color: '#CD7C2F', short: '6'   },
+  '7':      { label: '7호선',       color: '#747F00', short: '7'   },
+  '8':      { label: '8호선',       color: '#E6186C', short: '8'   },
+  '9':      { label: '9호선',       color: '#BDB092', short: '9'   },
+  '신분당':  { label: '신분당선',    color: '#D31145', short: '신'  },
+  '수인분당': { label: '수인분당선', color: '#F5A200', short: '수'  },
+  '경의중앙': { label: '경의중앙선', color: '#77C4A3', short: '경'  },
+  '공항':    { label: '공항철도',    color: '#0090D2', short: '공'  },
+  '경춘':    { label: '경춘선',      color: '#10934F', short: '경'  },
+  '인천1':   { label: '인천1호선',   color: '#7CA8D5', short: '인1' },
+  '인천2':   { label: '인천2호선',   color: '#ED8B00', short: '인2' },
+  '의정부':  { label: '의정부경전철', color: '#FDA600', short: '의'  },
+  '김포골드': { label: '김포골드라인', color: '#A17800', short: '김' },
+  '에버':    { label: '에버라인',    color: '#55A43F', short: '에'  },
+  '경강':    { label: '경강선',      color: '#0054A6', short: '경'  },
+  '우이신설': { label: '우이신설선', color: '#B0CE18', short: '우'  },
+  '서해':    { label: '서해선',      color: '#81A914', short: '서'  },
+  '신림':    { label: '신림선',      color: '#6789CA', short: '신'  },
+  'gtx-a':  { label: 'GTX-A',       color: '#9A60B3', short: 'G'   },
+};
+
+// 커뮤니티 목록 페이지용 배열 (id = DB lineNumber)
+export const LINES = Object.entries(LINE_META_SHORT).map(([id, meta]) => ({ id, ...meta }));
+
 // 분기/계통 설정
 // trunkEnd: 공통 본선의 마지막 역 (이 역까지 포함)
 // branchStart: 해당 계통의 첫 분기 역 (null이면 본선 그대로 trunkEnd까지만)

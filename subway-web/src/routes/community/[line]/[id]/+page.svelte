@@ -3,21 +3,11 @@
   import { api } from '$lib/api';
   import { token, user } from '$lib/stores';
   import { goto } from '$app/navigation';
-
-  const LINE_COLORS = {
-    '1': '#0052A4', '2': '#00A84D', '3': '#EF7C1C', '4': '#00A5DE',
-    '5': '#996CAC', '6': '#CD7C2F', '7': '#747F00', '8': '#E6186C',
-    '9': '#BDB092', '신분당': '#D31145', '수인분당': '#F5A200',
-    '경의중앙': '#77C4A3', '공항': '#0090D2',
-    '경춘': '#10934F', '인천1': '#7CA8D5', '인천2': '#ED8B00',
-    '의정부': '#FDA600', '김포골드': '#A17800', '에버': '#55A43F',
-    '경강': '#0054A6', '우이신설': '#B0CE18', '서해': '#81A914',
-    '신림': '#6789CA', 'gtx-a': '#9A60B3',
-  };
+  import { LINE_META_SHORT } from '$lib/lineStations';
 
   const line   = $derived($page.params.line);
   const postId = $derived($page.params.id);
-  const lineColor = $derived(LINE_COLORS[line] ?? '#6B7280');
+  const lineColor = $derived(LINE_META_SHORT[line]?.color ?? '#6B7280');
 
   let post       = $state(null);
   let comments   = $state([]);

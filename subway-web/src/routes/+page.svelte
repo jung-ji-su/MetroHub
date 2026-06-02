@@ -122,18 +122,6 @@
   }
 
   // ── 혼잡도 탭 ───────────────────────────────────────────────────────
-  const LINE_NAMES = {
-    '1001': '1호선', '1002': '2호선', '1003': '3호선', '1004': '4호선',
-    '1005': '5호선', '1006': '6호선', '1007': '7호선', '1008': '8호선',
-    '1009': '9호선', '1075': '신분당선', '1077': '수인분당선',
-    '1063': '경의중앙선', '1065': '공항철도',
-  };
-  const LINE_COLORS = {
-    '1001': '#0052A4', '1002': '#00A84D', '1003': '#EF7C1C', '1004': '#00A5DE',
-    '1005': '#996CAC', '1006': '#CD7C2F', '1007': '#747F00', '1008': '#E6186C',
-    '1009': '#BDB092', '1075': '#D31145', '1077': '#F5A200',
-    '1063': '#77C4A3', '1065': '#0090D2',
-  };
   const CONGESTION = {
     null:  { label: '정보없음',    bg: '#F3F4F6', text: '#9CA3AF' },
     low:   { label: '🥶 여유',    bg: '#DCFCE7', text: '#16A34A' },
@@ -818,12 +806,12 @@
               {#each result.data as item}
                 {@const ck = congestionKey(item.congestionLevel)}
                 {@const cInfo = CONGESTION[ck]}
-                {@const lc = LINE_COLORS[item.lineNumber] ?? '#6B7280'}
+                {@const lc = LINE_META[item.lineNumber]?.color ?? '#6B7280'}
                 <div class="bg-white rounded-2xl shadow-sm overflow-hidden" style="border-left: 4px solid {lc};">
                   <div class="p-4">
                     <div class="flex items-center justify-between mb-2">
                       <span class="text-xs font-bold px-2 py-0.5 rounded-full text-white" style="background-color: {lc};">
-                        {LINE_NAMES[item.lineNumber] ?? item.lineNumber}
+                        {LINE_META[item.lineNumber]?.name ?? item.lineNumber}
                       </span>
                       <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background-color: {cInfo.bg}; color: {cInfo.text};">
                         {cInfo.label}

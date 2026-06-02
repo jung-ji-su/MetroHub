@@ -3,33 +3,7 @@
   import { token } from '$lib/stores';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-
-  const LINE_META = {
-    '1':     { label: '1호선',      color: '#0052A4' },
-    '2':     { label: '2호선',      color: '#00A84D' },
-    '3':     { label: '3호선',      color: '#EF7C1C' },
-    '4':     { label: '4호선',      color: '#00A5DE' },
-    '5':     { label: '5호선',      color: '#996CAC' },
-    '6':     { label: '6호선',      color: '#CD7C2F' },
-    '7':     { label: '7호선',      color: '#747F00' },
-    '8':     { label: '8호선',      color: '#E6186C' },
-    '9':     { label: '9호선',      color: '#BDB092' },
-    '신분당':  { label: '신분당선',   color: '#D31145' },
-    '수인분당': { label: '수인분당선', color: '#F5A200' },
-    '경의중앙': { label: '경의중앙선', color: '#77C4A3' },
-    '공항':   { label: '공항철도',    color: '#0090D2' },
-    '경춘':   { label: '경춘선',      color: '#10934F' },
-    '인천1':  { label: '인천1호선',   color: '#7CA8D5' },
-    '인천2':  { label: '인천2호선',   color: '#ED8B00' },
-    '의정부': { label: '의정부경전철', color: '#FDA600' },
-    '김포골드': { label: '김포골드라인', color: '#A17800' },
-    '에버':   { label: '에버라인',    color: '#55A43F' },
-    '경강':   { label: '경강선',      color: '#0054A6' },
-    '우이신설': { label: '우이신설선', color: '#B0CE18' },
-    '서해':   { label: '서해선',      color: '#81A914' },
-    '신림':   { label: '신림선',      color: '#6789CA' },
-    'gtx-a': { label: 'GTX-A',      color: '#9A60B3' },
-  };
+  import { LINE_META_SHORT as LINE_META } from '$lib/lineStations';
 
   let posts       = $state([]);
   let loading     = $state(true);

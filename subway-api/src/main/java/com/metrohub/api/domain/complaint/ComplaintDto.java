@@ -1,5 +1,7 @@
 package com.metrohub.api.domain.complaint;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -10,8 +12,11 @@ public class ComplaintDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CreateRequest {
+        @NotBlank
         private String category;
+        @NotBlank @Size(max = 100)
         private String stationName;
+        @NotBlank @Size(max = 2000)
         private String content;
     }
 

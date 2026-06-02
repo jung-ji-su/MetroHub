@@ -1,6 +1,7 @@
 package com.metrohub.api.domain.community;
 
 import com.metrohub.api.domain.user.UserMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -34,7 +35,7 @@ public class CommunityController {
     @PostMapping("/posts")
     public ResponseEntity<CommunityDto.PostResponse> createPost(
             @AuthenticationPrincipal String email,
-            @RequestBody CommunityDto.PostCreateRequest request) {
+            @Valid @RequestBody CommunityDto.PostCreateRequest request) {
         Long userId = resolveUserId(email);
         return ResponseEntity.ok(communityService.createPost(userId, request));
     }
@@ -48,7 +49,7 @@ public class CommunityController {
     public ResponseEntity<CommunityDto.CommentResponse> createComment(
             @PathVariable Long postId,
             @AuthenticationPrincipal String email,
-            @RequestBody CommunityDto.CommentCreateRequest request) {
+            @Valid @RequestBody CommunityDto.CommentCreateRequest request) {
         Long userId = resolveUserId(email);
         return ResponseEntity.ok(communityService.createComment(postId, userId, request));
     }

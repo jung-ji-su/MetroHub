@@ -1,6 +1,7 @@
 package com.metrohub.api.domain.complaint;
 
 import com.metrohub.api.domain.user.UserMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class ComplaintController {
     @PostMapping
     public ResponseEntity<ComplaintDto.Response> create(
             @AuthenticationPrincipal String email,
-            @RequestBody ComplaintDto.CreateRequest request) {
+            @Valid @RequestBody ComplaintDto.CreateRequest request) {
         Long userId = resolveUserId(email);
         return ResponseEntity.ok(complaintService.createComplaint(userId, request));
     }
