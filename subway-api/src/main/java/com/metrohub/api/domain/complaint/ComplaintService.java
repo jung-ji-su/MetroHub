@@ -47,7 +47,8 @@ public class ComplaintService {
 
     @Transactional
     public void deleteComplaint(Long userId, Long id) {
-        complaintMapper.deleteByIdAndUserId(id, userId);
+        int affected = complaintMapper.deleteByIdAndUserId(id, userId);
+        if (affected == 0) throw new IllegalArgumentException("민원을 찾을 수 없거나 삭제 권한이 없습니다.");
     }
 
     @Transactional(readOnly = true)

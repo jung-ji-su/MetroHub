@@ -33,7 +33,7 @@ export const api = {
   lineTrains: (lineCode) => request('GET', `/api/line/${lineCode}/trains`),
 
   // 커뮤니티
-  getPosts:      (line, page = 0) => request('GET', `/api/community/line/${line}/posts?page=${page}&size=10`),
+  getPosts:      (line, page = 0, size = 10) => request('GET', `/api/community/line/${line}/posts?page=${page}&size=${size}`),
   getPost:       (id)             => request('GET', `/api/community/posts/${id}`),
   createPost:    (data, token)    => request('POST', '/api/community/posts', data, token),
   getComments:   (postId)              => request('GET',    `/api/community/posts/${postId}/comments`),

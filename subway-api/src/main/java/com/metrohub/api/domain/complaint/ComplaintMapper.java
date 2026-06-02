@@ -14,5 +14,5 @@ public interface ComplaintMapper {
     List<Complaint> findAll(@Param("status") String status, @Param("offset") int offset, @Param("size") int size);
     long countAll(@Param("status") String status);
     void updateStatus(@Param("id") Long id, @Param("status") String status);
-    void deleteByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
+    int deleteByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 }

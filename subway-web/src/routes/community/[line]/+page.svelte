@@ -39,6 +39,7 @@
   let loading     = $state(true);
   let error       = $state('');
   let currentPage = $state(0);
+  let hasMore     = $state(false);
 
   let showForm   = $state(false);
   let title      = $state('');
@@ -53,7 +54,9 @@
   async function loadPosts(ln, p) {
     loading = true; error = '';
     try {
-      posts = await api.getPosts(ln, p);
+      const result = await api.getPosts(ln, p, 11);
+      hasMore = result.length === 11;
+      posts = result.slice(0, 10);
       currentPage = p;
     } catch (e) {
       error = e.message;
@@ -157,7 +160,7 @@
     </div>
 
     <!-- 페이지네이션 -->
-    {#if currentPage > 0 || posts.length === 10}
+    {#if currentPage > 0 || hasMore}
       <div class="flex gap-2 mt-4">
         {#if currentPage > 0}
           <button
@@ -165,7 +168,7 @@
             class="flex-1 bg-white rounded-2xl py-3 text-sm font-semibold text-gray-600 shadow-sm active:bg-gray-50"
           >이전</button>
         {/if}
-        {#if posts.length === 10}
+        {#if hasMore}
           <button
             onclick={() => loadPosts(line, currentPage + 1)}
             class="flex-1 bg-white rounded-2xl py-3 text-sm font-semibold text-gray-600 shadow-sm active:bg-gray-50"

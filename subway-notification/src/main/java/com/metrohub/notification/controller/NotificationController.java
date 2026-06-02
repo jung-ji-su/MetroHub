@@ -4,9 +4,11 @@ import com.metrohub.notification.domain.NotificationDto;
 import com.metrohub.notification.service.NotificationService;
 import com.metrohub.notification.user.UserLookupMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -43,6 +45,7 @@ public class NotificationController {
             Authentication auth) {
 
         Long userId = userLookupMapper.findIdByEmail(auth.getName());
+        if (userId == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.");
         List<NotificationDto.Response> items = notificationService.getByUser(userId, page, size);
         long total = notificationService.countByUser(userId);
 

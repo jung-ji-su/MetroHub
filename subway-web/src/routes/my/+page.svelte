@@ -76,7 +76,7 @@
         const id = getSubscriptionId(lineCode);
         await api.deleteSubscription(id, $token);
       } else {
-        await api.addSubscription({ type: 'LINE', value: lineCode }, $token);
+        await api.addSubscription({ subType: 'LINE', subValue: lineCode }, $token);
       }
       await loadSubscriptions();
     } catch (_) {
