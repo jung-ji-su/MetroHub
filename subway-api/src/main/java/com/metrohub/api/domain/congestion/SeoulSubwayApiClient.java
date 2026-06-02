@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -38,8 +39,8 @@ public class SeoulSubwayApiClient {
         }
         try {
             String encoded = URLEncoder.encode(stationName, StandardCharsets.UTF_8);
-            String url = BASE_URL + "/" + apiKey + "/json/realtimeStationArrival/0/50/" + encoded;
-            String response = restTemplate.getForObject(url, String.class);
+            URI uri = URI.create(BASE_URL + "/" + apiKey + "/json/realtimeStationArrival/0/50/" + encoded);
+            String response = restTemplate.getForObject(uri, String.class);
             return parseResponse(response);
         } catch (Exception e) {
             log.warn("Seoul API 호출 실패 (station={}): {}", stationName, e.getMessage());
@@ -67,8 +68,8 @@ public class SeoulSubwayApiClient {
         if (apiKey == null || apiKey.isBlank()) return Collections.emptyList();
         try {
             String encoded = URLEncoder.encode(stationName, StandardCharsets.UTF_8);
-            String url = BASE_URL + "/" + apiKey + "/json/realtimeStationArrival/0/50/" + encoded;
-            String response = restTemplate.getForObject(url, String.class);
+            URI uri = URI.create(BASE_URL + "/" + apiKey + "/json/realtimeStationArrival/0/50/" + encoded);
+            String response = restTemplate.getForObject(uri, String.class);
             return parseDetails(response, stationName);
         } catch (Exception e) {
             log.warn("Seoul API 호출 실패 (station={}): {}", stationName, e.getMessage());
