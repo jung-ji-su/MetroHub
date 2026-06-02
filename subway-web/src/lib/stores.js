@@ -29,16 +29,30 @@ function createAuthStore() {
   };
 }
 
-function createFavoritesStore() {
-  const initial = browser ? JSON.parse(localStorage.getItem('metrohub_favorites') || '[]') : [];
-  const { subscribe, update } = writable(initial);
+function createPerUserStore(storeName, initialValue, buildActions) {
+  const { subscribe, set, update } = writable(initialValue);
+  let currentKey = null;
 
-  function save(list) {
-    if (browser) localStorage.setItem('metrohub_favorites', JSON.stringify(list));
+  if (browser) {
+    auth.subscribe($auth => {
+      const nickname = $auth?.nickname ?? null;
+      currentKey = nickname ? `metrohub_${storeName}_${nickname}` : null;
+      const data = currentKey
+        ? JSON.parse(localStorage.getItem(currentKey) || JSON.stringify(initialValue))
+        : initialValue;
+      set(data);
+    });
   }
 
-  return {
-    subscribe,
+  function save(list) {
+    if (browser && currentKey) localStorage.setItem(currentKey, JSON.stringify(list));
+  }
+
+  return { subscribe, ...buildActions(update, save) };
+}
+
+function createFavoritesStore() {
+  return createPerUserStore('favorites', [], (update, save) => ({
     add(station) {
       update(list => {
         if (list.includes(station)) return list;
@@ -54,23 +68,14 @@ function createFavoritesStore() {
         return next;
       });
     }
-  };
+  }));
 }
 
 function createRoutesStore() {
-  const initial = browser ? JSON.parse(localStorage.getItem('metrohub_routes') || '[]') : [];
-  const { subscribe, update, set } = writable(initial);
-
-  function save(list) {
-    if (browser) localStorage.setItem('metrohub_routes', JSON.stringify(list));
-  }
-
-  return {
-    subscribe,
+  return createPerUserStore('routes', [], (update, save) => ({
     add(from, to) {
       update(list => {
-        const id = Date.now();
-        const next = [...list, { id, from, to }];
+        const next = [...list, { id: Date.now(), from, to }];
         save(next);
         return next;
       });
@@ -81,8 +86,8 @@ function createRoutesStore() {
         save(next);
         return next;
       });
-    },
-  };
+    }
+  }));
 }
 
 export const auth      = createAuthStore();
