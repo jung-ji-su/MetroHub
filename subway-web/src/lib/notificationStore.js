@@ -1,4 +1,4 @@
-import { writable, get } from 'svelte/store';
+import { writable } from 'svelte/store';
 
 const NOTIFICATION_BASE = import.meta.env.VITE_NOTIFICATION_BASE || '';
 
@@ -6,22 +6,41 @@ export const notifications       = writable([]);  // [{ id, type, title, body, c
 export const unreadCount         = writable(0);
 export const notifConnected      = writable(false);
 export const notifRetryExhausted = writable(false);
+export const notifAuthError      = writable(false); // 401 발생 시 — layout에서 로그아웃 처리
 
 let eventSource    = null;
 let reconnectTimer = null;
 let retryCount     = 0;
-const MAX_RETRIES  = 5;   // 최대 5회 시도 후 중단
-const BASE_DELAY   = 5000; // 초기 5초, 이후 10·20·40·80초 (max 90초)
+const MAX_RETRIES  = 5;
+const BASE_DELAY   = 5000;
 
-let savedToken = null;
+let savedToken   = null;
+let onAuthErrCb  = null;
 
-export function connectNotificationSSE(token) {
+export function connectNotificationSSE(token, { onAuthError } = {}) {
   if (!token || eventSource) return;
   retryCount = 0;
   savedToken = token;
+  onAuthErrCb = onAuthError ?? null;
   notifRetryExhausted.set(false);
+  notifAuthError.set(false);
 
-  function connect() {
+  async function connect() {
+    // EventSource는 4xx 상태코드를 구분 못함 → fetch로 사전 인증 체크
+    try {
+      const res = await fetch(
+        `${NOTIFICATION_BASE}/api/notifications/my?page=0&size=1`,
+        { headers: { Authorization: `Bearer ${savedToken}` } }
+      );
+      if (res.status === 401) {
+        notifAuthError.set(true);
+        onAuthErrCb?.();
+        return;
+      }
+    } catch (_) {
+      // 네트워크 에러는 무시하고 SSE 연결 시도 (오프라인 상태 등)
+    }
+
     const url = `${NOTIFICATION_BASE}/api/notifications/stream?token=${encodeURIComponent(savedToken)}`;
     eventSource = new EventSource(url);
 
@@ -61,7 +80,7 @@ export function connectNotificationSSE(token) {
 export function retryNotificationSSE() {
   if (!savedToken) return;
   disconnectNotificationSSE();
-  connectNotificationSSE(savedToken);
+  connectNotificationSSE(savedToken, { onAuthError: onAuthErrCb ?? undefined });
 }
 
 export function disconnectNotificationSSE() {
