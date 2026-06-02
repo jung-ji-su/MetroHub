@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS community_posts (
     author_nickname VARCHAR(100),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX IF NOT EXISTS idx_community_posts_created_at ON community_posts (created_at);
 
 CREATE TABLE IF NOT EXISTS community_comments (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

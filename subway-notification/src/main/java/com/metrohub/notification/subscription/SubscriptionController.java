@@ -27,13 +27,13 @@ public class SubscriptionController {
     public ResponseEntity<Subscription> subscribe(
             @RequestBody Map<String, String> body,
             Authentication auth) {
-        Long userId = resolveUserId(auth);
-        String type  = body.getOrDefault("type", "LINE");
-        String value = body.get("value");
-        if (value == null || value.isBlank()) {
+        Long userId  = resolveUserId(auth);
+        String subType  = body.getOrDefault("subType", "LINE");
+        String subValue = body.get("subValue");
+        if (subValue == null || subValue.isBlank()) {
             return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(subscriptionService.subscribe(userId, type, value));
+        return ResponseEntity.ok(subscriptionService.subscribe(userId, subType, subValue));
     }
 
     @DeleteMapping("/{id}")

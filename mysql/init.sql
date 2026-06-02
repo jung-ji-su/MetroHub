@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS community_posts (
     is_alert    TINYINT(1)   NOT NULL DEFAULT 0,
     created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_line_number (line_number),
-    INDEX idx_user_id (user_id)
+    INDEX idx_user_id (user_id),
+    INDEX idx_created_at (created_at)
 );
 
 CREATE TABLE IF NOT EXISTS community_comments (
