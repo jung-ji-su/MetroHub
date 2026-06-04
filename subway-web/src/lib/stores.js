@@ -95,3 +95,21 @@ export const token     = derived(auth, ($auth) => $auth?.token ?? null);
 export const user      = derived(auth, ($auth) => $auth ? { nickname: $auth.nickname, role: $auth.role } : null);
 export const favorites = createFavoritesStore();
 export const routes    = createRoutesStore();
+
+function createBoardingStore() {
+  const initial = browser ? JSON.parse(localStorage.getItem('metrohub_boarding') || 'null') : null;
+  const { subscribe, set } = writable(initial);
+  return {
+    subscribe,
+    board(data) {
+      if (browser) localStorage.setItem('metrohub_boarding', JSON.stringify(data));
+      set(data);
+    },
+    alight() {
+      if (browser) localStorage.removeItem('metrohub_boarding');
+      set(null);
+    },
+  };
+}
+
+export const boardingTrain = createBoardingStore();

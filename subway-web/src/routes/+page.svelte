@@ -1,6 +1,6 @@
 <script>
   import { api } from '$lib/api';
-  import { favorites, routes, token, user } from '$lib/stores';
+  import { favorites, routes, token, user, boardingTrain } from '$lib/stores';
   import { LINE_META, LINE_STATIONS, LINE_BRANCHES, getBranchStations, SUPPORTED_LINES } from '$lib/lineStations';
   import { trendingStations, lineAlerts, latestCongestionLine, dismissAlert, sseConnected, sseRetryExhausted, lastSseUpdate, retrySSE } from '$lib/sseStore';
   import { notifications, unreadCount, markAllRead, notifRetryExhausted, retryNotificationSSE } from '$lib/notificationStore';
@@ -230,8 +230,9 @@
   });
 
   // 노선도 레이아웃 상수
-  const SEGMENT_PX  = 76;  // 역과 역 사이 픽셀 간격
-  const AVG_INTER_S = 90;  // 역 간 평균 이동 시간(초)
+  const SEGMENT_PX    = 76;  // 역과 역 사이 픽셀 간격
+  const AVG_INTER_S   = 90;  // 역 간 평균 이동 시간(초)
+  const MAP_TOP_OFFSET = 32; // 첫 역 위 여백 (상행 열차 오버플로우 방지)
 
   // 계통 필터 적용
   const branchTrains = $derived.by(() => {
@@ -267,10 +268,9 @@
   );
 
   let selectedTrain = $state(null);
-  let boardingTrain = $state(null);
 
   function boardTrain(train) {
-    boardingTrain = {
+    boardingTrain.board({
       trainNo: train.trainNo,
       lineCode: train.lineCode ?? selectedLine,
       lineName,
@@ -278,7 +278,7 @@
       direction: train.direction ?? '',
       destination: train.destination ?? '',
       currentStation: train.currentStation,
-    };
+    });
     selectedTrain = null;
   }
 
@@ -599,31 +599,32 @@
 </header>
 
 <!-- ── 탑승 중 열차 카드 ─────────────────────────────────────────── -->
-{#if boardingTrain}
+{#if $boardingTrain}
+  {@const bt = $boardingTrain}
   <div class="mx-4 mt-3 rounded-2xl overflow-hidden"
-       style="background: {boardingTrain.lineColor}0D; border: 1.5px solid {boardingTrain.lineColor}33;">
+       style="background: {bt.lineColor}0D; border: 1.5px solid {bt.lineColor}33;">
     <div class="px-4 pt-3 pb-1.5 flex items-center justify-between gap-3">
       <div class="flex items-center gap-2.5 min-w-0">
-        <div class="relative flex-shrink-0">
-          <div class="w-2.5 h-2.5 rounded-full" style="background: {boardingTrain.lineColor};"></div>
-          <div class="absolute inset-0 w-2.5 h-2.5 rounded-full animate-ping opacity-40" style="background: {boardingTrain.lineColor};"></div>
+        <div class="relative flex-shrink-0 w-2.5 h-2.5">
+          <div class="w-2.5 h-2.5 rounded-full" style="background: {bt.lineColor};"></div>
+          <div class="absolute inset-0 w-2.5 h-2.5 rounded-full animate-ping opacity-40" style="background: {bt.lineColor};"></div>
         </div>
         <span class="flex-shrink-0 text-[10px] font-black px-2 py-0.5 rounded-full text-white"
-              style="background: {boardingTrain.lineColor};">{boardingTrain.lineName}</span>
+              style="background: {bt.lineColor};">{bt.lineName}</span>
         <div class="min-w-0">
           <p class="text-[10px] text-gray-400 font-medium leading-none">탑승 중</p>
           <p class="text-[13px] font-bold text-gray-900 leading-tight truncate">
-            {(boardingTrain.destination || boardingTrain.direction || '').replace(/행$/, '') || '운행 중'} 방면
+            {(bt.destination || bt.direction || '').replace(/행$/, '') || '운행 중'} 방면
           </p>
         </div>
       </div>
       <div class="flex items-center gap-1.5 flex-shrink-0">
-        <a href="/complaints?trainNo={encodeURIComponent(boardingTrain.trainNo)}&lineCode={encodeURIComponent(boardingTrain.lineCode)}&lineName={encodeURIComponent(boardingTrain.lineName)}&direction={encodeURIComponent(boardingTrain.direction)}&destination={encodeURIComponent(boardingTrain.destination)}"
+        <a href="/complaints?trainNo={encodeURIComponent(bt.trainNo)}&lineCode={encodeURIComponent(bt.lineCode)}&lineName={encodeURIComponent(bt.lineName)}&direction={encodeURIComponent(bt.direction)}&destination={encodeURIComponent(bt.destination)}"
            class="text-[11px] font-bold px-2.5 py-1.5 rounded-xl active:opacity-70 transition-opacity"
-           style="background: {boardingTrain.lineColor}20; color: {boardingTrain.lineColor};">
+           style="background: {bt.lineColor}20; color: {bt.lineColor};">
           민원
         </a>
-        <button onclick={() => boardingTrain = null}
+        <button onclick={() => boardingTrain.alight()}
                 class="text-[11px] font-bold text-gray-500 bg-gray-100 px-2.5 py-1.5 rounded-xl active:bg-gray-200 transition-colors">
           내리기
         </button>
@@ -631,9 +632,9 @@
     </div>
     <div class="px-4 pb-2.5 flex items-center gap-1.5">
       <span class="text-[10px] text-gray-400">열차번호</span>
-      <span class="text-[11px] font-bold text-gray-600">{boardingTrain.trainNo}</span>
+      <span class="text-[11px] font-bold text-gray-600">{bt.trainNo}</span>
       <span class="text-[10px] text-gray-300 mx-1">·</span>
-      <span class="text-[10px] text-gray-400">{boardingTrain.currentStation} 출발</span>
+      <span class="text-[10px] text-gray-400">{bt.currentStation} 출발</span>
     </div>
   </div>
 {/if}
@@ -1141,12 +1142,12 @@
       {/if}
 
       <!-- ── 절대위치 노선도 ─────────────────────────────────────── -->
-      <div class="relative mx-4"
-           style="height: {stations.length * SEGMENT_PX + 20}px;">
+      <div class="relative mx-4 overflow-hidden"
+           style="height: {stations.length * SEGMENT_PX + MAP_TOP_OFFSET + 20}px;">
 
         <!-- 노선 트랙 세로선 -->
         <div class="absolute rounded-full"
-             style="left: 22px; top: 8px; width: 5px;
+             style="left: 22px; top: {8 + MAP_TOP_OFFSET}px; width: 5px;
                     height: {(stations.length - 1) * SEGMENT_PX}px;
                     background: linear-gradient(to bottom, {lineColor}, {lineColor}cc);"></div>
 
@@ -1154,7 +1155,7 @@
         {#each stations as station, i}
           <div class="absolute flex items-center gap-3"
                id="station-{station}"
-               style="top: {i * SEGMENT_PX}px; left: 0; right: 0;">
+               style="top: {i * SEGMENT_PX + MAP_TOP_OFFSET}px; left: 0; right: 0;">
             <!-- 역 원 -->
             <div class="w-12 flex justify-center flex-shrink-0">
               <div class="w-[14px] h-[14px] rounded-full border-[3px] bg-white z-10"
@@ -1178,7 +1179,7 @@
               onclick={() => selectedTrain = isSelected ? null : train}
               class="absolute z-20 train-btn flex flex-col items-center"
               style="
-                top: {topPx - (up ? 25 : 16)}px;
+                top: {topPx - (up ? 25 : 16) + MAP_TOP_OFFSET}px;
                 left: {leftPx}px;
                 --move-dist: {moveDist}px;
                 --anim-dur: {train.etaSeconds > 0 ? train.etaSeconds : 0}s;
@@ -1187,7 +1188,7 @@
             >
               <!-- 상행 방향 체브론 (위로 흐르는 애니메이션) -->
               {#if up}
-                <svg width="12" height="18" viewBox="0 0 12 18" fill="none" class="mb-0.5 flex-shrink-0">
+                <svg width="9" height="13" viewBox="0 0 12 18" fill="none" class="mb-0.5 flex-shrink-0">
                   <polyline class="ch1" points="1,15 6,12 11,15" stroke="{trainColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   <polyline class="ch2" points="1,10 6,7 11,10" stroke="{trainColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   <polyline class="ch3" points="1,5 6,2 11,5" stroke="{trainColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1207,7 +1208,7 @@
 
               <!-- 하행 방향 체브론 (아래로 흐르는 애니메이션) -->
               {#if !up}
-                <svg width="12" height="18" viewBox="0 0 12 18" fill="none" class="mt-0.5 flex-shrink-0">
+                <svg width="9" height="13" viewBox="0 0 12 18" fill="none" class="mt-0.5 flex-shrink-0">
                   <polyline class="ch1" points="1,3 6,6 11,3" stroke="{trainColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   <polyline class="ch2" points="1,8 6,11 11,8" stroke="{trainColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   <polyline class="ch3" points="1,13 6,16 11,13" stroke="{trainColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
