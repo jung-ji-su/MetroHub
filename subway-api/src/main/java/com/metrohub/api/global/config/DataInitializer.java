@@ -36,7 +36,7 @@ public class DataInitializer implements ApplicationRunner {
                 log.info("DB 연결 확인 완료");
                 return true;
             } catch (Exception e) {
-                log.warn("DB 연결 대기 ({}/12)... {}", i, e.getMessage());
+                log.warn("DB 연결 대기 ({}/12)...", i);
                 try { Thread.sleep(3_000); } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     return false;

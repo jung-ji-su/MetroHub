@@ -111,5 +111,6 @@ management:
 
 logging:
   level:
-    com.metrohub: DEBUG
-    org.mybatis: DEBUG
+    com.metrohub: INFO
+    org.mybatis: WARN
+    com.zaxxer.hikari: WARN

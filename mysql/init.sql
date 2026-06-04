@@ -105,3 +105,7 @@ CREATE TABLE IF NOT EXISTS congestion_hourly (
     updated_at     DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_station_hour (station_name, hour_of_day)
 );
+
+-- Windows Java Kerberos 인증 오류 회피: metrohub 유저를 mysql_native_password로 강제 설정
+ALTER USER IF EXISTS 'metrohub'@'%' IDENTIFIED WITH mysql_native_password BY 'metrohub';
+FLUSH PRIVILEGES;
