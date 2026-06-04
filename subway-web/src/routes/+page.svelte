@@ -745,7 +745,7 @@
                     </p>
                   </div>
                   <button
-                    onclick={() => fetchRouteArrival(route.id, route.from, segs[0]?.lineCode)}
+                    onclick={() => fetchRouteArrival(route.id, route.from, segs[0]?.line)}
                     class="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-full active:bg-blue-100 transition-colors"
                   >
                     🔴 실시간
