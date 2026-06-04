@@ -267,6 +267,20 @@
   );
 
   let selectedTrain = $state(null);
+  let boardingTrain = $state(null);
+
+  function boardTrain(train) {
+    boardingTrain = {
+      trainNo: train.trainNo,
+      lineCode: train.lineCode ?? selectedLine,
+      lineName,
+      lineColor,
+      direction: train.direction ?? '',
+      destination: train.destination ?? '',
+      currentStation: train.currentStation,
+    };
+    selectedTrain = null;
+  }
 
   const selectedTrainIdx = $derived(
     selectedTrain ? sortedTrains.findIndex(t => t.trainNo === selectedTrain.trainNo) : -1
@@ -583,6 +597,46 @@
     {/each}
   </div>
 </header>
+
+<!-- ── 탑승 중 열차 카드 ─────────────────────────────────────────── -->
+{#if boardingTrain}
+  <div class="mx-4 mt-3 rounded-2xl overflow-hidden"
+       style="background: {boardingTrain.lineColor}0D; border: 1.5px solid {boardingTrain.lineColor}33;">
+    <div class="px-4 pt-3 pb-1.5 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="relative flex-shrink-0">
+          <div class="w-2.5 h-2.5 rounded-full" style="background: {boardingTrain.lineColor};"></div>
+          <div class="absolute inset-0 w-2.5 h-2.5 rounded-full animate-ping opacity-40" style="background: {boardingTrain.lineColor};"></div>
+        </div>
+        <span class="flex-shrink-0 text-[10px] font-black px-2 py-0.5 rounded-full text-white"
+              style="background: {boardingTrain.lineColor};">{boardingTrain.lineName}</span>
+        <div class="min-w-0">
+          <p class="text-[10px] text-gray-400 font-medium leading-none">탑승 중</p>
+          <p class="text-[13px] font-bold text-gray-900 leading-tight truncate">
+            {(boardingTrain.destination || boardingTrain.direction || '').replace(/행$/, '') || '운행 중'} 방면
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        <a href="/complaints?trainNo={encodeURIComponent(boardingTrain.trainNo)}&lineCode={encodeURIComponent(boardingTrain.lineCode)}&lineName={encodeURIComponent(boardingTrain.lineName)}&direction={encodeURIComponent(boardingTrain.direction)}&destination={encodeURIComponent(boardingTrain.destination)}"
+           class="text-[11px] font-bold px-2.5 py-1.5 rounded-xl active:opacity-70 transition-opacity"
+           style="background: {boardingTrain.lineColor}20; color: {boardingTrain.lineColor};">
+          민원
+        </a>
+        <button onclick={() => boardingTrain = null}
+                class="text-[11px] font-bold text-gray-500 bg-gray-100 px-2.5 py-1.5 rounded-xl active:bg-gray-200 transition-colors">
+          내리기
+        </button>
+      </div>
+    </div>
+    <div class="px-4 pb-2.5 flex items-center gap-1.5">
+      <span class="text-[10px] text-gray-400">열차번호</span>
+      <span class="text-[11px] font-bold text-gray-600">{boardingTrain.trainNo}</span>
+      <span class="text-[10px] text-gray-300 mx-1">·</span>
+      <span class="text-[10px] text-gray-400">{boardingTrain.currentStation} 출발</span>
+    </div>
+  </div>
+{/if}
 
 <!-- 실시간 연결 끊김 배너 -->
 {#if $sseRetryExhausted}
@@ -1131,10 +1185,12 @@
               "
               aria-label="열차 {train.trainNo}"
             >
-              <!-- 상행 위쪽 화살표 -->
+              <!-- 상행 방향 체브론 (위로 흐르는 애니메이션) -->
               {#if up}
-                <svg width="10" height="7" viewBox="0 0 10 7" class="mb-0.5 flex-shrink-0">
-                  <polygon points="5,0 10,7 0,7" fill="{trainColor}"/>
+                <svg width="12" height="18" viewBox="0 0 12 18" fill="none" class="mb-0.5 flex-shrink-0">
+                  <polyline class="ch1" points="1,15 6,12 11,15" stroke="{trainColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <polyline class="ch2" points="1,10 6,7 11,10" stroke="{trainColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <polyline class="ch3" points="1,5 6,2 11,5" stroke="{trainColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               {/if}
 
@@ -1149,10 +1205,12 @@
                 </svg>
               </div>
 
-              <!-- 하행 아래쪽 화살표 -->
+              <!-- 하행 방향 체브론 (아래로 흐르는 애니메이션) -->
               {#if !up}
-                <svg width="10" height="7" viewBox="0 0 10 7" class="mt-0.5 flex-shrink-0">
-                  <polygon points="5,7 10,0 0,0" fill="{trainColor}"/>
+                <svg width="12" height="18" viewBox="0 0 12 18" fill="none" class="mt-0.5 flex-shrink-0">
+                  <polyline class="ch1" points="1,3 6,6 11,3" stroke="{trainColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <polyline class="ch2" points="1,8 6,11 11,8" stroke="{trainColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <polyline class="ch3" points="1,13 6,16 11,13" stroke="{trainColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               {/if}
 
@@ -1187,6 +1245,9 @@
   {@const etaSecs = selectedTrain.etaSeconds ?? 0}
   {@const etaText = etaSecs > 0 ? `약 ${Math.ceil(etaSecs / 60)}분` : '곧 도착'}
   {@const sp = getProgressInfo(selectedTrain)}
+  {@const destDisplay = selectedTrain.destination
+    ? selectedTrain.destination.replace(/행$/, '') + ' 방면'
+    : selectedTrain.direction ?? '운행 중'}
 
   <!-- 딤 배경 -->
   <div class="fixed inset-0 z-[55]" onclick={() => selectedTrain = null} role="presentation"></div>
@@ -1206,9 +1267,10 @@
         <div class="flex items-center gap-2.5 min-w-0">
           <span class="flex-shrink-0 text-[11px] font-black px-2.5 py-1 rounded-full text-white tracking-tight"
                 style="background: {lineColor};">{lineName}</span>
-          <span class="text-[17px] font-bold text-gray-900 leading-tight truncate">
-            {selectedTrain.destination ?? selectedTrain.direction ?? '운행 중'}
-          </span>
+          <div class="min-w-0">
+            <p class="text-[10px] text-gray-400 font-medium leading-none mb-0.5">행선지</p>
+            <p class="text-[16px] font-bold text-gray-900 leading-tight truncate">{destDisplay}</p>
+          </div>
           {#if selectedTrain.express}
             <span class="flex-shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded bg-red-500 text-white">급행</span>
           {/if}
@@ -1234,17 +1296,26 @@
             <p class="text-[13px] font-bold text-gray-700">{selectedTrain.trainNo}</p>
           </div>
         </div>
-        <p class="text-[13px] font-medium mt-2.5" style="color: {lineColor}bb;">
-          {selectedTrain.arrivalMessage ?? '위치 정보 없음'}
-        </p>
+        <div class="mt-2.5">
+          <p class="text-[10px] text-gray-400 font-medium mb-0.5">현재 위치</p>
+          <p class="text-[13px] font-semibold" style="color: {lineColor}bb;">
+            {selectedTrain.arrivalMessage ?? '위치 정보 없음'}
+          </p>
+        </div>
       </div>
 
       <!-- 구간 프로그레스바 -->
       {#if sp}
         <div class="mb-4">
-          <div class="flex justify-between text-[12px] font-bold text-gray-700 mb-2">
-            <span>{sp.currentStation}</span>
-            <span>{sp.nextStation}</span>
+          <div class="flex justify-between mb-2">
+            <div>
+              <p class="text-[10px] text-gray-400 font-medium">출발한 역</p>
+              <p class="text-[12px] font-bold text-gray-700">{sp.currentStation}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-[10px] text-gray-400 font-medium">다음 도착역</p>
+              <p class="text-[12px] font-bold text-gray-700">{sp.nextStation}</p>
+            </div>
           </div>
           <div class="relative h-2 bg-gray-100 rounded-full overflow-hidden">
             <div class="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
@@ -1274,17 +1345,29 @@
         </button>
       </div>
 
-      <!-- 민원 접수 (서브텍스트 링크) -->
-      <div class="flex justify-center pb-1">
-        <a href="/complaints?trainNo={encodeURIComponent(selectedTrain.trainNo)}&lineCode={encodeURIComponent(selectedTrain.lineCode)}&lineName={encodeURIComponent(lineName)}&station={encodeURIComponent(selectedTrain.currentStation)}&direction={encodeURIComponent(selectedTrain.direction ?? '')}&destination={encodeURIComponent(selectedTrain.destination ?? '')}"
-           onclick={() => selectedTrain = null}
-           class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gray-400 active:text-gray-600 py-2 transition-colors">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      <!-- 이 열차 타기 + 민원 접수 -->
+      <div class="flex flex-col gap-2 pb-1">
+        <button
+          onclick={() => boardTrain(selectedTrain)}
+          class="w-full text-white text-[14px] font-bold py-3.5 rounded-2xl active:opacity-80 transition-opacity flex items-center justify-center gap-2"
+          style="background: {lineColor};"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
           </svg>
-          이 열차로 민원 접수
-        </a>
+          이 열차 타기
+        </button>
+        <div class="flex justify-center">
+          <a href="/complaints?trainNo={encodeURIComponent(selectedTrain.trainNo)}&lineCode={encodeURIComponent(selectedTrain.lineCode)}&lineName={encodeURIComponent(lineName)}&station={encodeURIComponent(selectedTrain.currentStation)}&direction={encodeURIComponent(selectedTrain.direction ?? '')}&destination={encodeURIComponent(selectedTrain.destination ?? '')}"
+             onclick={() => selectedTrain = null}
+             class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gray-400 active:text-gray-600 py-2 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            이 열차로 민원 접수
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -1309,6 +1392,15 @@
   .train-car.up.selected     { transform: rotate(180deg) scale(1.25); z-index: 30; }
   .train-btn:active .train-car     { transform: scale(1.1); }
   .train-btn:active .train-car.up  { transform: rotate(180deg) scale(1.1); }
+
+  /* 방향 체브론 순차 애니메이션 */
+  @keyframes chevFlow {
+    0%, 100% { opacity: 0.18; }
+    50%       { opacity: 1; }
+  }
+  .ch1 { animation: chevFlow 1.2s ease-in-out infinite 0s; }
+  .ch2 { animation: chevFlow 1.2s ease-in-out infinite 0.4s; }
+  .ch3 { animation: chevFlow 1.2s ease-in-out infinite 0.8s; }
 
   /* 열차 이동 애니메이션 */
   @keyframes trainMove {
