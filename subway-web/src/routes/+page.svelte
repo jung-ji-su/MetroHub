@@ -99,16 +99,7 @@
     focusStation = stationName ?? null;
   }
 
-  // 노선 로딩 완료 후 focusStation으로 스크롤
-  $effect(() => {
-    if (lineLoading || !focusStation || activeTab !== 'linemap') return;
-    const target = focusStation;
-    focusStation = null;
-    requestAnimationFrame(() => {
-      const el = document.getElementById(`station-${target}`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-  });
+  // focusStation은 LineMapSvg 컴포넌트가 직접 처리 (prop 전달)
 
   async function fetchRouteArrival(routeId, from, lineCode) {
     routeArrivals = { ...routeArrivals, [routeId]: { loading: true, data: null } };
@@ -1068,7 +1059,7 @@
         </div>
       {/if}
 
-      <!-- ── SVG 노선도 ────────────────────────────────────────────── -->
+      <!-- ── SVG 노선도 (팬·줌) ───────────────────────────────────── -->
       <LineMapSvg
         {stations}
         trains={filteredTrains}
@@ -1079,6 +1070,7 @@
           selectedTrain = selectedTrain?.trainNo === train.trainNo ? null : train;
         }}
         {useMock}
+        {focusStation}
       />
 
     </div>
