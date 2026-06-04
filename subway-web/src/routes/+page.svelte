@@ -454,11 +454,12 @@
               재연결
             </button>
           {:else}
-            <div class="w-1.5 h-1.5 rounded-full {$sseConnected ? 'bg-green-400 animate-pulse' : 'bg-gray-300'}"
-                 title="{$sseConnected ? 'LIVE' : '연결 중...'}"></div>
-            <span class="text-[10px] font-semibold {$sseConnected ? 'text-green-500' : 'text-gray-400'}">
-              {$sseConnected ? 'LIVE' : '연결 중'}
-            </span>
+            <div class="flex items-center gap-1 px-2 py-0.5 rounded-full {$sseConnected ? 'bg-green-50' : 'bg-gray-100'}">
+              <div class="w-1.5 h-1.5 rounded-full {$sseConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}"></div>
+              <span class="text-[10px] font-bold leading-none {$sseConnected ? 'text-green-600' : 'text-gray-400'}">
+                {$sseConnected ? 'LIVE' : '연결 중'}
+              </span>
+            </div>
           {/if}
         </div>
       </div>
@@ -950,11 +951,11 @@
         {@const meta = LINE_META[code]}
         <button
           onclick={() => selectedLine = code}
-          class="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95"
+          class="flex-shrink-0 px-3.5 py-2 rounded-full text-[12px] font-bold transition-all active:scale-95"
           style="
-            background-color: {selectedLine === code ? meta.color : meta.color + '15'};
+            background-color: {selectedLine === code ? meta.color : meta.color + '12'};
             color: {selectedLine === code ? '#fff' : meta.color};
-            border: 1.5px solid {selectedLine === code ? meta.color : meta.color + '40'};
+            box-shadow: {selectedLine === code ? `0 2px 8px ${meta.color}55` : 'none'};
           "
         >{meta.name}</button>
       {/each}
@@ -966,14 +967,22 @@
     <div class="flex gap-1.5 px-4 pb-2 overflow-x-auto no-scrollbar">
       <button
         onclick={() => filterBranch = '전체'}
-        class="flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all"
-        style="background-color: {filterBranch === '전체' ? lineColor : '#F3F4F6'}; color: {filterBranch === '전체' ? '#fff' : '#6B7280'};"
+        class="flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all active:scale-95"
+        style="
+          background-color: {filterBranch === '전체' ? lineColor : lineColor + '12'};
+          color: {filterBranch === '전체' ? '#fff' : lineColor};
+          box-shadow: {filterBranch === '전체' ? `0 2px 6px ${lineColor}44` : 'none'};
+        "
       >전체 계통</button>
       {#each currentBranches as branch}
         <button
           onclick={() => filterBranch = branch.id}
-          class="flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold transition-all"
-          style="background-color: {filterBranch === branch.id ? lineColor : '#F3F4F6'}; color: {filterBranch === branch.id ? '#fff' : '#6B7280'};"
+          class="flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all active:scale-95"
+          style="
+            background-color: {filterBranch === branch.id ? lineColor : lineColor + '12'};
+            color: {filterBranch === branch.id ? '#fff' : lineColor};
+            box-shadow: {filterBranch === branch.id ? `0 2px 6px ${lineColor}44` : 'none'};
+          "
         >{branch.label}</button>
       {/each}
     </div>
@@ -985,10 +994,11 @@
       {#each ['전체', ...dirLabels] as dir}
         <button
           onclick={() => filterDir = dir}
-          class="px-3 py-1 rounded-full text-xs font-semibold transition-all"
+          class="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all active:scale-95"
           style="
             background-color: {filterDir === dir ? lineColor : '#F3F4F6'};
             color: {filterDir === dir ? '#fff' : '#6B7280'};
+            box-shadow: {filterDir === dir ? `0 2px 6px ${lineColor}44` : 'none'};
           "
         >{dir}</button>
       {/each}
@@ -1174,98 +1184,108 @@
 
 <!-- ── 선택된 열차 하단 상세 패널 ─────────────────────────────────── -->
 {#if selectedTrain && activeTab === 'linemap'}
+  {@const etaSecs = selectedTrain.etaSeconds ?? 0}
+  {@const etaText = etaSecs > 0 ? `약 ${Math.ceil(etaSecs / 60)}분` : '곧 도착'}
+  {@const sp = getProgressInfo(selectedTrain)}
+
   <!-- 딤 배경 -->
   <div class="fixed inset-0 z-[55]" onclick={() => selectedTrain = null} role="presentation"></div>
 
   <!-- 패널 -->
-  <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white z-[60] rounded-t-3xl shadow-2xl"
-       style="padding-bottom: calc(56px + max(1rem, env(safe-area-inset-bottom)));">
+  <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white z-[60] rounded-t-[28px]"
+       style="box-shadow: 0 -8px 40px rgba(0,0,0,0.12); padding-bottom: calc(56px + max(1rem, env(safe-area-inset-bottom)));">
+
     <!-- 드래그 핸들 -->
-    <div class="flex justify-center pt-3 pb-1">
-      <div class="w-10 h-1 bg-gray-200 rounded-full"></div>
+    <div class="flex justify-center pt-3 pb-2">
+      <div class="w-9 h-1 bg-gray-200 rounded-full"></div>
     </div>
 
-    <div class="px-5 pt-2 pb-4">
-      <!-- 헤더 -->
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-bold px-2.5 py-1 rounded-full text-white"
+    <div class="px-5 pb-2">
+      <!-- 헤더: 노선 배지 + 목적지 + 닫기 -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="flex-shrink-0 text-[11px] font-black px-2.5 py-1 rounded-full text-white tracking-tight"
                 style="background: {lineColor};">{lineName}</span>
-          <span class="text-[17px] font-bold text-gray-900">
+          <span class="text-[17px] font-bold text-gray-900 leading-tight truncate">
             {selectedTrain.destination ?? selectedTrain.direction ?? '운행 중'}
           </span>
+          {#if selectedTrain.express}
+            <span class="flex-shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded bg-red-500 text-white">급행</span>
+          {/if}
         </div>
         <button onclick={() => selectedTrain = null}
-                class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 active:bg-gray-200">
-          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                class="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 active:bg-gray-200 ml-2">
+          <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
       </div>
 
-      <!-- 도착 메시지 -->
-      <p class="text-[15px] text-gray-700 mb-4">
-        {selectedTrain.arrivalMessage ?? '위치 정보 없음'}
-      </p>
-
-      <!-- 구간 프로그레스바 -->
-      {#each [getProgressInfo(selectedTrain)] as sp}
-        {#if sp}
-          <div class="mb-4">
-            <div class="flex justify-between text-xs font-semibold text-gray-500 mb-2">
-              <span>{sp.currentStation}</span>
-              <span>{sp.nextStation}</span>
-            </div>
-            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-              <div class="h-full rounded-full transition-all duration-500"
-                   style="width: {sp.progress * 100}%; background: {lineColor};"></div>
-            </div>
-            <div class="flex justify-between text-[10px] text-gray-400 mt-1">
-              <span>●</span><span>○</span>
-            </div>
+      <!-- ETA 히어로 카드 -->
+      <div class="rounded-2xl px-4 py-3.5 mb-4"
+           style="background: {lineColor}0D;">
+        <div class="flex items-end justify-between">
+          <div>
+            <p class="text-[11px] font-semibold text-gray-500 mb-1">도착까지</p>
+            <p class="text-[36px] font-black leading-none" style="color: {lineColor};">{etaText}</p>
           </div>
-        {/if}
-      {/each}
-
-      <!-- 열차번호 + ETA -->
-      <div class="flex items-center justify-between mb-5">
-        <span class="text-sm text-gray-400">
-          열차 <span class="font-semibold text-gray-600">{selectedTrain.trainNo}</span>
-        </span>
-        <span class="text-sm font-bold" style="color: {lineColor};">
-          {selectedTrain.etaSeconds > 0 ? `약 ${etaLabel(selectedTrain.etaSeconds)}` : '곧 도착'}
-        </span>
+          <div class="text-right">
+            <p class="text-[11px] text-gray-400 mb-0.5">열차 번호</p>
+            <p class="text-[13px] font-bold text-gray-700">{selectedTrain.trainNo}</p>
+          </div>
+        </div>
+        <p class="text-[13px] font-medium mt-2.5" style="color: {lineColor}bb;">
+          {selectedTrain.arrivalMessage ?? '위치 정보 없음'}
+        </p>
       </div>
 
+      <!-- 구간 프로그레스바 -->
+      {#if sp}
+        <div class="mb-4">
+          <div class="flex justify-between text-[12px] font-bold text-gray-700 mb-2">
+            <span>{sp.currentStation}</span>
+            <span>{sp.nextStation}</span>
+          </div>
+          <div class="relative h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div class="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
+                 style="width: {sp.progress * 100}%; background: {lineColor};"></div>
+          </div>
+          <div class="flex justify-between mt-1.5">
+            <div class="w-2 h-2 rounded-full border-2 bg-white" style="border-color: {lineColor};"></div>
+            <div class="w-2 h-2 rounded-full border-2 border-gray-200 bg-white"></div>
+          </div>
+        </div>
+      {/if}
+
       <!-- 이전/다음 열차 -->
-      <div class="flex gap-3">
+      <div class="flex gap-2.5 mb-3">
         <button onclick={selectPrev}
                 disabled={selectedTrainIdx <= 0}
-                class="flex-1 bg-gray-100 text-gray-700 text-sm font-bold py-3.5 rounded-2xl
+                class="flex-1 bg-gray-100 text-gray-600 text-[13px] font-bold py-3.5 rounded-2xl
                        disabled:opacity-30 active:bg-gray-200 transition-colors">
           ← 이전 열차
         </button>
         <button onclick={selectNext}
                 disabled={selectedTrainIdx >= sortedTrains.length - 1}
-                class="flex-1 text-white text-sm font-bold py-3.5 rounded-2xl
+                class="flex-1 text-white text-[13px] font-bold py-3.5 rounded-2xl
                        disabled:opacity-30 active:opacity-80 transition-colors"
                 style="background: {lineColor};">
           다음 열차 →
         </button>
       </div>
 
-      <!-- 민원 접수 -->
-      <a href="/complaints?trainNo={encodeURIComponent(selectedTrain.trainNo)}&lineCode={encodeURIComponent(selectedTrain.lineCode)}&lineName={encodeURIComponent(lineName)}&station={encodeURIComponent(selectedTrain.currentStation)}&direction={encodeURIComponent(selectedTrain.direction ?? '')}&destination={encodeURIComponent(selectedTrain.destination ?? '')}"
-         onclick={() => selectedTrain = null}
-         class="mt-1 flex items-center justify-center gap-2 w-full text-sm font-bold py-3.5 rounded-2xl
-                active:opacity-80 transition-colors"
-         style="background: #fff7ed; color: #ea580c; border: 1.5px solid #fed7aa;">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-        이 열차로 민원 접수
-      </a>
+      <!-- 민원 접수 (서브텍스트 링크) -->
+      <div class="flex justify-center pb-1">
+        <a href="/complaints?trainNo={encodeURIComponent(selectedTrain.trainNo)}&lineCode={encodeURIComponent(selectedTrain.lineCode)}&lineName={encodeURIComponent(lineName)}&station={encodeURIComponent(selectedTrain.currentStation)}&direction={encodeURIComponent(selectedTrain.direction ?? '')}&destination={encodeURIComponent(selectedTrain.destination ?? '')}"
+           onclick={() => selectedTrain = null}
+           class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gray-400 active:text-gray-600 py-2 transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          이 열차로 민원 접수
+        </a>
+      </div>
     </div>
   </div>
 {/if}
