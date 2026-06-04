@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -169,6 +169,14 @@ public class SubwayLineService {
     // 30초 캐시 (실시간)
     private static final long CACHE_MILLIS = 30_000L;
 
+    // 전용 스레드풀 — ForkJoinPool.commonPool 대신 I/O 전용 풀 사용
+    private static final ExecutorService FETCH_POOL =
+        Executors.newFixedThreadPool(50, r -> {
+            Thread t = new Thread(r, "subway-fetch");
+            t.setDaemon(true);
+            return t;
+        });
+
     private record CachedData(long timestamp, List<TrainPositionDto> trains) {}
     private final Map<String, CachedData> cache = new ConcurrentHashMap<>();
 
@@ -185,16 +193,19 @@ public class SubwayLineService {
             return Collections.emptyList();
         }
 
-        // 전체 역 병렬 조회 후 열차별 집계 (trainNo 기준 중복 제거: ETA 최소값 유지)
+        // 전체 역 전용 스레드풀로 병렬 조회 (trainNo 기준 중복 제거: ETA 최소값 유지)
         Map<String, SeoulSubwayApiClient.ArrivalDetail> trainMap = new ConcurrentHashMap<>();
-        stations.parallelStream().forEach(station -> {
-            List<SeoulSubwayApiClient.ArrivalDetail> details = seoulClient.fetchArrivalDetails(station);
-            for (SeoulSubwayApiClient.ArrivalDetail d : details) {
-                if (!lineCode.equals(d.getLineCode())) continue;
-                trainMap.merge(d.getTrainNo(), d, (existing, newer) ->
-                    newer.getEtaSeconds() < existing.getEtaSeconds() ? newer : existing);
-            }
-        });
+        List<CompletableFuture<Void>> futures = stations.stream()
+            .map(station -> CompletableFuture.runAsync(() -> {
+                List<SeoulSubwayApiClient.ArrivalDetail> details = seoulClient.fetchArrivalDetails(station);
+                for (SeoulSubwayApiClient.ArrivalDetail d : details) {
+                    if (!lineCode.equals(d.getLineCode())) continue;
+                    trainMap.merge(d.getTrainNo(), d, (existing, newer) ->
+                        newer.getEtaSeconds() < existing.getEtaSeconds() ? newer : existing);
+                }
+            }, FETCH_POOL))
+            .collect(Collectors.toList());
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         List<TrainPositionDto> trains = trainMap.values().stream()
             .map(d -> TrainPositionDto.builder()

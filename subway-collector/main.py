@@ -1,5 +1,6 @@
 import logging
 import schedule
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
@@ -17,6 +18,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 _MAX_WORKERS = 30
+_cycle_lock = threading.Lock()
 
 
 def main():
@@ -24,8 +26,11 @@ def main():
     event_publisher = EventPublisher(producer)
 
     def collect_cycle():
-        logger.info("=== 수집 사이클 시작 (전 역 %d개 병렬 조회) ===", len(ALL_STATIONS))
+        if not _cycle_lock.acquire(blocking=False):
+            logger.warning("이전 수집 사이클 진행 중 — 스킵")
+            return
         try:
+            logger.info("=== 수집 사이클 시작 (전 역 %d개 병렬 조회) ===", len(ALL_STATIONS))
             arrivals = []
             with ThreadPoolExecutor(max_workers=_MAX_WORKERS) as executor:
                 futures = {executor.submit(fetch_realtime_arrivals, s): s for s in ALL_STATIONS}
@@ -43,6 +48,8 @@ def main():
                 logger.warning("수집 결과 없음 (운행 없음 또는 API 오류)")
         except Exception as e:
             logger.error("수집 실패: %s", e, exc_info=True)
+        finally:
+            _cycle_lock.release()
 
     logger.info("subway-collector 시작 — 30초 주기 수집")
     collect_cycle()
