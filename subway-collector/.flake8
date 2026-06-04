@@ -1,0 +1,5 @@
+[flake8]
+max-line-length = 120
+exclude = __pycache__,venv
+per-file-ignores =
+    collector/subway_api.py: E501

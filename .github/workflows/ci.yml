@@ -96,7 +96,7 @@ jobs:
 
       - name: Lint
         working-directory: subway-collector
-        run: flake8 . --max-line-length=120 --exclude=__pycache__,venv
+        run: flake8 .
 
   # ── 프론트엔드 빌드 & 타입 체크 ──────────────────────────────────────
   build-web:
