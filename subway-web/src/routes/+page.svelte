@@ -739,9 +739,7 @@
                 </div>
                 <div class="flex items-center justify-between mt-2 ml-7">
                   <div>
-                    {@const totalMins = calcRouteMins(segs)}
-                    {@const arrivalTime = (() => { const d = new Date(Date.now() + totalMins * 60000); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; })()}
-                    <p class="text-[12px] font-bold text-gray-700">약 {totalMins}분 <span class="text-gray-400 font-normal">도착 예상 {arrivalTime}</span></p>
+                    <p class="text-[12px] font-bold text-gray-700">약 {calcRouteMins(segs)}분 <span class="text-gray-400 font-normal">도착 예상 {(() => { const d = new Date(Date.now() + calcRouteMins(segs) * 60000); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; })()}</span></p>
                     <p class="text-[11px] text-gray-400 mt-0.5">
                       총 {segs.length - 1}회 환승 · {segs.reduce((s, g) => s + g.stations.length - 1, 0)}개역
                     </p>
