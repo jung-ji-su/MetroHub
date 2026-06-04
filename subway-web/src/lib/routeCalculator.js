@@ -1,5 +1,42 @@
 import { LINE_STATIONS, LINE_META } from './lineStations.js';
 
+// 노선별 평균 역간 이동 시간 (초)
+const INTER_STATION_SECS = {
+  '1001': 130,  // 1호선 (경부/경인 외곽 구간 많음)
+  '1002': 120,  // 2호선
+  '1003': 130,  // 3호선
+  '1004': 130,  // 4호선
+  '1005': 130,  // 5호선
+  '1006': 120,  // 6호선
+  '1007': 130,  // 7호선
+  '1008': 120,  // 8호선
+  '1009': 130,  // 9호선
+  '1063': 200,  // 경의중앙선 (역 간격 넓음)
+  '1065': 300,  // 공항철도
+  '1067': 240,  // 경춘선
+  '1069': 120,  // 인천1호선
+  '1071': 120,  // 인천2호선
+  '1073':  90,  // 의정부경전철
+  '1074': 120,  // 김포골드라인
+  '1075': 150,  // 신분당선
+  '1077': 150,  // 수인분당선
+  '1079':  90,  // 에버라인
+  '1081': 210,  // 경강선
+  '1092':  90,  // 우이신설선
+  '1093': 150,  // 서해선
+  '1094':  90,  // 신림선
+  '1021': 300,  // GTX-A
+};
+const TRANSFER_SECS = 180;  // 환승 평균 3분
+
+// 세그먼트 배열 → 총 소요 분 (승차 + 환승 시간 합산)
+export function calcRouteMins(segments) {
+  if (!segments?.length) return 0;
+  const rideSecs   = segments.reduce((s, g) => s + (g.durationSecs ?? 0), 0);
+  const xferSecs   = (segments.length - 1) * TRANSFER_SECS;
+  return Math.max(1, Math.round((rideSecs + xferSecs) / 60));
+}
+
 // 역명 → 노선코드 목록
 const STATION_LINES = {};
 for (const [code, stations] of Object.entries(LINE_STATIONS)) {
@@ -108,5 +145,8 @@ function buildSegments(prev, finalKey) {
     }
   }
   if (cur) segs.push(cur);
+  for (const seg of segs) {
+    seg.durationSecs = (seg.stations.length - 1) * (INTER_STATION_SECS[seg.line] ?? 120);
+  }
   return segs;
 }

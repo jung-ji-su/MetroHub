@@ -4,7 +4,7 @@
   import { LINE_META, LINE_STATIONS, LINE_BRANCHES, getBranchStations, SUPPORTED_LINES } from '$lib/lineStations';
   import { trendingStations, lineAlerts, latestCongestionLine, dismissAlert, sseConnected, sseRetryExhausted, lastSseUpdate, retrySSE } from '$lib/sseStore';
   import { notifications, unreadCount, markAllRead, notifRetryExhausted, retryNotificationSSE } from '$lib/notificationStore';
-  import { findRoute, searchStations } from '$lib/routeCalculator';
+  import { findRoute, searchStations, calcRouteMins } from '$lib/routeCalculator';
   import StationSearch from '$lib/StationSearch.svelte';
 
   let showNotifPanel = $state(false);
@@ -709,6 +709,10 @@
                           {seg.lineName}
                         </span>
                         <span class="text-[11px] text-gray-400">{seg.stations.length - 1}개역</span>
+                        {#if seg.stations.length > 1}
+                          <span class="text-[11px] text-gray-300">·</span>
+                          <span class="text-[11px] text-gray-400">~{Math.round(seg.durationSecs / 60)}분</span>
+                        {/if}
                         <button
                           onclick={() => goToLineMap(seg.line, seg.stations[0])}
                           class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full active:opacity-60 transition-opacity flex-shrink-0"
@@ -734,9 +738,14 @@
                   <p class="text-[13px] font-bold text-gray-700">🏁 {route.to} 도착</p>
                 </div>
                 <div class="flex items-center justify-between mt-2 ml-7">
-                  <p class="text-[11px] text-gray-400">
-                    총 {segs.length - 1}회 환승 · {segs.reduce((s, g) => s + g.stations.length - 1, 0)}개역
-                  </p>
+                  <div>
+                    {@const totalMins = calcRouteMins(segs)}
+                    {@const arrivalTime = (() => { const d = new Date(Date.now() + totalMins * 60000); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; })()}
+                    <p class="text-[12px] font-bold text-gray-700">약 {totalMins}분 <span class="text-gray-400 font-normal">도착 예상 {arrivalTime}</span></p>
+                    <p class="text-[11px] text-gray-400 mt-0.5">
+                      총 {segs.length - 1}회 환승 · {segs.reduce((s, g) => s + g.stations.length - 1, 0)}개역
+                    </p>
+                  </div>
                   <button
                     onclick={() => fetchRouteArrival(route.id, route.from, segs[0]?.lineCode)}
                     class="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-full active:bg-blue-100 transition-colors"
