@@ -24,7 +24,6 @@ class CongestionServiceTest {
     @InjectMocks CongestionService congestionService;
 
     private Congestion freshCongestion;
-    private Congestion staleCongestion;
 
     @BeforeEach
     void setUp() {
@@ -37,52 +36,46 @@ class CongestionServiceTest {
                 .arrivalMessage("곧 도착")
                 .updatedAt(LocalDateTime.now())
                 .build();
-
-        staleCongestion = Congestion.builder()
-                .id(2L)
-                .lineNumber("2")
-                .stationName("강남")
-                .congestionLevel(80)
-                .trainNo("2002")
-                .arrivalMessage("2분")
-                .updatedAt(LocalDateTime.now().minusMinutes(15))
-                .build();
     }
 
     @Test
-    @DisplayName("캐시가 신선하면 서울 API 호출 없이 DB 데이터 반환")
-    void getCongestionByStation_fresh_noApiCall() {
-        given(congestionMapper.findByStationName("강남")).willReturn(List.of(freshCongestion));
-
-        List<CongestionDto.Response> result = congestionService.getCongestionByStation("강남");
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getStationName()).isEqualTo("강남");
-        then(seoulSubwayApiClient).shouldHaveNoInteractions();
-    }
-
-    @Test
-    @DisplayName("캐시가 만료되면 서울 API 재호출")
-    void getCongestionByStation_stale_callsApi() {
-        given(congestionMapper.findByStationName("강남"))
-                .willReturn(List.of(staleCongestion))
-                .willReturn(List.of(freshCongestion));
+    @DisplayName("서울 API 응답 있으면 upsert 후 DB 데이터 반환")
+    void getCongestionByStation_apiReturnsData_upsertAndReturn() {
         given(seoulSubwayApiClient.fetchArrivals("강남")).willReturn(List.of(freshCongestion));
+        given(congestionMapper.findByStationName("강남")).willReturn(List.of(freshCongestion));
         willDoNothing().given(congestionMapper).upsert(any());
 
         List<CongestionDto.Response> result = congestionService.getCongestionByStation("강남");
 
         then(seoulSubwayApiClient).should().fetchArrivals("강남");
+        then(congestionMapper).should().upsert(freshCongestion);
         assertThat(result).hasSize(1);
+        assertThat(result.get(0).getStationName()).isEqualTo("강남");
     }
 
     @Test
-    @DisplayName("DB에 데이터 없으면 서울 API 호출")
-    void getCongestionByStation_empty_callsApi() {
-        given(congestionMapper.findByStationName("역삼"))
-                .willReturn(List.of())
-                .willReturn(List.of(freshCongestion));
-        given(seoulSubwayApiClient.fetchArrivals("역삼")).willReturn(List.of(freshCongestion));
+    @DisplayName("서울 API 응답 없으면 upsert 없이 DB 데이터 반환")
+    void getCongestionByStation_apiEmpty_returnsDb() {
+        given(seoulSubwayApiClient.fetchArrivals("강남")).willReturn(List.of());
+        given(congestionMapper.findByStationName("강남")).willReturn(List.of(freshCongestion));
+
+        List<CongestionDto.Response> result = congestionService.getCongestionByStation("강남");
+
+        then(seoulSubwayApiClient).should().fetchArrivals("강남");
+        then(congestionMapper).should(never()).upsert(any());
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getStationName()).isEqualTo("강남");
+    }
+
+    @Test
+    @DisplayName("DB에 데이터 없어도 서울 API 호출 후 결과 반환")
+    void getCongestionByStation_dbEmpty_callsApi() {
+        Congestion newData = Congestion.builder()
+                .id(2L).lineNumber("2").stationName("역삼")
+                .congestionLevel(30).trainNo("2002").arrivalMessage("3분")
+                .updatedAt(LocalDateTime.now()).build();
+        given(seoulSubwayApiClient.fetchArrivals("역삼")).willReturn(List.of(newData));
+        given(congestionMapper.findByStationName("역삼")).willReturn(List.of(newData));
         willDoNothing().given(congestionMapper).upsert(any());
 
         List<CongestionDto.Response> result = congestionService.getCongestionByStation("역삼");
