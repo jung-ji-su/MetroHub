@@ -3,7 +3,7 @@
 
 export const LINE_META = {
   '1001': { name: '1호선', color: '#0052A4', dirLabel: ['상행', '하행'] },
-  '1002': { name: '2호선', color: '#00A84D', dirLabel: ['외선순환', '내선순환'] },
+  '1002': { name: '2호선', color: '#00A84D', dirLabel: ['내선순환', '외선순환'] },
   '1003': { name: '3호선', color: '#EF7C1C', dirLabel: ['상행', '하행'] },
   '1004': { name: '4호선', color: '#00A5DE', dirLabel: ['상행', '하행'] },
   '1005': { name: '5호선', color: '#996CAC', dirLabel: ['상행', '하행'] },
@@ -258,12 +258,12 @@ export const LINE_BRANCHES = {
     branches: [
       {
         id: 'sinjeong', label: '신정지선',
-        destKeywords: ['까치산'],
+        destKeywords: ['까치산', '신정지선'],
         trunkEnd: '충정로', branchStart: '도림천', branchEnd: '까치산',
       },
       {
         id: 'seongsu', label: '성수지선',
-        destKeywords: ['신설동'],
+        destKeywords: ['신설동', '성수지선'],
         trunkEnd: '충정로', branchStart: '용답', branchEnd: '신설동',
       },
     ],

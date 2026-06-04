@@ -1021,7 +1021,7 @@
   {#if currentBranches.length > 0}
     <div class="flex gap-1.5 px-4 pb-2 overflow-x-auto no-scrollbar">
       <button
-        onclick={() => filterBranch = '전체'}
+        onclick={() => { filterBranch = '전체'; filterDir = '전체'; }}
         class="flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all active:scale-95"
         style="
           background-color: {filterBranch === '전체' ? lineColor : lineColor + '12'};
@@ -1031,7 +1031,7 @@
       >전체 계통</button>
       {#each currentBranches as branch}
         <button
-          onclick={() => filterBranch = branch.id}
+          onclick={() => { filterBranch = branch.id; filterDir = '전체'; }}
           class="flex-shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all active:scale-95"
           style="
             background-color: {filterBranch === branch.id ? lineColor : lineColor + '12'};
@@ -1045,19 +1045,24 @@
 
   <!-- 방향 필터 + 업데이트 시각 -->
   <div class="flex items-center justify-between px-4 pb-3">
-    <div class="flex gap-1.5">
-      {#each ['전체', ...dirLabels] as dir}
-        <button
-          onclick={() => filterDir = dir}
-          class="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all active:scale-95"
-          style="
-            background-color: {filterDir === dir ? lineColor : '#F3F4F6'};
-            color: {filterDir === dir ? '#fff' : '#6B7280'};
-            box-shadow: {filterDir === dir ? `0 2px 6px ${lineColor}44` : 'none'};
-          "
-        >{dir}</button>
-      {/each}
-    </div>
+    {#if filterBranch === '전체'}
+      <div class="flex gap-1.5">
+        {#each ['전체', ...dirLabels] as dir}
+          <button
+            onclick={() => filterDir = dir}
+            class="px-3 py-1.5 rounded-full text-[11px] font-bold transition-all active:scale-95"
+            style="
+              background-color: {filterDir === dir ? lineColor : '#F3F4F6'};
+              color: {filterDir === dir ? '#fff' : '#6B7280'};
+              box-shadow: {filterDir === dir ? `0 2px 6px ${lineColor}44` : 'none'};
+            "
+          >{dir}</button>
+        {/each}
+      </div>
+    {:else}
+      <!-- 지선 선택 시 방향 필터 비표시 (지선 열차는 별도 방향값 사용) -->
+      <div></div>
+    {/if}
     {#if lastUpdated}
       <span class="text-[10px] text-gray-400">{formatUpdated(lastUpdated)} 기준</span>
     {/if}
