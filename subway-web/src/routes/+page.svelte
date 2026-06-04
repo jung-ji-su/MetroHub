@@ -6,6 +6,7 @@
   import { notifications, unreadCount, markAllRead, notifRetryExhausted, retryNotificationSSE } from '$lib/notificationStore';
   import { findRoute, searchStations, calcRouteMins } from '$lib/routeCalculator';
   import StationSearch from '$lib/StationSearch.svelte';
+  import LineMapSvg from '$lib/LineMapSvg.svelte';
 
   let showNotifPanel = $state(false);
   function toggleNotifPanel() {
@@ -229,9 +230,7 @@
     return getBranchStations(selectedLine, filterBranch);
   });
 
-  // 노선도 레이아웃 상수
-  const SEGMENT_PX  = 76;  // 역과 역 사이 픽셀 간격
-  const AVG_INTER_S = 90;  // 역 간 평균 이동 시간(초)
+  const AVG_INTER_S = 90;  // 역 간 평균 이동 시간(초) — 바텀시트 프로그레스바용
 
   // 계통 필터 적용
   const branchTrains = $derived.by(() => {
@@ -293,29 +292,6 @@
     };
   }
 
-  // 열차 Y 좌표(px): prevStation ~ currentStation 사이 보간
-  // etaSeconds=MAX → prevStation 위치, etaSeconds=0 → currentStation 위치
-  function trainTopPx(train) {
-    const idx = stations.indexOf(train.currentStation);
-    if (idx < 0) return null;
-    const ratio = Math.min(1, Math.max(0, train.etaSeconds / AVG_INTER_S));
-    return isUpward(train)
-      ? (idx + ratio) * SEGMENT_PX   // 상행: 아래(높은 idx)에서 위로 접근
-      : (idx - ratio) * SEGMENT_PX;  // 하행: 위(낮은 idx)에서 아래로 접근
-  }
-
-  // CSS animation 이동 거리 — 상행 음수(위), 하행 양수(아래)
-  function trainMoveDist(train) {
-    const eta = Math.min(AVG_INTER_S, Math.max(0, train.etaSeconds));
-    const dist = (eta / AVG_INTER_S) * SEGMENT_PX;
-    return isUpward(train) ? -dist : dist;
-  }
-
-  // 열차 X 좌표(px) — 상행: 트랙 오른쪽, 하행: 트랙 왼쪽
-  function trainLeftPx(train) {
-    return isUpward(train) ? 28 : -2;
-  }
-
   function selectPrev() {
     const idx = sortedTrains.findIndex(t => t.trainNo === selectedTrain?.trainNo);
     if (idx > 0) selectedTrain = sortedTrains[idx - 1];
@@ -347,6 +323,12 @@
   }
 
   let useMock = $state(false);
+
+  // 계통 변경 시 방향 필터 초기화
+  $effect(() => {
+    filterBranch;
+    filterDir = '전체';
+  });
 
   async function fetchLineTrains() {
     lineLoading = true; lineError = ''; useMock = false;
@@ -1086,91 +1068,18 @@
         </div>
       {/if}
 
-      <!-- ── 절대위치 노선도 ─────────────────────────────────────── -->
-      <div class="relative mx-4"
-           style="height: {stations.length * SEGMENT_PX + 20}px;">
-
-        <!-- 노선 트랙 세로선 -->
-        <div class="absolute rounded-full"
-             style="left: 22px; top: 8px; width: 5px;
-                    height: {(stations.length - 1) * SEGMENT_PX}px;
-                    background: linear-gradient(to bottom, {lineColor}, {lineColor}cc);"></div>
-
-        <!-- 역 점 + 이름 -->
-        {#each stations as station, i}
-          <div class="absolute flex items-center gap-3"
-               id="station-{station}"
-               style="top: {i * SEGMENT_PX}px; left: 0; right: 0;">
-            <!-- 역 원 -->
-            <div class="w-12 flex justify-center flex-shrink-0">
-              <div class="w-[14px] h-[14px] rounded-full border-[3px] bg-white z-10"
-                   style="border-color: {lineColor}; box-shadow: 0 0 0 2px white;"></div>
-            </div>
-            <!-- 역명 -->
-            <span class="text-[13px] font-semibold text-gray-800 leading-none">{station}</span>
-          </div>
-        {/each}
-
-        <!-- 열차 아이콘 (절대 위치 + CSS 이동 애니메이션) -->
-        {#each filteredTrains as train (train.trainNo)}
-          {@const topPx = trainTopPx(train)}
-          {@const moveDist = trainMoveDist(train)}
-          {@const leftPx = trainLeftPx(train)}
-          {@const up = isUpward(train)}
-          {@const isSelected = selectedTrain?.trainNo === train.trainNo}
-          {@const trainColor = useMock ? '#F59E0B' : (train.express ? '#EF4444' : lineColor)}
-          {#if topPx !== null}
-            <button
-              onclick={() => selectedTrain = isSelected ? null : train}
-              class="absolute z-20 train-btn flex flex-col items-center"
-              style="
-                top: {topPx - (up ? 25 : 16)}px;
-                left: {leftPx}px;
-                --move-dist: {moveDist}px;
-                --anim-dur: {train.etaSeconds > 0 ? train.etaSeconds : 0}s;
-              "
-              aria-label="열차 {train.trainNo}"
-            >
-              <!-- 상행 위쪽 화살표 -->
-              {#if up}
-                <svg width="10" height="7" viewBox="0 0 10 7" class="mb-0.5 flex-shrink-0">
-                  <polygon points="5,0 10,7 0,7" fill="{trainColor}"/>
-                </svg>
-              {/if}
-
-              <!-- 지하철 차량 SVG (탑뷰, 상행은 180° 회전) -->
-              <div class="train-car {isSelected ? 'selected' : ''} {up ? 'up' : ''} {train.express ? 'express' : ''}"
-                   style="background: {trainColor}; box-shadow: 0 3px 10px {trainColor}66;">
-                <svg width="20" height="30" viewBox="0 0 20 30" fill="none">
-                  <rect x="1" y="1" width="18" height="28" rx="5" fill="white" opacity="0.25"/>
-                  <rect x="3.5" y="3"  width="13" height="7"  rx="2" fill="white" opacity="0.55"/>
-                  <rect x="3.5" y="13" width="13" height="5.5" rx="1.5" fill="white" opacity="0.45"/>
-                  <rect x="3.5" y="21" width="13" height="5"   rx="1.5" fill="white" opacity="0.35"/>
-                </svg>
-              </div>
-
-              <!-- 하행 아래쪽 화살표 -->
-              {#if !up}
-                <svg width="10" height="7" viewBox="0 0 10 7" class="mt-0.5 flex-shrink-0">
-                  <polygon points="5,7 10,0 0,0" fill="{trainColor}"/>
-                </svg>
-              {/if}
-
-              <!-- 선택 시 ETA 말풍선 (아이콘 아래 중앙) -->
-              {#if isSelected}
-                <div class="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white rounded-xl px-2 py-1 shadow-lg whitespace-nowrap border z-30"
-                     style="border-color: {trainColor}40;">
-                  <p class="text-[11px] font-bold" style="color: {trainColor};">
-                    {train.express ? '[급행] ' : ''}{train.destination ?? train.direction}
-                  </p>
-                  <p class="text-[10px] text-gray-400">{etaLabel(train.etaSeconds)}</p>
-                </div>
-              {/if}
-            </button>
-          {/if}
-        {/each}
-
-      </div><!-- /절대위치 노선도 -->
+      <!-- ── SVG 노선도 ────────────────────────────────────────────── -->
+      <LineMapSvg
+        {stations}
+        trains={filteredTrains}
+        lineCode={selectedLine}
+        {lineColor}
+        selectedTrainNo={selectedTrain?.trainNo ?? null}
+        onTrainClick={(train) => {
+          selectedTrain = selectedTrain?.trainNo === train.trainNo ? null : train;
+        }}
+        {useMock}
+      />
 
     </div>
 
@@ -1293,29 +1202,4 @@
 <style>
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-  /* 지하철 차량 스타일 */
-  .train-car {
-    width: 22px;
-    height: 32px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  .train-car.up              { transform: rotate(180deg); }
-  .train-car.selected        { transform: scale(1.25); z-index: 30; }
-  .train-car.up.selected     { transform: rotate(180deg) scale(1.25); z-index: 30; }
-  .train-btn:active .train-car     { transform: scale(1.1); }
-  .train-btn:active .train-car.up  { transform: rotate(180deg) scale(1.1); }
-
-  /* 열차 이동 애니메이션 */
-  @keyframes trainMove {
-    from { transform: translateY(0); }
-    to   { transform: translateY(var(--move-dist)); }
-  }
-  .train-btn {
-    animation: trainMove var(--anim-dur) linear forwards;
-  }
 </style>
