@@ -139,17 +139,44 @@
   }
 
   let resultsMap  = $state({});
+  let arrivalMap  = $state({}); // { [stationName]: { loading, data: ArrivalDto[] } }
   let searchInput = $state('');
   let showSearch  = $state(false);
 
+  async function fetchArrivals(name) {
+    arrivalMap = { ...arrivalMap, [name]: { loading: true, data: [] } };
+    try {
+      const data = await api.stationArrival(name);
+      arrivalMap = { ...arrivalMap, [name]: { loading: false, data } };
+    } catch (_) {
+      arrivalMap = { ...arrivalMap, [name]: { loading: false, data: [] } };
+    }
+  }
+
   async function fetchStation(name) {
     resultsMap = { ...resultsMap, [name]: { loading: true, error: '', data: [] } };
+    fetchArrivals(name.trim());
     try {
       const data = await api.congestionByStation(name.trim());
       resultsMap = { ...resultsMap, [name]: { loading: false, error: '', data } };
     } catch (e) {
       resultsMap = { ...resultsMap, [name]: { loading: false, error: e.message, data: [] } };
     }
+  }
+
+  function etaLabel(etaSecs) {
+    if (etaSecs <= 30) return '곧 도착';
+    const mins = Math.ceil(etaSecs / 60);
+    return `${mins}분 후`;
+  }
+
+  function dirShort(dir) {
+    if (!dir) return '';
+    if (dir.includes('외선')) return '외선';
+    if (dir.includes('내선')) return '내선';
+    if (dir.includes('상행')) return '상행';
+    if (dir.includes('하행')) return '하행';
+    return dir;
   }
 
   // 즐겨찾기 초기 로드
@@ -192,6 +219,9 @@
     const next = { ...resultsMap };
     delete next[name];
     resultsMap = next;
+    const nextArr = { ...arrivalMap };
+    delete nextArr[name];
+    arrivalMap = nextArr;
   }
 
   async function doSearch(name) {
@@ -886,6 +916,7 @@
                 {@const ck = congestionKey(item.congestionLevel)}
                 {@const cInfo = CONGESTION[ck]}
                 {@const lc = LINE_META[item.lineNumber]?.color ?? '#6B7280'}
+                {@const lineArrivals = (arrivalMap[station]?.data ?? []).filter(a => a.lineCode === item.lineNumber)}
                 <div class="bg-white rounded-2xl shadow-sm overflow-hidden" style="border-left: 4px solid {lc};">
                   <div class="p-4">
                     <div class="flex items-center justify-between mb-2">
@@ -896,8 +927,24 @@
                         {cInfo.label}
                       </span>
                     </div>
+                    {#if lineArrivals.length > 0}
+                      <div class="flex flex-wrap gap-1.5 mb-2">
+                        {#each lineArrivals.slice(0, 3) as arr}
+                          <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full"
+                                style="background: {lc}15; color: {lc};">
+                            {dirShort(arr.direction)}
+                            <span class="font-black">{etaLabel(arr.etaSeconds)}</span>
+                            {#if arr.trainStatus && arr.trainStatus !== '일반'}
+                              <span class="text-[9px] opacity-70">[{arr.trainStatus}]</span>
+                            {/if}
+                          </span>
+                        {/each}
+                      </div>
+                    {:else if arrivalMap[station]?.loading}
+                      <div class="h-6 bg-gray-100 rounded-full w-24 mb-2 animate-pulse"></div>
+                    {/if}
                     {#if item.arrivalMessage}
-                      <p class="text-[17px] font-bold text-gray-900 leading-snug">{item.arrivalMessage}</p>
+                      <p class="text-[15px] font-semibold text-gray-700 leading-snug">{item.arrivalMessage}</p>
                     {:else}
                       <p class="text-[15px] font-medium text-gray-400">도착 정보 없음</p>
                     {/if}

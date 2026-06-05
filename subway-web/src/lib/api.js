@@ -94,6 +94,9 @@ export const api = {
   // 시간대별 혼잡도
   congestionHourly: (station) => request('GET', `/api/congestion/station/${encodeURIComponent(station)}/hourly`),
 
+  // 실시간 도착 정보
+  stationArrival: (station) => request('GET', `/api/arrival/${encodeURIComponent(station)}`),
+
   // 알림 구독 (notification service)
   getSubscriptions:         (token)         => request('GET',    '/api/notifications/subscriptions', null, token, NOTIFICATION_BASE),
   addSubscription:          (data, token)   => request('POST',   '/api/notifications/subscriptions', data, token, NOTIFICATION_BASE),
