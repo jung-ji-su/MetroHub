@@ -164,12 +164,6 @@
     }
   }
 
-  function etaLabel(etaSecs) {
-    if (etaSecs <= 30) return '곧 도착';
-    const mins = Math.ceil(etaSecs / 60);
-    return `${mins}분 후`;
-  }
-
   function dirShort(dir) {
     if (!dir) return '';
     if (dir.includes('외선')) return '외선';
