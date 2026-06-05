@@ -1,1 +1,26 @@
 @import 'tailwindcss';
+
+/* ── PWA / iOS standalone 대응 ─────────────────────────── */
+
+/* 노치·다이나믹 아일랜드 safe-area: sticky 헤더가 status bar 아래에 정확히 붙도록 */
+html {
+  padding-top: env(safe-area-inset-top, 0px);
+  background: #ffffff; /* status bar 영역 배경 = 흰색 (theme_color와 일치) */
+}
+
+/* iOS rubber-band / pull-to-refresh 방지 — PWA 앱처럼 느껴지게 */
+body {
+  overscroll-behavior: none;
+}
+
+/* 탭·터치 반응속도 개선 (300ms delay 제거) */
+* {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* 텍스트 선택 방지 (UI 요소) */
+button, a, nav {
+  -webkit-user-select: none;
+  user-select: none;
+}
