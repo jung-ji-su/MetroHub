@@ -69,6 +69,13 @@ public class DataInitializer implements ApplicationRunner {
         // V3: nickname 유니크 인덱스
         exec("ALTER TABLE users ADD UNIQUE INDEX idx_nickname_unique (nickname)",
              "idx_nickname_unique 생성");
+
+        // V4: complaints 열차정보 컬럼
+        exec("ALTER TABLE complaints ADD COLUMN train_no    VARCHAR(50) NULL AFTER station_name",  "complaints.train_no 추가");
+        exec("ALTER TABLE complaints ADD COLUMN line_code   VARCHAR(20) NULL AFTER train_no",      "complaints.line_code 추가");
+        exec("ALTER TABLE complaints ADD COLUMN line_name   VARCHAR(50) NULL AFTER line_code",     "complaints.line_name 추가");
+        exec("ALTER TABLE complaints ADD COLUMN direction   VARCHAR(50) NULL AFTER line_name",     "complaints.direction 추가");
+        exec("ALTER TABLE complaints ADD COLUMN destination VARCHAR(50) NULL AFTER direction",     "complaints.destination 추가");
     }
 
     private void exec(String sql, String label) {
