@@ -392,9 +392,9 @@
     fetchLineTrains();
   });
 
-  const LINE_REFRESH_MS = Number(import.meta.env.VITE_LINE_REFRESH_MS) || 30_000;
+  const LINE_REFRESH_MS = Number(import.meta.env.VITE_LINE_REFRESH_MS) || 10_000;
 
-  // 노선도 탭 자동 새로고침 (기본 30초, VITE_LINE_REFRESH_MS로 조정 가능)
+  // 노선도 탭 자동 새로고침 (기본 10초, VITE_LINE_REFRESH_MS로 조정 가능)
   async function fetchLineTrainsQuiet() {
     try {
       const result = await api.lineTrains(selectedLine);
