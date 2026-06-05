@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 public class ComplaintDto {
 
     @Getter
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CreateRequest {
@@ -16,6 +17,11 @@ public class ComplaintDto {
         private String category;
         @NotBlank @Size(max = 100)
         private String stationName;
+        private String trainNo;
+        private String lineCode;
+        private String lineName;
+        private String direction;
+        private String destination;
         @NotBlank @Size(max = 2000)
         private String content;
     }
@@ -28,6 +34,11 @@ public class ComplaintDto {
         private Long id;
         private String category;
         private String stationName;
+        private String trainNo;
+        private String lineCode;
+        private String lineName;
+        private String direction;
+        private String destination;
         private String content;
         private String status;
         private LocalDateTime createdAt;

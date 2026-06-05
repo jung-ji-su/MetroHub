@@ -8,6 +8,7 @@
   let loading     = $state(true);
   let error       = $state('');
   let deletingId  = $state(null);
+  let confirmId   = $state(null);
 
   const STATUS = {
     'RECEIVED':    { label: '접수완료', bg: '#EFF6FF', text: '#2563EB' },
@@ -34,7 +35,7 @@
   }
 
   async function deleteComplaint(id) {
-    if (!confirm('이 민원을 삭제하시겠어요?')) return;
+    confirmId = null;
     deletingId = id;
     try {
       await api.deleteComplaint(id, $token);
@@ -101,6 +102,9 @@
             <div>
               <p class="font-bold text-gray-900 text-[15px]">{c.category}</p>
               <p class="text-xs text-gray-400 mt-0.5">{c.stationName}</p>
+              {#if c.trainNo}
+                <p class="text-[11px] text-gray-400 mt-0.5">🚇 {c.lineName ?? ''} {c.trainNo} · {c.destination ?? c.direction ?? ''}</p>
+              {/if}
             </div>
             <span
               class="flex-shrink-0 text-xs font-bold px-3 py-1 rounded-full"
@@ -108,26 +112,42 @@
             >{st.label}</span>
           </div>
           <p class="text-sm text-gray-600 leading-relaxed line-clamp-2">{c.content}</p>
-          <div class="flex items-center justify-between mt-2">
-            <p class="text-[11px] text-gray-400">{formatDate(c.createdAt)}</p>
-            <button
-              onclick={() => deleteComplaint(c.id)}
-              disabled={deletingId === c.id}
-              class="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:bg-red-50 hover:text-red-500 active:bg-red-100 transition-colors disabled:opacity-40"
-              aria-label="삭제"
-            >
-              {#if deletingId === c.id}
-                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                </svg>
-              {:else}
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              {/if}
-            </button>
-          </div>
+          {#if confirmId === c.id}
+            <div class="flex items-center justify-between mt-3 bg-red-50 rounded-xl px-3 py-2">
+              <p class="text-xs text-red-600 font-medium">삭제하시겠어요?</p>
+              <div class="flex gap-2">
+                <button
+                  onclick={() => confirmId = null}
+                  class="text-xs text-gray-500 font-semibold px-3 py-1 rounded-lg bg-white active:bg-gray-100 transition-colors"
+                >취소</button>
+                <button
+                  onclick={() => deleteComplaint(c.id)}
+                  class="text-xs text-white font-semibold px-3 py-1 rounded-lg bg-red-500 active:bg-red-600 transition-colors"
+                >삭제</button>
+              </div>
+            </div>
+          {:else}
+            <div class="flex items-center justify-between mt-2">
+              <p class="text-[11px] text-gray-400">{formatDate(c.createdAt)}</p>
+              <button
+                onclick={() => confirmId = c.id}
+                disabled={deletingId === c.id}
+                class="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 active:bg-red-50 active:text-red-500 transition-colors disabled:opacity-40"
+                aria-label="삭제"
+              >
+                {#if deletingId === c.id}
+                  <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>
+                {:else}
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                {/if}
+              </button>
+            </div>
+          {/if}
         </div>
       {/each}
     </div>

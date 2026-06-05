@@ -14,15 +14,82 @@
   const direction    = decodeURIComponent($page.url.searchParams.get('direction') ?? '');
   const destination  = decodeURIComponent($page.url.searchParams.get('destination') ?? '');
   const hasTrainInfo = !!trainNo;
-  const lineColor    = /** @type {any} */(LINE_META)[lineCode]?.color ?? '#2563EB';
 
-  let category    = $state('');
-  let stationName = $state(trainStation);
-  let content     = $state('');
-  let error       = $state('');
-  let success     = $state(false);
-  let smsSent     = $state(false);
-  let loading     = $state(false);
+  // 운영사별 문자/전화 접수 정보
+  const SMS_INFO = {
+    '1001': { number: '1577-1234', operator: '서울교통공사', note: '1·3·4호선 일부 코레일 구간은 1544-7769' },
+    '1002': { number: '1577-1234', operator: '서울교통공사' },
+    '1003': { number: '1577-1234', operator: '서울교통공사', note: '1·3·4호선 일부 코레일 구간은 1544-7769' },
+    '1004': { number: '1577-1234', operator: '서울교통공사', note: '1·3·4호선 일부 코레일 구간은 1544-7769' },
+    '1005': { number: '1577-1234', operator: '서울교통공사' },
+    '1006': { number: '1577-1234', operator: '서울교통공사' },
+    '1007': { number: '1577-1234', operator: '서울교통공사', note: '인천 구간(석남↔까치울)은 1899-4446' },
+    '1008': { number: '1577-1234', operator: '서울교통공사' },
+    '1009': { number: '1544-4009', operator: '서울시메트로9호선' },
+    '1063': { number: '1544-7769', operator: '코레일' },
+    '1065': { number: '1599-7788', operator: '공항철도(주)' },
+    '1067': { number: '1544-7769', operator: '코레일' },
+    '1069': { number: '1899-4446', operator: '인천교통공사' },
+    '1071': { number: '1899-4446', operator: '인천교통공사' },
+    '1073': { number: '1899-2111', operator: '의정부경전철' },
+    '1074': { number: '031-8048-1500', operator: '김포골드라인', phoneOnly: true },
+    '1075': { number: '031-8018-7777', operator: '신분당선', phoneOnly: true },
+    '1077': { number: '1544-7769', operator: '코레일' },
+    '1079': { number: '1899-9001', operator: '에버라인' },
+    '1081': { number: '1544-7769', operator: '코레일' },
+    '1092': { number: '1577-1234', operator: '서울교통공사' },
+    '1093': { number: '1544-7769', operator: '코레일' },
+    '1094': { number: '1577-1234', operator: '서울교통공사' },
+    '1021': { number: '1544-7769', operator: '코레일(GTX-A)' },
+  };
+
+  const ALL_LINES = Object.entries(LINE_META).map(([code, meta]) => ({ code, ...meta }));
+
+  let category       = $state('');
+  let stationName    = $state(trainStation);
+  let content        = $state('');
+  let error          = $state('');
+  let success        = $state(false);
+  let smsSent        = $state(false);
+  let loading        = $state(false);
+
+  // 직접 입력 필드 (노선도에서 넘어오지 않은 경우)
+  let manualLineCode  = $state('');
+  let manualTrainNo   = $state('');
+  let carNo           = $state('');
+  let arrivingTrains  = $state(/** @type {any[]} */([]));
+  let loadingTrains   = $state(false);
+  let selectedTrainId = $state('');
+
+  // 실제 사용할 열차/노선 정보 (URL 파라미터 우선, 없으면 직접 입력)
+  const effectiveLineCode  = $derived(hasTrainInfo ? lineCode    : manualLineCode);
+  const effectiveLineName  = $derived(hasTrainInfo ? lineName    : (/** @type {any} */(LINE_META)[manualLineCode]?.name ?? ''));
+  const effectiveTrainNo   = $derived(hasTrainInfo ? trainNo     : (selectedTrainId || manualTrainNo));
+  const effectiveDirection = $derived(hasTrainInfo ? direction   : (arrivingTrains.find(t => t.trainNo === selectedTrainId)?.direction ?? ''));
+  const effectiveDest      = $derived(hasTrainInfo ? destination : (arrivingTrains.find(t => t.trainNo === selectedTrainId)?.destination ?? ''));
+  const lineColor          = $derived(/** @type {any} */(LINE_META)[effectiveLineCode]?.color ?? '#2563EB');
+  const smsInfo            = $derived(/** @type {any} */(SMS_INFO)[effectiveLineCode] ?? { number: '120', operator: '다산콜센터' });
+
+  // 노선 또는 역 변경 시 열차 목록 초기화
+  $effect(() => {
+    const _lc  = manualLineCode;
+    const _stn = stationName;
+    arrivingTrains  = [];
+    selectedTrainId = '';
+  });
+
+  async function loadArrivingTrains() {
+    if (!manualLineCode) return;
+    loadingTrains = true;
+    arrivingTrains = [];
+    try {
+      const all = await api.lineTrains(manualLineCode);
+      arrivingTrains = stationName.trim()
+        ? all.filter(/** @param {any} t */ t => t.nextStation === stationName.trim())
+        : all.slice(0, 30);
+    } catch (_) {}
+    finally { loadingTrains = false; }
+  }
 
   const CATEGORIES = [
     {
@@ -68,23 +135,42 @@
   ];
 
   function buildSmsBody() {
-    const lines = ['[MetroHub 민원]'];
-    if (hasTrainInfo) {
-      lines.push(`노선: ${lineName}`);
-      lines.push(`열차번호: ${trainNo}`);
-      lines.push(`위치: ${trainStation}역 ${direction}`);
-    }
-    lines.push(`역: ${stationName}`);
-    lines.push(`유형: ${category}`);
-    lines.push(`내용: ${content}`);
-    return lines.join('\n');
+    const ln   = effectiveLineName;
+    const tn   = effectiveTrainNo;
+    const dir  = effectiveDirection;
+    const dest = effectiveDest;
+    const stn  = stationName;
+    const car  = carNo.trim();
+
+    const destTag = dest ? `_${dest}방면` : (dir ? `_${dir}` : '');
+    const header  = ln ? `[지하철민원 (${ln}${destTag})]` : '[지하철민원]';
+
+    const rows = [header];
+    rows.push(`■ 위치: ${ln ? ln + ' ' : ''}${stn}역${dir ? ` (${dir})` : ''}`);
+    if (tn)  rows.push(`■ 열차번호: ${tn}`);
+    if (car) rows.push(`■ 탑승 칸: ${car}`);
+    rows.push(`■ 유형: ${category}`);
+    rows.push(`■ 내용: ${content}`);
+    return rows.join('\n');
   }
 
   async function doSubmit() {
     if (!$token) { goto('/auth/login'); return false; }
     error = ''; loading = true;
     try {
-      await api.createComplaint({ category, stationName, content }, $token);
+      const hasAny = !!(effectiveTrainNo || effectiveLineCode);
+      await api.createComplaint({
+        category,
+        stationName,
+        content,
+        ...(hasAny && {
+          trainNo:     effectiveTrainNo    || null,
+          lineCode:    effectiveLineCode   || null,
+          lineName:    effectiveLineName   || null,
+          direction:   effectiveDirection  || null,
+          destination: effectiveDest       || null,
+        }),
+      }, $token);
       return true;
     } catch (e) {
       error = e instanceof Error ? e.message : String(e);
@@ -96,6 +182,7 @@
 
   function resetForm() {
     category = ''; stationName = trainStation; content = '';
+    carNo = ''; manualTrainNo = ''; selectedTrainId = ''; manualLineCode = '';
   }
 
   async function submitApp() {
@@ -104,14 +191,14 @@
   }
 
   async function submitWithSms() {
-    const smsBody = buildSmsBody(); // 폼 초기화 전에 미리 저장
-    const ok = await doSubmit();
+    const body = buildSmsBody();
+    const num  = smsInfo.number.replace(/-/g, '');
+    const ok   = await doSubmit();
     if (ok) {
       smsSent = true; success = true; resetForm();
-      // 앱 전환 후 SMS 앱 열기 (120 = 다산콜센터)
-      setTimeout(() => {
-        window.location.href = `sms:120?body=${encodeURIComponent(smsBody)}`;
-      }, 200);
+      const scheme = smsInfo.phoneOnly ? 'tel' : 'sms';
+      const qs     = smsInfo.phoneOnly ? '' : `?body=${encodeURIComponent(body)}`;
+      setTimeout(() => { window.location.href = `${scheme}:${num}${qs}`; }, 200);
     }
   }
 
@@ -158,7 +245,7 @@
       </div>
       <p class="text-gray-900 font-bold text-lg mb-1">민원이 접수되었습니다</p>
       <p class="text-sm text-gray-400 mb-6">
-        {#if smsSent}앱 접수 완료. 문자 전송 화면이 열렸어요.{:else}내 민원 목록에서 진행상황을 확인할 수 있어요{/if}
+        {#if smsSent}앱 접수 완료. {smsInfo.phoneOnly ? '전화' : '문자'} 전송 화면이 열렸어요.{:else}내 민원 목록에서 진행상황을 확인할 수 있어요{/if}
       </p>
       <div class="flex gap-3">
         <a href="/complaints/my" class="bg-blue-600 text-white text-sm font-bold px-6 py-3 rounded-2xl active:bg-blue-700 transition-colors">
@@ -189,7 +276,7 @@
         </div>
         <div class="flex items-center gap-3 text-xs text-gray-500">
           <span>🚉 {trainStation}역</span>
-          <span>🚇 {trainNo}</span>
+          <span>🚇 운행ID {trainNo}</span>
           {#if direction}<span>→ {direction}</span>{/if}
         </div>
       </div>
@@ -226,6 +313,88 @@
       <StationSearch bind:value={stationName} placeholder="역 이름 입력 (예: 강남)" />
     </section>
 
+    <!-- 열차 정보 (직접 입력 시 — 노선도에서 넘어오지 않은 경우) -->
+    {#if !hasTrainInfo}
+      <section>
+        <h2 class="text-[15px] font-bold text-gray-900 mb-1">🚇 열차 정보</h2>
+        <p class="text-[11px] text-gray-400 mb-3">선택사항 — 빠른 처리를 위해 입력해주세요</p>
+
+        <!-- 노선 선택 -->
+        <div class="mb-3">
+          <select
+            bind:value={manualLineCode}
+            class="w-full bg-gray-100 rounded-2xl px-4 py-3.5 text-[14px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+          >
+            <option value="">노선 선택</option>
+            {#each ALL_LINES as line}
+              <option value={line.code}>{line.name}</option>
+            {/each}
+          </select>
+        </div>
+
+        <!-- 실시간 도착 예정 열차 (노선 선택 시) -->
+        {#if manualLineCode}
+          <div class="mb-3">
+            <div class="flex gap-2 mb-1.5">
+              <select
+                bind:value={selectedTrainId}
+                disabled={loadingTrains}
+                class="flex-1 bg-gray-100 rounded-2xl px-4 py-3.5 text-[14px] text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none disabled:opacity-60"
+              >
+                {#if loadingTrains}
+                  <option value="">불러오는 중...</option>
+                {:else if arrivingTrains.length === 0}
+                  <option value="">열차를 불러오세요</option>
+                {:else}
+                  <option value="">열차 선택 (선택사항)</option>
+                  {#each arrivingTrains as t}
+                    <option value={t.trainNo}>{t.trainNo} — {t.destination ?? t.direction ?? ''}</option>
+                  {/each}
+                {/if}
+              </select>
+              <button
+                onclick={loadArrivingTrains}
+                disabled={loadingTrains}
+                class="px-4 py-3.5 bg-blue-50 text-blue-600 text-sm font-semibold rounded-2xl active:bg-blue-100 transition-colors disabled:opacity-50 flex-shrink-0"
+              >
+                {#if loadingTrains}
+                  <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>
+                {:else}
+                  불러오기
+                {/if}
+              </button>
+            </div>
+            {#if arrivingTrains.length > 0}
+              <p class="text-[11px] text-gray-400 px-1">
+                {stationName.trim() ? `${stationName}역 도착 예정` : '전체'} 열차 {arrivingTrains.length}대
+              </p>
+            {/if}
+          </div>
+        {/if}
+
+        <!-- 직접 입력 (편성번호) -->
+        <input
+          bind:value={manualTrainNo}
+          placeholder="편성번호 직접 입력 (예: 1234) — 선택사항"
+          class="w-full bg-gray-100 rounded-2xl px-4 py-3.5 text-[14px] text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </section>
+    {/if}
+
+    <!-- 탑승 위치 (칸/문 번호) -->
+    <section>
+      <h2 class="text-[15px] font-bold text-gray-900 mb-1">🚃 탑승 위치</h2>
+      <p class="text-[11px] text-gray-400 mb-3">선택사항 — 정확한 위치 전달에 도움이 됩니다</p>
+      <input
+        bind:value={carNo}
+        placeholder="예: 3번칸, 3-2번 문, 약냉방칸, 맨 앞칸"
+        class="w-full bg-gray-100 rounded-2xl px-4 py-3.5 text-[14px] text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </section>
+
     <!-- 내용 -->
     <section>
       <h2 class="text-[15px] font-bold text-gray-900 mb-3">상세 내용</h2>
@@ -237,6 +406,22 @@
                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors resize-none"
       ></textarea>
     </section>
+
+    <!-- 운영사 문자 안내 (노선 선택 시) -->
+    {#if effectiveLineCode}
+      <div class="rounded-2xl px-4 py-3" style="background: #f0f9ff; border: 1px solid #bae6fd;">
+        <div class="flex items-center justify-between mb-0.5">
+          <span class="text-[13px] font-semibold text-blue-800">📱 {smsInfo.operator}</span>
+          <span class="text-[13px] font-bold text-blue-700">{smsInfo.number}</span>
+        </div>
+        {#if smsInfo.note}
+          <p class="text-[11px] text-blue-500">※ {smsInfo.note}</p>
+        {/if}
+        {#if smsInfo.phoneOnly}
+          <p class="text-[11px] text-orange-500 mt-0.5">⚠️ 이 노선은 문자 접수 불가 · 전화만 가능</p>
+        {/if}
+      </div>
+    {/if}
 
     <!-- 제출 버튼 -->
     <div class="flex gap-3">
@@ -252,14 +437,24 @@
         disabled={!canSubmit}
         class="flex-1 text-[14px] font-bold py-4 rounded-2xl transition-colors
                disabled:opacity-40 active:opacity-80"
-        style="background: #fff7ed; color: #ea580c; border: 1.5px solid #fed7aa;">
-        {loading ? '접수 중...' : '앱 + 문자 전송'}
+        style="background: {smsInfo.phoneOnly ? '#f0fdf4' : '#fff7ed'}; color: {smsInfo.phoneOnly ? '#16a34a' : '#ea580c'}; border: 1.5px solid {smsInfo.phoneOnly ? '#bbf7d0' : '#fed7aa'};">
+        {#if loading}
+          접수 중...
+        {:else if smsInfo.phoneOnly}
+          앱 + 전화 ({smsInfo.operator})
+        {:else}
+          앱 + 문자 ({smsInfo.number})
+        {/if}
       </button>
     </div>
 
-    <!-- SMS 안내 -->
+    <!-- SMS/전화 안내 -->
     <p class="text-[11px] text-gray-400 text-center -mt-3">
-      '앱 + 문자'는 다산콜센터(120)로 문자 앱을 열어드려요. 내용 확인 후 직접 전송하시면 됩니다.
+      {#if smsInfo.phoneOnly}
+        '앱 + 전화'는 {smsInfo.operator} 고객센터 전화 앱을 열어드려요.
+      {:else}
+        '앱 + 문자'는 {smsInfo.operator}({smsInfo.number})로 문자 앱을 열어드려요. 내용 확인 후 직접 전송하세요.
+      {/if}
     </p>
   {/if}
 </div>

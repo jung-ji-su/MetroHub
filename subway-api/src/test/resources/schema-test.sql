@@ -69,6 +69,11 @@ CREATE TABLE IF NOT EXISTS complaints (
     user_id BIGINT,
     category VARCHAR(100),
     station_name VARCHAR(100),
+    train_no VARCHAR(50),
+    line_code VARCHAR(20),
+    line_name VARCHAR(50),
+    direction VARCHAR(50),
+    destination VARCHAR(50),
     content TEXT,
     status VARCHAR(50) DEFAULT 'RECEIVED',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP

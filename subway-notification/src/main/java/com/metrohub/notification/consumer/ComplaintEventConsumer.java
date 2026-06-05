@@ -33,13 +33,15 @@ public class ComplaintEventConsumer {
             String stationName = (String) data.get("stationName");
             Long complaintId = data.get("id") != null
                     ? Long.parseLong(data.get("id").toString()) : null;
+            Long userId = data.get("userId") != null
+                    ? Long.parseLong(data.get("userId").toString()) : null;
 
             String notificationTitle = "민원 접수 완료";
             String notificationBody  = String.format("[%s] %s 역 민원이 접수되었습니다.",
                     category != null ? category : "기타",
                     stationName != null ? stationName : "");
 
-            notificationService.save("COMPLAINT_RECEIVED", notificationTitle, notificationBody, complaintId);
+            notificationService.saveForUser(userId, "COMPLAINT_RECEIVED", notificationTitle, notificationBody, complaintId);
 
         } catch (Exception e) {
             log.error("민원 이벤트 처리 실패: {}", e.getMessage(), e);

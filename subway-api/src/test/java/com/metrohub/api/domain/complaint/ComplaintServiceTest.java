@@ -45,7 +45,8 @@ class ComplaintServiceTest {
     @Test
     @DisplayName("민원 접수 성공")
     void createComplaint_success() throws Exception {
-        ComplaintDto.CreateRequest req = new ComplaintDto.CreateRequest("시설", "강남", "에스컬레이터 고장");
+        ComplaintDto.CreateRequest req = ComplaintDto.CreateRequest.builder()
+                .category("시설").stationName("강남").content("에스컬레이터 고장").build();
         willDoNothing().given(complaintMapper).insert(any());
         given(objectMapper.writeValueAsString(any())).willReturn("{}");
 
@@ -59,7 +60,8 @@ class ComplaintServiceTest {
     @Test
     @DisplayName("Kafka 발행 실패해도 민원 접수는 성공")
     void createComplaint_kafkaFails_stillCreates() throws Exception {
-        ComplaintDto.CreateRequest req = new ComplaintDto.CreateRequest("시설", "강남", "고장");
+        ComplaintDto.CreateRequest req = ComplaintDto.CreateRequest.builder()
+                .category("시설").stationName("강남").content("고장").build();
         willDoNothing().given(complaintMapper).insert(any());
         given(objectMapper.writeValueAsString(any())).willThrow(new RuntimeException("Kafka 오류"));
 

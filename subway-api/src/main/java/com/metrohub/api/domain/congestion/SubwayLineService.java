@@ -166,8 +166,8 @@ public class SubwayLineService {
         LINE_STATIONS = Collections.unmodifiableMap(m);
     }
 
-    // 30초 캐시 (실시간)
-    private static final long CACHE_MILLIS = 30_000L;
+    // 15초 캐시 (60초 체감지연 → 30초로 단축)
+    private static final long CACHE_MILLIS = 15_000L;
 
     // 전용 스레드풀 — ForkJoinPool.commonPool 대신 I/O 전용 풀 사용
     private static final ExecutorService FETCH_POOL =
@@ -211,7 +211,8 @@ public class SubwayLineService {
             .map(d -> TrainPositionDto.builder()
                 .trainNo(d.getTrainNo())
                 .lineCode(d.getLineCode())
-                .currentStation(d.getCurrentStation())
+                .nextStation(d.getQueriedStation())    // 위치 계산 기준: 최소 ETA 역 = 다음 도착역
+                .currentStation(d.getCurrentStation()) // arvlMsg3 원문 (참고용)
                 .direction(d.getDirection())
                 .destination(d.getDestination())
                 .arrivalMessage(d.getArrivalMessage())

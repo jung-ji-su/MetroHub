@@ -247,8 +247,8 @@
       const trunkStations = LINE_STATIONS[selectedLine] ?? [];
       const trunkEndIdx = trunkStations.indexOf(branch.trunkEnd ?? '');
       const inBranchSection = trunkEndIdx !== -1 &&
-        trunkStations.indexOf(t.currentStation) > trunkEndIdx &&
-        branchStations.includes(t.currentStation);
+        trunkStations.indexOf(t.nextStation) > trunkEndIdx &&
+        branchStations.includes(t.nextStation);
       return matchesDest || inBranchSection;
     });
   });
@@ -263,7 +263,7 @@
   // 위치 기준 정렬 (상세 패널 prev/next용)
   const sortedTrains = $derived.by(() =>
     [...filteredTrains].sort((a, b) =>
-      stations.indexOf(a.currentStation) - stations.indexOf(b.currentStation)
+      stations.indexOf(a.nextStation) - stations.indexOf(b.nextStation)
     )
   );
 
@@ -277,7 +277,7 @@
       lineColor,
       direction: train.direction ?? '',
       destination: train.destination ?? '',
-      currentStation: train.currentStation,
+      nextStation: train.nextStation,
     });
     selectedTrain = null;
   }
@@ -291,31 +291,31 @@
     return train.direction === (LINE_META[selectedLine]?.dirLabel[0] ?? '상행');
   }
 
-  // arvlMsg3(currentStation)은 열차가 "지금 향하는 다음 도착역"이다.
-  // 열차는 prevStation(출발한 역)과 currentStation(곧 도착할 역) 사이에 있다.
+  // nextStation = queriedStation (최소 ETA 역) = 열차가 지금 향하는 다음 도착역
+  // 열차는 prevStation(방금 출발한 역)과 nextStation(곧 도착할 역) 사이에 있다.
   function getProgressInfo(train) {
-    const tIdx = stations.indexOf(train.currentStation);
+    const tIdx = stations.indexOf(train.nextStation);
     if (tIdx < 0) return null;
     const up = isUpward(train);
     // 상행: 아래쪽(높은 idx)에서 출발 / 하행: 위쪽(낮은 idx)에서 출발
     const prevIdx = up ? tIdx + 1 : tIdx - 1;
     if (prevIdx < 0 || prevIdx >= stations.length) return null;
     return {
-      currentStation: stations[prevIdx],   // 방금 출발한 역
-      nextStation:    train.currentStation, // 곧 도착할 역
+      currentStation: stations[prevIdx], // 방금 출발한 역
+      nextStation:    train.nextStation,  // 곧 도착할 역
       progress: 1 - Math.min(1, Math.max(0, train.etaSeconds / AVG_INTER_S)),
     };
   }
 
-  // 열차 Y 좌표(px): prevStation ~ currentStation 사이 보간
-  // etaSeconds=MAX → prevStation 위치, etaSeconds=0 → currentStation 위치
+  // 열차 Y 좌표(px): prevStation ~ nextStation 사이 보간
+  // etaSeconds=MAX → prevStation 위치, etaSeconds=0 → nextStation 위치
   function trainTopPx(train) {
-    const idx = stations.indexOf(train.currentStation);
+    const idx = stations.indexOf(train.nextStation);
     if (idx < 0) return null;
     const ratio = Math.min(1, Math.max(0, train.etaSeconds / AVG_INTER_S));
     return isUpward(train)
-      ? (idx + ratio) * SEGMENT_PX   // 상행: 아래(높은 idx)에서 위로 접근
-      : (idx - ratio) * SEGMENT_PX;  // 하행: 위(낮은 idx)에서 아래로 접근
+      ? (idx + ratio) * SEGMENT_PX   // 상행: nextStation(낮은 idx)에서 ratio만큼 아래에
+      : (idx - ratio) * SEGMENT_PX;  // 하행: nextStation(높은 idx)에서 ratio만큼 위에
   }
 
   // CSS animation 이동 거리 — 상행 음수(위), 하행 양수(아래)
@@ -352,6 +352,7 @@
     return picks.map((idx, i) => ({
       trainNo:        `DEMO${i + 1}`,
       lineCode,
+      nextStation:    stationList[idx],
       currentStation: stationList[idx],
       direction:      dirs[i % 2],
       destination:    i % 2 === 0 ? `${stationList.at(-1)}행` : `${stationList[0]}행`,
@@ -631,10 +632,12 @@
       </div>
     </div>
     <div class="px-4 pb-2.5 flex items-center gap-1.5">
-      <span class="text-[10px] text-gray-400">열차번호</span>
+      <span class="text-[10px] text-gray-400">운행ID</span>
       <span class="text-[11px] font-bold text-gray-600">{bt.trainNo}</span>
-      <span class="text-[10px] text-gray-300 mx-1">·</span>
-      <span class="text-[10px] text-gray-400">{bt.currentStation} 출발</span>
+      {#if bt.nextStation}
+        <span class="text-[10px] text-gray-300 mx-1">·</span>
+        <span class="text-[10px] text-gray-400">→ {bt.nextStation}</span>
+      {/if}
     </div>
   </div>
 {/if}
@@ -1298,7 +1301,7 @@
             <p class="text-[36px] font-black leading-none" style="color: {lineColor};">{etaText}</p>
           </div>
           <div class="text-right">
-            <p class="text-[11px] text-gray-400 mb-0.5">열차 번호</p>
+            <p class="text-[11px] text-gray-400 mb-0.5">운행ID</p>
             <p class="text-[13px] font-bold text-gray-700">{selectedTrain.trainNo}</p>
           </div>
         </div>
@@ -1364,7 +1367,7 @@
           이 열차 타기
         </button>
         <div class="flex justify-center">
-          <a href="/complaints?trainNo={encodeURIComponent(selectedTrain.trainNo)}&lineCode={encodeURIComponent(selectedTrain.lineCode)}&lineName={encodeURIComponent(lineName)}&station={encodeURIComponent(selectedTrain.currentStation)}&direction={encodeURIComponent(selectedTrain.direction ?? '')}&destination={encodeURIComponent(selectedTrain.destination ?? '')}"
+          <a href="/complaints?trainNo={encodeURIComponent(selectedTrain.trainNo)}&lineCode={encodeURIComponent(selectedTrain.lineCode)}&lineName={encodeURIComponent(lineName)}&station={encodeURIComponent(selectedTrain.nextStation ?? '')}&direction={encodeURIComponent(selectedTrain.direction ?? '')}&destination={encodeURIComponent(selectedTrain.destination ?? '')}"
              onclick={() => selectedTrain = null}
              class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gray-400 active:text-gray-600 py-2 transition-colors">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
