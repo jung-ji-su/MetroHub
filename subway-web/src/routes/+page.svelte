@@ -110,14 +110,16 @@
   });
 
   async function fetchRouteArrival(routeId, from, lineCode) {
-    routeArrivals = { ...routeArrivals, [routeId]: { loading: true, data: null } };
+    routeArrivals = { ...routeArrivals, [routeId]: { loading: true, data: [] } };
     try {
-      const arrivals = await api.congestionByStation(from);
-      // 해당 노선의 첫 도착 열차 필터
-      const match = arrivals.find(a => a.lineNumber === lineCode);
-      routeArrivals = { ...routeArrivals, [routeId]: { loading: false, data: match ?? null } };
+      const arrivals = await api.stationArrival(from);
+      const filtered = arrivals
+        .filter(a => a.lineCode === lineCode)
+        .sort((a, b) => a.etaSeconds - b.etaSeconds)
+        .slice(0, 3);
+      routeArrivals = { ...routeArrivals, [routeId]: { loading: false, data: filtered } };
     } catch (_) {
-      routeArrivals = { ...routeArrivals, [routeId]: { loading: false, data: null } };
+      routeArrivals = { ...routeArrivals, [routeId]: { loading: false, data: [] } };
     }
   }
 
@@ -836,13 +838,28 @@
                 </div>
                 {#if routeArrivals[route.id]}
                   {@const ra = routeArrivals[route.id]}
-                  <div class="mt-2 ml-7 bg-blue-50 rounded-xl px-3 py-2">
+                  {@const lc = segs[0]?.lineColor ?? '#6B7280'}
+                  <div class="mt-2 ml-7 rounded-xl px-3 py-2.5" style="background: {lc}0D;">
                     {#if ra.loading}
-                      <p class="text-[11px] text-blue-400 animate-pulse">도착 정보 조회 중...</p>
-                    {:else if ra.data}
-                      <p class="text-[11px] font-bold text-blue-700">
-                        출발역 ({route.from}) 다음 열차: {ra.data.arrivalMessage ?? '정보없음'}
-                      </p>
+                      <div class="flex gap-1.5">
+                        {#each [1,2] as _}
+                          <div class="h-6 w-16 rounded-full animate-pulse" style="background: {lc}30;"></div>
+                        {/each}
+                      </div>
+                    {:else if ra.data.length > 0}
+                      <p class="text-[10px] font-semibold mb-1.5" style="color: {lc}CC;">{route.from} 출발 다음 열차</p>
+                      <div class="flex flex-wrap gap-1.5">
+                        {#each ra.data as arr}
+                          <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full"
+                                style="background: {lc}20; color: {lc};">
+                            {dirShort(arr.direction)}
+                            <span class="font-black">{etaLabel(arr.etaSeconds)}</span>
+                            {#if arr.trainStatus && arr.trainStatus !== '일반'}
+                              <span class="text-[9px] opacity-70">[{arr.trainStatus}]</span>
+                            {/if}
+                          </span>
+                        {/each}
+                      </div>
                     {:else}
                       <p class="text-[11px] text-gray-400">현재 도착 정보가 없습니다</p>
                     {/if}
