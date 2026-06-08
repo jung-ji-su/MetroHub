@@ -34,11 +34,20 @@ spec:
               value: "1"
             - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
               value: "true"
+            - name: KAFKA_LOG_DIRS
+              value: "/var/kafka-data"
+          volumeMounts:
+            - name: kafka-data
+              mountPath: /var/kafka-data
           readinessProbe:
             exec:
               command: ["kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
             initialDelaySeconds: 30
             periodSeconds: 15
+      volumes:
+        - name: kafka-data
+          persistentVolumeClaim:
+            claimName: kafka-data-pvc
 ---
 apiVersion: v1
 kind: Service

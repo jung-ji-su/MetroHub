@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: subway-collector
-          image: metrohub/subway-collector:latest
+          image: ghcr.io/jung-ji-su/metrohub-collector:latest
           envFrom:
             - configMapRef:
                 name: metrohub-config

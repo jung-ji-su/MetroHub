@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: subway-api
-          image: metrohub/subway-api:latest
+          image: ghcr.io/jung-ji-su/metrohub-api:latest
           ports:
             - containerPort: 8080
           envFrom:

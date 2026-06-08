@@ -4,17 +4,28 @@ metadata:
   name: metrohub-ingress
   namespace: metrohub
   annotations:
+    # SSE 연결 유지를 위한 타임아웃/버퍼링 설정
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    # SSE 연결을 위해 버퍼링 비활성화
     nginx.ingress.kubernetes.io/proxy-buffering: "off"
     nginx.ingress.kubernetes.io/proxy-cache: "off"
+    # 클라이언트 실제 IP 전달
+    nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
+    nginx.ingress.kubernetes.io/forwarded-for-header: "X-Forwarded-For"
 spec:
   ingressClassName: nginx
   rules:
-    - host: metrohub.example.com  # 실제 도메인으로 변경
+    - host: metrohub.example.com  # 실제 도메인으로 교체
       http:
         paths:
+          # 알림 서비스 — /api 보다 먼저 선언해야 nginx가 올바르게 라우팅
+          - path: /api/notifications
+            pathType: Prefix
+            backend:
+              service:
+                name: subway-notification
+                port:
+                  number: 8081
           # 메인 API
           - path: /api
             pathType: Prefix
@@ -23,15 +34,7 @@ spec:
                 name: subway-api
                 port:
                   number: 8080
-          # 알림 서비스
-          - path: /api/notifications
-            pathType: Prefix
-            backend:
-              service:
-                name: subway-notification
-                port:
-                  number: 8081
-          # 프론트엔드 (기본)
+          # 프론트엔드 (기본 — 가장 마지막)
           - path: /
             pathType: Prefix
             backend:

@@ -184,6 +184,17 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Build & push subway-web
+        uses: docker/build-push-action@v5
+        with:
+          context: subway-web
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-web:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-web:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   # ── Render 자동 배포 ──────────────────────────────────────────────────
   deploy-render:
     name: Deploy to Render
