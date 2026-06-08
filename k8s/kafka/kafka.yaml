@@ -13,12 +13,13 @@ spec:
       labels:
         app: kafka
     spec:
+      enableServiceLinks: false  # k8s가 KAFKA_PORT 등 KAFKA_* 환경변수 자동 주입하는 것을 차단
       securityContext:
         fsGroup: 1000
       initContainers:
         - name: init-kafka-data
           image: busybox:1.36
-          command: ["sh", "-c", "chown -R 1000:1000 /var/kafka-data && chmod 755 /var/kafka-data"]
+          command: ["sh", "-c", "chown -R 1000:1000 /var/kafka-data && chmod 755 /var/kafka-data && rm -f /var/kafka-data/.lock"]
           volumeMounts:
             - name: kafka-data
               mountPath: /var/kafka-data
