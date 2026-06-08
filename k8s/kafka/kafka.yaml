@@ -5,6 +5,8 @@ metadata:
   namespace: metrohub
 spec:
   replicas: 1
+  strategy:
+    type: Recreate  # PVC ReadWriteOnce + .lock 충돌 방지 — 구 파드 완전 종료 후 신 파드 시작
   selector:
     matchLabels:
       app: kafka
