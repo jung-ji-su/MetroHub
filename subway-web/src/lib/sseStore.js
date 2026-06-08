@@ -8,6 +8,7 @@ export const lastSseUpdate        = writable(null); // Date | null
 export const trendingStations     = writable([]);   // [{ stationName, score }]
 export const lineAlerts           = writable({});    // lineNumber → { alertType, message, severity }
 export const latestCongestionLine = writable(null); // 가장 최근 갱신된 노선코드
+export const congestionAlerts     = writable({});    // stationName → { lineNumber, severity, message, congestionLevel, timestamp }
 
 let eventSource    = null;
 let reconnectTimer = null;
@@ -50,6 +51,23 @@ export function connectSSE() {
           lineAlerts.update(prev => {
             const next = { ...prev };
             delete next[data.lineNumber];
+            return next;
+          });
+        }, 5 * 60 * 1000);
+        alertTimers.push(t);
+      } catch (_) {}
+    });
+
+    eventSource.addEventListener('congestion.alert', (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        congestionAlerts.update(prev => ({ ...prev, [data.stationName]: data }));
+        lastSseUpdate.set(new Date());
+        // 5분 후 자동 해제
+        const t = setTimeout(() => {
+          congestionAlerts.update(prev => {
+            const next = { ...prev };
+            delete next[data.stationName];
             return next;
           });
         }, 5 * 60 * 1000);

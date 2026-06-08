@@ -17,6 +17,7 @@ public class SubwayRealtimeConsumer {
 
     private final CongestionService congestionService;
     private final CongestionHourlyMapper congestionHourlyMapper;
+    private final CongestionAlertProducer congestionAlertProducer;
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "subway-realtime", groupId = "subway-api-group")
@@ -56,6 +57,8 @@ public class SubwayRealtimeConsumer {
             if (congestionLevel != null) {
                 int hour = LocalTime.now().getHour();
                 congestionHourlyMapper.upsert(stationName, hour, congestionLevel);
+                // 혼잡 임계값 초과 시 congestion-alerts 토픽으로 이벤트 발행 (5분 쿨다운)
+                congestionAlertProducer.publishIfNeeded(stationName, lineNumber, congestionLevel);
             }
 
             log.debug("혼잡도 업데이트 완료: station={}, line={}, level={}", stationName, lineNumber, congestionLevel);

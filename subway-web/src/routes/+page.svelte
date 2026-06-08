@@ -2,7 +2,7 @@
   import { api } from '$lib/api';
   import { favorites, routes, token, user, boardingTrain } from '$lib/stores';
   import { LINE_META, LINE_STATIONS, LINE_BRANCHES, getBranchStations, SUPPORTED_LINES } from '$lib/lineStations';
-  import { trendingStations, lineAlerts, latestCongestionLine, dismissAlert, sseConnected, sseRetryExhausted, lastSseUpdate, retrySSE } from '$lib/sseStore';
+  import { trendingStations, lineAlerts, latestCongestionLine, dismissAlert, sseConnected, sseRetryExhausted, lastSseUpdate, retrySSE, congestionAlerts } from '$lib/sseStore';
   import { notifications, unreadCount, markAllRead, notifRetryExhausted, retryNotificationSSE } from '$lib/notificationStore';
   import { findRoute, searchStations, calcRouteMins } from '$lib/routeCalculator';
   import StationSearch from '$lib/StationSearch.svelte';
@@ -881,7 +881,16 @@
       {#each Object.entries(resultsMap) as [station, result]}
         <div>
           <div class="flex items-center justify-between mb-2 px-1">
-            <span class="text-[15px] font-bold text-gray-900">🚉 {station}</span>
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="text-[15px] font-bold text-gray-900 shrink-0">🚉 {station}</span>
+              {#if $congestionAlerts[station]}
+                {@const ca = $congestionAlerts[station]}
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse shrink-0"
+                      style="background: {ca.severity === 'VERY_CROWDED' ? '#FEE2E2' : '#FFEDD5'}; color: {ca.severity === 'VERY_CROWDED' ? '#DC2626' : '#EA580C'};">
+                  {ca.severity === 'VERY_CROWDED' ? '🚨 매우혼잡' : '🥵 혼잡'} 알림
+                </span>
+              {/if}
+            </div>
             <div class="flex items-center gap-2">
               <button onclick={() => fetchStation(station)} class="active:opacity-60" title="새로고침">
                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
