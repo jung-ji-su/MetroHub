@@ -56,6 +56,7 @@ spec:
               command: ["kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
             initialDelaySeconds: 30
             periodSeconds: 15
+            timeoutSeconds: 10
       volumes:
         - name: kafka-data
           persistentVolumeClaim:
