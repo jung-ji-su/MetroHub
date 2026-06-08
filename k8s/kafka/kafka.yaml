@@ -69,6 +69,7 @@ metadata:
 spec:
   selector:
     app: kafka
+  publishNotReadyAddresses: true  # 파드가 Ready 아니어도 서비스 라우팅 — 브로커 자기 자신 연결 가능
   ports:
     - name: external
       port: 9092
