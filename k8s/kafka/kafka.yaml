@@ -13,6 +13,8 @@ spec:
       labels:
         app: kafka
     spec:
+      securityContext:
+        fsGroup: 1000  # confluentinc 이미지의 appuser gid — PVC 쓰기 권한 부여
       containers:
         - name: kafka
           image: confluentinc/cp-kafka:7.5.0
