@@ -15,7 +15,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: metrohub.example.com  # 실제 도메인으로 교체
+    - host: metrohub.local  # 로컬: /etc/hosts에 127.0.0.1 metrohub.local 추가 / 프로덕션: 실제 도메인으로 교체
       http:
         paths:
           # 알림 서비스 — /api 보다 먼저 선언해야 nginx가 올바르게 라우팅

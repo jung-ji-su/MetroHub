@@ -16,6 +16,7 @@ spec:
       containers:
         - name: subway-collector
           image: ghcr.io/jung-ji-su/metrohub-collector:latest
+          imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
                 name: metrohub-config

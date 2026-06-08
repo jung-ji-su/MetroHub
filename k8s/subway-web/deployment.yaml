@@ -16,6 +16,7 @@ spec:
       containers:
         - name: subway-web
           image: ghcr.io/jung-ji-su/metrohub-web:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
           resources:

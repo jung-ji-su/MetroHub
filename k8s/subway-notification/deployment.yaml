@@ -16,6 +16,7 @@ spec:
       containers:
         - name: subway-notification
           image: ghcr.io/jung-ji-su/metrohub-notification:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
           envFrom:

@@ -16,6 +16,7 @@ spec:
       containers:
         - name: subway-api
           image: ghcr.io/jung-ji-su/metrohub-api:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           envFrom:
