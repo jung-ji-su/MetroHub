@@ -72,7 +72,7 @@ pipeline {
 
         // ── Docker Login ──────────────────────────────────────────────────
         stage('Docker Login') {
-            when { anyOf { branch 'master'; branch 'main' } }
+            when { expression { env.GIT_BRANCH ==~ /origin\/(master|main)/ } }
             steps {
                 sh 'echo ${GHCR_TOKEN} | docker login ghcr.io -u ${GHCR_USER} --password-stdin'
             }
@@ -80,7 +80,7 @@ pipeline {
 
         // ── Docker Build & Push ───────────────────────────────────────────
         stage('Docker Build & Push') {
-            when { anyOf { branch 'master'; branch 'main' } }
+            when { expression { env.GIT_BRANCH ==~ /origin\/(master|main)/ } }
             parallel {
                 stage('subway-api') {
                     steps {
@@ -125,7 +125,7 @@ pipeline {
 
         // ── Deploy to Kubernetes ──────────────────────────────────────────
         stage('Deploy') {
-            when { anyOf { branch 'master'; branch 'main' } }
+            when { expression { env.GIT_BRANCH ==~ /origin\/(master|main)/ } }
             steps {
                 sh """
                     kubectl set image deployment/subway-api \
