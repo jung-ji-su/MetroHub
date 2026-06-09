@@ -5,9 +5,11 @@
 [![CI/CD](https://github.com/jung-ji-su/MetroHub/actions/workflows/ci.yml/badge.svg)](https://github.com/jung-ji-su/MetroHub/actions/workflows/ci.yml)
 [![Collector](https://github.com/jung-ji-su/MetroHub/actions/workflows/collector.yml/badge.svg)](https://github.com/jung-ji-su/MetroHub/actions/workflows/collector.yml)
 
-**Live** → [metrohub-api.onrender.com](https://metrohub-api.onrender.com/actuator/health) · [metrohub-notification.onrender.com](https://metrohub-notification.onrender.com/actuator/health)
+**🌐 서비스** → [metro-hub-rho.vercel.app](https://metro-hub-rho.vercel.app)
 
-> Render 무료 티어 사용 — 콜드 스타트 시 최대 1분 소요될 수 있습니다.
+**API** → [metrohub-api.onrender.com](https://metrohub-api.onrender.com/actuator/health) · [metrohub-notification.onrender.com](https://metrohub-notification.onrender.com/actuator/health)
+
+> Render 무료 티어 사용 — 첫 요청 시 콜드 스타트 최대 1분 소요될 수 있습니다.
 
 ---
 
