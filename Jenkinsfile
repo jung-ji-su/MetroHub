@@ -2,11 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY  = credentials('DOCKER_REGISTRY')   // Docker Hub 레지스트리 (e.g. myusername)
-        DOCKER_CREDS     = credentials('docker-hub-creds')   // Docker Hub 로그인 credential
-        JWT_SECRET_DEV   = credentials('JWT_SECRET_DEV')
-        DEPLOY_HOST      = credentials('DEPLOY_HOST')        // SSH 배포 서버 주소
-        DEPLOY_USER      = 'ubuntu'
+        GHCR_USER  = 'jung-ji-su'
+        GHCR_TOKEN = credentials('ghcr-token')   // GitHub PAT (write:packages scope)
+        REGISTRY   = 'ghcr.io/jung-ji-su'
         JAVA_TOOL_OPTIONS = '-Dfile.encoding=UTF-8'
     }
 
@@ -17,12 +15,13 @@ pipeline {
                 checkout scm
                 script {
                     env.GIT_COMMIT_SHORT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    echo "Commit: ${env.GIT_COMMIT_SHORT}"
+                    echo "Commit: ${env.GIT_COMMIT_SHORT}  Build: #${BUILD_NUMBER}"
                 }
             }
         }
 
-        stage('Build & Test') {
+        // ── Test ──────────────────────────────────────────────────────────
+        stage('Test') {
             parallel {
                 stage('subway-api') {
                     steps {
@@ -38,7 +37,6 @@ pipeline {
                         }
                     }
                 }
-
                 stage('subway-notification') {
                     steps {
                         dir('subway-notification') {
@@ -53,7 +51,6 @@ pipeline {
                         }
                     }
                 }
-
                 stage('subway-collector lint') {
                     steps {
                         dir('subway-collector') {
@@ -62,8 +59,7 @@ pipeline {
                         }
                     }
                 }
-
-                stage('subway-web build') {
+                stage('subway-web') {
                     steps {
                         dir('subway-web') {
                             sh 'npm ci'
@@ -74,87 +70,100 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
+        // ── Docker Login ──────────────────────────────────────────────────
+        stage('Docker Login') {
+            when { anyOf { branch 'master'; branch 'main' } }
+            steps {
+                sh 'echo ${GHCR_TOKEN} | docker login ghcr.io -u ${GHCR_USER} --password-stdin'
+            }
+        }
+
+        // ── Docker Build & Push ───────────────────────────────────────────
+        stage('Docker Build & Push') {
+            when { anyOf { branch 'master'; branch 'main' } }
             parallel {
-                stage('subway-api image') {
+                stage('subway-api') {
                     steps {
                         dir('subway-api') {
                             sh './gradlew build -x test --no-daemon'
-                            sh "docker build -t ${DOCKER_REGISTRY}/subway-api:${BUILD_NUMBER} ."
-                            sh "docker tag ${DOCKER_REGISTRY}/subway-api:${BUILD_NUMBER} ${DOCKER_REGISTRY}/subway-api:latest"
+                            sh "docker build -t ${REGISTRY}/metrohub-api:${BUILD_NUMBER} -t ${REGISTRY}/metrohub-api:latest ."
+                            sh "docker push ${REGISTRY}/metrohub-api:${BUILD_NUMBER}"
+                            sh "docker push ${REGISTRY}/metrohub-api:latest"
                         }
                     }
                 }
-
-                stage('subway-notification image') {
+                stage('subway-notification') {
                     steps {
                         dir('subway-notification') {
                             sh './gradlew build -x test --no-daemon'
-                            sh "docker build -t ${DOCKER_REGISTRY}/subway-notification:${BUILD_NUMBER} ."
-                            sh "docker tag ${DOCKER_REGISTRY}/subway-notification:${BUILD_NUMBER} ${DOCKER_REGISTRY}/subway-notification:latest"
+                            sh "docker build -t ${REGISTRY}/metrohub-notification:${BUILD_NUMBER} -t ${REGISTRY}/metrohub-notification:latest ."
+                            sh "docker push ${REGISTRY}/metrohub-notification:${BUILD_NUMBER}"
+                            sh "docker push ${REGISTRY}/metrohub-notification:latest"
                         }
                     }
                 }
-
-                stage('subway-collector image') {
+                stage('subway-collector') {
                     steps {
                         dir('subway-collector') {
-                            sh "docker build -t ${DOCKER_REGISTRY}/subway-collector:${BUILD_NUMBER} ."
-                            sh "docker tag ${DOCKER_REGISTRY}/subway-collector:${BUILD_NUMBER} ${DOCKER_REGISTRY}/subway-collector:latest"
+                            sh "docker build -t ${REGISTRY}/metrohub-collector:${BUILD_NUMBER} -t ${REGISTRY}/metrohub-collector:latest ."
+                            sh "docker push ${REGISTRY}/metrohub-collector:${BUILD_NUMBER}"
+                            sh "docker push ${REGISTRY}/metrohub-collector:latest"
+                        }
+                    }
+                }
+                stage('subway-web') {
+                    steps {
+                        dir('subway-web') {
+                            sh "docker build -t ${REGISTRY}/metrohub-web:${BUILD_NUMBER} -t ${REGISTRY}/metrohub-web:latest ."
+                            sh "docker push ${REGISTRY}/metrohub-web:${BUILD_NUMBER}"
+                            sh "docker push ${REGISTRY}/metrohub-web:latest"
                         }
                     }
                 }
             }
         }
 
-        stage('Docker Push') {
-            when {
-                anyOf {
-                    branch 'master'
-                    branch 'main'
-                }
-            }
-            steps {
-                sh "echo ${DOCKER_CREDS_PSW} | docker login -u ${DOCKER_CREDS_USR} --password-stdin"
-                sh "docker push ${DOCKER_REGISTRY}/subway-api:${BUILD_NUMBER}"
-                sh "docker push ${DOCKER_REGISTRY}/subway-api:latest"
-                sh "docker push ${DOCKER_REGISTRY}/subway-notification:${BUILD_NUMBER}"
-                sh "docker push ${DOCKER_REGISTRY}/subway-notification:latest"
-                sh "docker push ${DOCKER_REGISTRY}/subway-collector:${BUILD_NUMBER}"
-                sh "docker push ${DOCKER_REGISTRY}/subway-collector:latest"
-            }
-        }
-
+        // ── Deploy to Kubernetes ──────────────────────────────────────────
         stage('Deploy') {
-            when {
-                anyOf {
-                    branch 'master'
-                    branch 'main'
-                }
-            }
+            when { anyOf { branch 'master'; branch 'main' } }
             steps {
-                sshagent(credentials: ['deploy-ssh-key']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_HOST} '
-                            cd ~/MetroHub &&
-                            docker-compose -f docker-compose.prod.yml pull &&
-                            docker-compose -f docker-compose.prod.yml up -d --remove-orphans
-                        '
-                    """
-                }
+                sh """
+                    kubectl set image deployment/subway-api \
+                        subway-api=${REGISTRY}/metrohub-api:${BUILD_NUMBER} \
+                        -n metrohub
+
+                    kubectl set image deployment/subway-notification \
+                        subway-notification=${REGISTRY}/metrohub-notification:${BUILD_NUMBER} \
+                        -n metrohub
+
+                    kubectl set image deployment/subway-collector \
+                        subway-collector=${REGISTRY}/metrohub-collector:${BUILD_NUMBER} \
+                        -n metrohub
+
+                    kubectl set image deployment/subway-web \
+                        subway-web=${REGISTRY}/metrohub-web:${BUILD_NUMBER} \
+                        -n metrohub
+
+                    kubectl rollout status deployment/subway-api          -n metrohub --timeout=120s
+                    kubectl rollout status deployment/subway-notification  -n metrohub --timeout=120s
+                    kubectl rollout status deployment/subway-collector     -n metrohub --timeout=120s
+                    kubectl rollout status deployment/subway-web           -n metrohub --timeout=120s
+                """
             }
         }
     }
 
     post {
         success {
-            echo "빌드 성공: #${BUILD_NUMBER} (${GIT_COMMIT_SHORT})"
+            echo "Build #${BUILD_NUMBER} (${GIT_COMMIT_SHORT}) deployed successfully"
         }
         failure {
-            echo "빌드 실패: #${BUILD_NUMBER}"
+            echo "Build #${BUILD_NUMBER} failed — check stage logs above"
         }
         always {
-            sh 'docker logout || true'
+            script {
+                try { sh 'docker logout ghcr.io' } catch (ignored) {}
+            }
             cleanWs()
         }
     }
