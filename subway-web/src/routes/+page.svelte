@@ -355,41 +355,10 @@
     if (idx < sortedTrains.length - 1) selectedTrain = sortedTrains[idx + 1];
   }
 
-  // API 한도 초과 시 UI 확인용 mock 데이터
-  function makeMockTrains(lineCode, stationList) {
-    const dirs = LINE_META[lineCode]?.dirLabel ?? ['상행', '하행'];
-    const picks = [
-      Math.floor(stationList.length * 0.1),
-      Math.floor(stationList.length * 0.25),
-      Math.floor(stationList.length * 0.45),
-      Math.floor(stationList.length * 0.65),
-      Math.floor(stationList.length * 0.82),
-    ];
-    return picks.map((idx, i) => ({
-      trainNo:        `DEMO${i + 1}`,
-      lineCode,
-      nextStation:    stationList[idx],
-      currentStation: stationList[idx],
-      direction:      dirs[i % 2],
-      destination:    i % 2 === 0 ? `${stationList.at(-1)}행` : `${stationList[0]}행`,
-      arrivalMessage: '시연용 데이터',
-      etaSeconds:     (i + 1) * 45,
-    }));
-  }
-
-  let useMock = $state(false);
-
   async function fetchLineTrains() {
-    lineLoading = true; lineError = ''; useMock = false;
+    lineLoading = true; lineError = '';
     try {
-      const result = await api.lineTrains(selectedLine);
-      if (result.length === 0) {
-        // API 한도 초과 또는 새벽 운행 없음 → mock으로 UI 확인
-        trainData = makeMockTrains(selectedLine, LINE_STATIONS[selectedLine] ?? []);
-        useMock   = true;
-      } else {
-        trainData = result;
-      }
+      trainData = await api.lineTrains(selectedLine);
       lastUpdated = new Date();
       filterDir   = '전체';
     } catch (e) {
@@ -414,11 +383,8 @@
   async function fetchLineTrainsQuiet() {
     try {
       const result = await api.lineTrains(selectedLine);
-      if (result.length > 0) {
-        trainData = result;
-        lastUpdated = new Date();
-        useMock = false;
-      }
+      trainData = result;
+      lastUpdated = new Date();
     } catch (_) {}
   }
 
@@ -1125,25 +1091,12 @@
   {:else if stations.length > 0}
     <div class="relative px-4">
 
-      <!-- mock 안내 배너 -->
-      {#if useMock}
-        <div class="mb-3 bg-amber-50 rounded-2xl px-4 py-3 flex items-start gap-2">
-          <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-          </svg>
-          <div>
-            <p class="text-xs font-bold text-amber-700">API 한도 초과 — 시연 모드</p>
-            <p class="text-[11px] text-amber-600 mt-0.5">열차 위치는 임의로 표시됩니다. 자정 이후 실제 데이터로 전환됩니다.</p>
-          </div>
-        </div>
-      {/if}
-
       <!-- 열차 수 요약 -->
-      {#if trainData.length > 0}
+      {#if filteredTrains.length > 0}
         <div class="mb-3 flex items-center gap-2">
-          <div class="w-2 h-2 rounded-full {useMock ? '' : 'animate-pulse'}" style="background-color: {useMock ? '#F59E0B' : lineColor};"></div>
-          <span class="text-xs font-semibold" style="color: {useMock ? '#D97706' : lineColor};">
-            {filteredTrains.length}개 열차 {useMock ? '(시연)' : '운행 중'}
+          <div class="w-2 h-2 rounded-full animate-pulse" style="background-color: {lineColor};"></div>
+          <span class="text-xs font-semibold" style="color: {lineColor};">
+            {filteredTrains.length}개 열차 운행 중
           </span>
           {#if filterBranch !== '전체'}
             <span class="text-xs font-semibold px-2 py-0.5 rounded-full text-white text-[10px]"
@@ -1155,9 +1108,12 @@
             <span class="text-xs text-gray-400">({filterDir})</span>
           {/if}
         </div>
-      {:else}
-        <div class="mb-3 bg-amber-50 rounded-2xl px-4 py-3 text-sm text-amber-600">
-          현재 운행 정보가 없습니다 — 상단 새로고침을 눌러주세요
+      {:else if trainData.length === 0}
+        <div class="mb-3 bg-gray-50 rounded-2xl px-4 py-3 flex items-center gap-2">
+          <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9.303-3.376c.866 1.5-.217 3.374-1.948 3.374H4.645C2.914 15.748 1.831 13.874 2.697 12.374L11.05 2.378c.866-1.5 3.032-1.5 3.898 0L23.303 16.126z" />
+          </svg>
+          <p class="text-sm text-gray-500">현재 운행 중인 열차가 없습니다</p>
         </div>
       {/if}
 
@@ -1193,7 +1149,7 @@
           {@const leftPx = trainLeftPx(train)}
           {@const up = isUpward(train)}
           {@const isSelected = selectedTrain?.trainNo === train.trainNo}
-          {@const trainColor = useMock ? '#F59E0B' : (train.express ? '#EF4444' : lineColor)}
+          {@const trainColor = train.express ? '#EF4444' : lineColor}
           {#if topPx !== null}
             <button
               onclick={() => selectedTrain = isSelected ? null : train}

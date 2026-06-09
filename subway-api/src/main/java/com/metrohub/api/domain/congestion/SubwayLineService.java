@@ -166,8 +166,7 @@ public class SubwayLineService {
         LINE_STATIONS = Collections.unmodifiableMap(m);
     }
 
-    // 15초 캐시 (60초 체감지연 → 30초로 단축)
-    private static final long CACHE_MILLIS = 15_000L;
+    private static final long CACHE_MILLIS = 10_000L;
 
     // 전용 스레드풀 — ForkJoinPool.commonPool 대신 I/O 전용 풀 사용
     private static final ExecutorService FETCH_POOL =

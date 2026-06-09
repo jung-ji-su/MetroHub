@@ -42,7 +42,7 @@
   ];
 
   const tabs = $derived(
-    $user?.role === 'ADMIN'
+    $user?.nickname === 'dev'
       ? [...baseTabs, { href: '/admin', label: '관리' }]
       : baseTabs
   );

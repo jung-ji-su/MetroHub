@@ -153,29 +153,33 @@
   {/if}
 </div>
 
-<!-- 글쓰기 FAB -->
+<!-- 글쓰기 FAB — max-w-[430px] 컨테이너 안에 고정 -->
 {#if !showForm}
-  {#if $user}
-    <button
-      onclick={() => showForm = true}
-      class="fixed bottom-[84px] right-4 w-14 h-14 rounded-full text-white shadow-lg flex items-center justify-center active:opacity-80 transition-opacity z-30"
-      style="background-color: {lineColor};"
-    >
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-      </svg>
-    </button>
-  {:else}
-    <a
-      href="/auth/login"
-      class="fixed bottom-[84px] right-4 w-14 h-14 rounded-full text-white shadow-lg flex items-center justify-center active:opacity-80 transition-opacity z-30"
-      style="background-color: {lineColor};"
-    >
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-      </svg>
-    </a>
-  {/if}
+  <div class="fixed bottom-[84px] left-1/2 -translate-x-1/2 w-full max-w-[430px] pointer-events-none z-30">
+    {#if $user}
+      <button
+        onclick={() => showForm = true}
+        class="absolute right-4 bottom-0 w-14 h-14 rounded-full text-white shadow-lg flex items-center justify-center active:opacity-80 transition-opacity pointer-events-auto"
+        style="background-color: {lineColor};"
+        aria-label="글쓰기"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+      </button>
+    {:else}
+      <a
+        href="/auth/login"
+        class="absolute right-4 bottom-0 w-14 h-14 rounded-full text-white shadow-lg flex items-center justify-center active:opacity-80 transition-opacity pointer-events-auto"
+        style="background-color: {lineColor};"
+        aria-label="로그인 후 글쓰기"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+      </a>
+    {/if}
+  </div>
 {/if}
 
 <!-- 글쓰기 바텀시트 -->

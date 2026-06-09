@@ -100,6 +100,7 @@ public class SeoulSubwayApiClient {
                     try { eta = Integer.parseInt(String.valueOf(item.getOrDefault("barvlDt", "0"))); }
                     catch (NumberFormatException ignored) {}
                     String trainStatus = (String) item.getOrDefault("btrainSttus", "일반");
+                    String arvlMsg2    = (String) item.getOrDefault("arvlMsg2", "");
                     return ArrivalDetail.builder()
                         .trainNo((String) item.get("btrainNo"))
                         .lineCode((String) item.get("subwayId"))
@@ -107,12 +108,21 @@ public class SeoulSubwayApiClient {
                         .currentStation((String) item.get("arvlMsg3"))
                         .direction((String) item.get("updnLine"))
                         .destination((String) item.get("trainLineNm"))
-                        .arrivalMessage((String) item.get("arvlMsg2"))
+                        .arrivalMessage(arvlMsg2)
                         .etaSeconds(eta)
                         .trainStatus(trainStatus)
                         .build();
                 })
                 .filter(d -> d.getTrainNo() != null && d.getLineCode() != null)
+                // 급행·특급 열차가 해당 역을 통과만 하는 경우(정차 안 함) 제외
+                // arvlMsg2에 "통과" 포함 or arvlCd="99"(통과) → nextStation 후보에서 제외
+                .filter(d -> {
+                    if ("급행".equals(d.getTrainStatus()) || "특급".equals(d.getTrainStatus())) {
+                        String msg = d.getArrivalMessage() == null ? "" : d.getArrivalMessage();
+                        return !msg.contains("통과");
+                    }
+                    return true;
+                })
                 .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Seoul API 파싱 실패 (details): {}", e.getMessage());
