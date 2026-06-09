@@ -3,20 +3,10 @@
   import { favorites, routes, token, user, boardingTrain } from '$lib/stores';
   import { LINE_META, LINE_STATIONS, LINE_BRANCHES, getBranchStations, SUPPORTED_LINES } from '$lib/lineStations';
   import { trendingStations, lineAlerts, latestCongestionLine, dismissAlert, sseConnected, sseRetryExhausted, lastSseUpdate, retrySSE, congestionAlerts } from '$lib/sseStore';
-  import { notifications, unreadCount, markAllRead, notifRetryExhausted, retryNotificationSSE } from '$lib/notificationStore';
+  import { unreadCount, markAllRead, notifRetryExhausted, retryNotificationSSE } from '$lib/notificationStore';
   import { findRoute, searchStations, calcRouteMins } from '$lib/routeCalculator';
   import StationSearch from '$lib/StationSearch.svelte';
 
-  let showNotifPanel = $state(false);
-  function toggleNotifPanel() {
-    showNotifPanel = !showNotifPanel;
-    if (showNotifPanel) markAllRead();
-  }
-  function formatNotifTime(iso) {
-    if (!iso) return '';
-    const d = new Date(iso);
-    return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-  }
 
   // ── 시간대별 혼잡도 차트 ────────────────────────────────────────────
   let hourlyData   = $state({});  // { [stationName]: { loading, data: [{hourOfDay, avgCongestion}] } }
@@ -510,9 +500,9 @@
     </div>
     <div class="flex items-center gap-2">
       {#if $user}
-        <button
-          onclick={toggleNotifPanel}
-          class="w-10 h-10 flex items-center justify-center rounded-full bg-white/70 active:bg-white transition-colors relative"
+        <a href="/notifications"
+           onclick={() => { markAllRead($token); }}
+           class="w-10 h-10 flex items-center justify-center rounded-full bg-white/70 active:bg-white transition-colors relative"
         >
           <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -523,7 +513,7 @@
               {$unreadCount > 9 ? '9+' : $unreadCount}
             </span>
           {/if}
-        </button>
+        </a>
       {/if}
       {#if activeTab === 'congestion'}
         <button
@@ -547,54 +537,6 @@
       {/if}
     </div>
   </div>
-
-  <!-- 알림 패널 -->
-  {#if showNotifPanel}
-    <button onclick={() => showNotifPanel = false} class="fixed inset-0 z-40 bg-black/20" aria-label="닫기"></button>
-    <div class="fixed top-[86px] left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 px-3">
-      <div class="bg-white rounded-2xl shadow-xl overflow-hidden" style="max-height: 65vh;">
-        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-          <span class="text-[15px] font-bold text-gray-900">알림</span>
-          <button onclick={() => showNotifPanel = false} class="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 active:bg-gray-200">
-            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div class="overflow-y-auto" style="max-height: calc(65vh - 48px);">
-          {#if $notifications.length === 0}
-            <div class="flex flex-col items-center justify-center py-12 text-center">
-              <svg class="w-10 h-10 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-              </svg>
-              <p class="text-sm text-gray-400">새로운 알림이 없어요</p>
-            </div>
-          {:else}
-            {#each $notifications as notif}
-              <div class="px-4 py-3 border-b border-gray-50 last:border-0">
-                <div class="flex items-start gap-3">
-                  <div class="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                    </svg>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-[13px] font-semibold text-gray-900">{notif.title ?? ''}</p>
-                    <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">{notif.body ?? ''}</p>
-                    {#if notif.createdAt}
-                      <p class="text-[10px] text-gray-300 mt-1">{formatNotifTime(notif.createdAt)}</p>
-                    {/if}
-                  </div>
-                </div>
-              </div>
-            {/each}
-          {/if}
-        </div>
-      </div>
-    </div>
-  {/if}
 
   <!-- 검색바 (혼잡도 탭) -->
   {#if showSearch && activeTab === 'congestion'}
@@ -882,7 +824,10 @@
         <div>
           <div class="flex items-center justify-between mb-2 px-1">
             <div class="flex items-center gap-1.5 min-w-0">
-              <span class="text-[15px] font-bold text-gray-900 shrink-0">🚉 {station}</span>
+              <a href="/station/{encodeURIComponent(station)}"
+                 class="text-[15px] font-bold text-gray-900 shrink-0 active:opacity-60 transition-opacity">
+                🚉 {station}
+              </a>
               {#if $congestionAlerts[station]}
                 {@const ca = $congestionAlerts[station]}
                 <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse shrink-0"

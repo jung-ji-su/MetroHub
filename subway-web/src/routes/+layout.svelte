@@ -9,6 +9,7 @@
     connectNotificationSSE,
     disconnectNotificationSSE,
   } from '$lib/notificationStore';
+  import Onboarding from '$lib/Onboarding.svelte';
 
   onMount(() => {
     connectSSE();
@@ -55,6 +56,8 @@
 
 
 </script>
+
+<Onboarding />
 
 <div class="max-w-[430px] mx-auto bg-gray-50 min-h-screen relative">
   <main class:pb-[72px]={!isAuthPage}>
