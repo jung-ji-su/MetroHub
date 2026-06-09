@@ -21,7 +21,7 @@
 4. [기술 스택](#기술-스택)
 5. [빠른 시작 (Docker Compose)](#빠른-시작-docker-compose)
 6. [Kubernetes 배포](#kubernetes-배포)
-7. [Jenkins CI/CD](#jenkins-cicd)
+7. [CI/CD](#cicd)
 8. [API 레퍼런스](#api-레퍼런스)
 9. [프로젝트 구조](#프로젝트-구조)
 10. [DB 스키마](#db-스키마)
@@ -32,14 +32,17 @@
 
 | 기능 | 설명 |
 |------|------|
-| **실시간 혼잡도** | 역별·호선별 혼잡도 실시간 조회 및 시간대별 바차트 |
-| **실시간 노선도** | 열차 위치 추적 + 상행/하행 방향 애니메이션 + 상세 패널 |
-| **경로 탐색** | 0-1 BFS 최소환승 알고리즘으로 최적 경로 시각화 |
-| **실시간 알림** | SSE 기반 푸시 알림 + 호선별 알림 구독 설정 |
-| **혼잡 경보** | Kafka 스트림 처리 — 혼잡도 ≥ 80% 시 실시간 경보 카드 표시 |
-| **커뮤니티** | 호선별 게시판 + 댓글 + 좋아요 |
+| **실시간 혼잡도** | 역별·호선별 혼잡도 실시간 조회 및 시간대별 바차트, 즐겨찾기 역 카드 |
+| **실시간 노선도** | 열차 위치 추적 + 상행/하행 방향 애니메이션 + 상세 패널, 30초 자동 갱신 |
+| **경로 탐색** | 0-1 BFS 최소환승 알고리즘으로 최적 경로 시각화, 노선도 자동 스크롤 연동 |
+| **역 상세** | 역별 실시간 도착 정보 조회 (`/station/[name]`) |
+| **실시간 알림** | SSE 기반 푸시 알림 + 호선별 알림 구독 설정 + 알림 내역 페이지 |
+| **혼잡 경보** | Kafka 스트림 처리 — 혼잡도 ≥ 80% 시 실시간 경보 카드 표시 (5분 자동 해제) |
+| **커뮤니티** | 24개 호선 게시판 + 검색 필터 + 댓글 + 좋아요 |
+| **즐겨찾기** | 즐겨찾기 역 추가·삭제·혼잡도 미리보기 (`/favorites`) |
 | **민원 접수** | 역·열차 기반 민원 등록 및 처리 현황 조회 |
 | **트렌딩** | 실시간 조회 급상승 역 위젯 |
+| **온보딩** | 첫 방문 시 3슬라이드 앱 기능 소개 (localStorage 완료 기록) |
 
 ---
 
@@ -274,9 +277,34 @@ kubectl get ingress -n metrohub
 
 ---
 
-## Jenkins CI/CD
+## CI/CD
+
+### GitHub Actions (`ci.yml`)
+
+```
+push to master
+  ├── test-subway-api          (Maven test)
+  ├── test-subway-notification (Maven test)
+  ├── lint-collector           (Python flake8)
+  ├── build-web                (SvelteKit npm build)
+  └── deploy (위 4개 통과 후)
+        ├── Docker Build & Push  → Docker Hub (metrohub-{api|notification|collector|web})
+        ├── Deploy subway-api    → Render (Webhook)
+        └── Deploy subway-notification → Render (Webhook)
+```
+
+Vercel 프론트엔드는 GitHub 연동으로 자동 배포 (master push 트리거).
+
+---
+
+## Jenkins CI/CD (로컬 k8s 환경)
 
 ### 파이프라인 흐름
+
+> GitHub Actions CI/CD (`ci.yml`)는 Render 백엔드 자동 배포를 담당하며,  
+> Vercel 프론트엔드는 GitHub 연동으로 master push 시 자동 배포됩니다.
+
+### 로컬 Jenkins 파이프라인
 
 ```
 GitHub Push (master)
@@ -373,7 +401,13 @@ GET /api/congestion/station/{역명}/hourly     시간대별 평균 혼잡도 (0
 ### 실시간 노선도
 
 ```
-GET /api/line/{lineCode}/trains    열차 위치 목록
+GET /api/line/{lineCode}/trains    열차 위치 목록 (10초 캐시)
+```
+
+### 역 도착 정보
+
+```
+GET /api/arrival/{역명}    역 실시간 도착 정보 목록
 ```
 
 ### 커뮤니티
@@ -431,9 +465,9 @@ MetroHub/
 ├── k8s-deploy.ps1                      # k8s 원클릭 배포 스크립트 (PowerShell)
 │
 ├── .github/workflows/
-│   ├── ci.yml                          # Docker 빌드 → GHCR 푸시
-│   ├── collector.yml                   # 데이터 수집 (5분 주기)
-│   └── keepalive.yml                   # Render 슬립 방지 (10분 주기)
+│   ├── ci.yml                          # 테스트 → Docker 빌드/GHCR 푸시 → Render 배포
+│   ├── collector.yml                   # 데이터 수집 (5분 주기, One-shot)
+│   └── keepalive.yml                   # Render 슬립 방지 ping (10분 주기)
 │
 ├── jenkins/                            # Jenkins 로컬 실행 환경
 │   ├── Dockerfile                      # Docker CLI + kubectl + Node.js + Python 포함 이미지
@@ -493,11 +527,16 @@ MetroHub/
         │   ├── lineStations.js         # 전 노선 역 목록 + LINE_META
         │   └── routeCalculator.js      # 0-1 BFS 최소환승 경로 탐색
         └── routes/
-            ├── +page.svelte            # 혼잡 경보 카드 (animate-pulse)
-            ├── my/
-            ├── auth/
-            ├── community/
-            └── complaints/
+            ├── +page.svelte            # 홈 (혼잡도·노선도·경로 탭, 혼잡 경보 카드)
+            ├── +layout.svelte          # 하단 탭바, 온보딩 오버레이
+            ├── station/[name]/         # 역 상세 (실시간 도착 정보)
+            ├── favorites/              # 즐겨찾기 관리
+            ├── notifications/          # 알림 내역 (SSE + API 통합, 페이지네이션)
+            ├── my/                     # MY 페이지 (프로필, 구독, 즐겨찾기·알림 링크)
+            ├── auth/                   # 로그인 / 회원가입
+            ├── community/              # 호선별 게시판 (검색 필터, 글쓰기 FAB)
+            ├── admin/                  # 관리자 (닉네임 'dev' 전용)
+            └── complaints/             # 민원 접수 및 목록
 ```
 
 ---
