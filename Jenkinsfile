@@ -54,7 +54,7 @@ pipeline {
                 stage('subway-collector lint') {
                     steps {
                         dir('subway-collector') {
-                            sh 'pip install --quiet -r requirements.txt flake8'
+                            sh 'pip install --quiet --break-system-packages -r requirements.txt flake8'
                             sh 'flake8 . --max-line-length=120 --exclude=__pycache__,venv'
                         }
                     }
