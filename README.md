@@ -5,7 +5,7 @@
 [![CI/CD](https://github.com/jung-ji-su/MetroHub/actions/workflows/ci.yml/badge.svg)](https://github.com/jung-ji-su/MetroHub/actions/workflows/ci.yml)
 [![Collector](https://github.com/jung-ji-su/MetroHub/actions/workflows/collector.yml/badge.svg)](https://github.com/jung-ji-su/MetroHub/actions/workflows/collector.yml)
 
-**🌐 서비스** → [metro-hub-rho.vercel.app](https://metro-hub-rho.vercel.app)
+**🌐 서비스** → [metro-hub-mu.vercel.app](https://metro-hub-mu.vercel.app)
 
 **API** → [metrohub-api.onrender.com](https://metrohub-api.onrender.com/actuator/health) · [metrohub-notification.onrender.com](https://metrohub-notification.onrender.com/actuator/health)
 
