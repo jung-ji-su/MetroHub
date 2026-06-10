@@ -4,8 +4,11 @@
 
 [![CI/CD](https://github.com/jung-ji-su/MetroHub/actions/workflows/ci.yml/badge.svg)](https://github.com/jung-ji-su/MetroHub/actions/workflows/ci.yml)
 [![Collector](https://github.com/jung-ji-su/MetroHub/actions/workflows/collector.yml/badge.svg)](https://github.com/jung-ji-su/MetroHub/actions/workflows/collector.yml)
+[![Portfolio](https://img.shields.io/badge/Portfolio-PDF-0d1b2a?style=flat&logo=googledocs&logoColor=white)](https://htmlpreview.github.io/?https://github.com/jung-ji-su/MetroHub/blob/master/portfolio.html)
 
 **🌐 서비스** → [metro-hub-mu.vercel.app](https://metro-hub-mu.vercel.app)
+
+**📄 포트폴리오** → [portfolio.html 미리보기](https://htmlpreview.github.io/?https://github.com/jung-ji-su/MetroHub/blob/master/portfolio.html)
 
 **API** → [metrohub-api.onrender.com](https://metrohub-api.onrender.com/actuator/health) · [metrohub-notification.onrender.com](https://metrohub-notification.onrender.com/actuator/health)
 
