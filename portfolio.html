@@ -2,1211 +2,713 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MetroHub — 프로젝트 포트폴리오</title>
+<title>MetroHub · Portfolio 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+:root {
+  --navy:   #0d1b2a;
+  --blue:   #1a56db;
+  --blue-lt:#e8f0fe;
+  --green:  #059669;
+  --grn-lt: #d1fae5;
+  --amber:  #d97706;
+  --amb-lt: #fef3c7;
+  --red:    #dc2626;
+  --red-lt: #fee2e2;
+  --g50:    #f9fafb;
+  --g100:   #f3f4f6;
+  --g200:   #e5e7eb;
+  --g300:   #d1d5db;
+  --g400:   #9ca3af;
+  --g500:   #6b7280;
+  --g600:   #4b5563;
+  --g700:   #374151;
+  --g900:   #111827;
+  --white:  #ffffff;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans KR', 'Inter', -apple-system, sans-serif;
+  background: #d4d4d4;
+  color: var(--g900);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+/* A4 page unit */
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  background: var(--white);
+  margin: 0 auto 24px;
+  position: relative;
+  box-shadow: 0 4px 24px rgba(0,0,0,.15);
+  page-break-after: always;
+  overflow: hidden;
+}
+@media print {
+  body  { background: white; }
+  .page { margin: 0; box-shadow: none; page-break-after: always; }
+}
+@page { size: A4; margin: 0; }
 
-  :root {
-    --blue:    #2563EB;
-    --blue-lt: #EFF6FF;
-    --indigo:  #4F46E5;
-    --cyan:    #0891B2;
-    --green:   #059669;
-    --amber:   #D97706;
-    --red:     #DC2626;
-    --slate-9: #0F172A;
-    --slate-8: #1E293B;
-    --slate-7: #334155;
-    --slate-5: #64748B;
-    --slate-3: #CBD5E1;
-    --slate-1: #F8FAFC;
-    --white:   #FFFFFF;
-    --accent:  #2563EB;
-    --radius:  12px;
-    --shadow:  0 4px 24px rgba(15,23,42,.08);
-  }
+/* ── Typography ── */
+.ts  { font-family:'Inter',sans-serif; font-size:7pt; font-weight:700; letter-spacing:.22em; text-transform:uppercase; color:var(--blue); margin-bottom:4mm; }
+.h1  { font-size:26pt; font-weight:900; color:var(--navy); line-height:1.2; letter-spacing:-.02em; }
+.h2  { font-size:16pt; font-weight:900; color:var(--navy); line-height:1.25; margin-bottom:2mm; }
+.h3  { font-size:10pt; font-weight:700; color:var(--navy); line-height:1.45; margin-bottom:1.5mm; }
+.body{ font-size:8.5pt; color:var(--g700); line-height:1.8; }
+.sm  { font-size:8pt;   color:var(--g600); line-height:1.75; }
+.xs  { font-size:7.5pt; color:var(--g500); line-height:1.7; }
+hr.dv{ border:none; border-top:1.5px solid var(--g200); margin:3mm 0 5mm; }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Layout helpers ── */
+.ph { display:flex; justify-content:space-between; align-items:center; padding:9mm 18mm 0; font-family:'Inter',sans-serif; font-size:6.5pt; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--g400); }
+.pb { padding:6mm 18mm 22mm; }
+.pf { position:absolute; bottom:9mm; left:18mm; right:18mm; display:flex; justify-content:space-between; align-items:center; font-family:'Inter',sans-serif; font-size:6.5pt; color:var(--g400); letter-spacing:.08em; border-top:1px solid var(--g200); padding-top:3mm; }
 
-  body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background: #F1F5F9;
-    color: var(--slate-9);
-    line-height: 1.7;
-    font-size: 15px;
-  }
+/* ── Components ── */
+.card      { background:var(--g50); border:1px solid var(--g200); border-radius:3px; padding:3.5mm 4.5mm; }
+.card-navy { background:var(--navy); border-radius:3px; padding:3.5mm 4.5mm; }
+.card-blue { background:var(--blue-lt); border:1px solid #c3d9ff; border-radius:3px; padding:3.5mm 4.5mm; }
+.stat-box  { text-align:center; padding:3mm 3.5mm; background:var(--g50); border:1px solid var(--g200); border-radius:3px; }
+.stat-num  { font-size:22pt; font-weight:900; color:var(--navy); line-height:1; margin-bottom:1mm; }
+.stat-lbl  { font-size:6.5pt; color:var(--g500); letter-spacing:.05em; }
 
-  /* ── 공통 레이아웃 ── */
-  .page {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 24px 80px;
-  }
+/* ── Grid ── */
+.two   { display:grid; grid-template-columns:1fr 1fr; gap:4mm; }
+.three { display:grid; grid-template-columns:1fr 1fr 1fr; gap:3.5mm; }
 
-  /* ── HERO ── */
-  .hero {
-    background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 60%, #1E40AF 100%);
-    color: white;
-    padding: 72px 48px 64px;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero::before {
-    content: '';
-    position: absolute;
-    width: 600px; height: 600px;
-    border-radius: 50%;
-    background: rgba(37,99,235,.18);
-    top: -200px; right: -150px;
-  }
-  .hero::after {
-    content: '';
-    position: absolute;
-    width: 300px; height: 300px;
-    border-radius: 50%;
-    background: rgba(99,102,241,.15);
-    bottom: -100px; left: -80px;
-  }
-  .hero-inner { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
-  .hero-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: rgba(255,255,255,.12);
-    border: 1px solid rgba(255,255,255,.2);
-    border-radius: 20px;
-    padding: 6px 16px;
-    font-size: 13px; font-weight: 500;
-    letter-spacing: .04em;
-    margin-bottom: 24px;
-  }
-  .hero h1 {
-    font-size: 48px; font-weight: 900;
-    letter-spacing: -.02em;
-    line-height: 1.15;
-    margin-bottom: 16px;
-  }
-  .hero h1 span { color: #60A5FA; }
-  .hero-sub {
-    font-size: 18px; font-weight: 300;
-    color: rgba(255,255,255,.80);
-    max-width: 620px;
-    margin-bottom: 36px;
-  }
-  .hero-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 40px; }
-  .hero-tag {
-    background: rgba(255,255,255,.10);
-    border: 1px solid rgba(255,255,255,.18);
-    border-radius: 6px;
-    padding: 5px 14px;
-    font-size: 13px; font-weight: 500;
-    font-family: 'JetBrains Mono', monospace;
-    color: #BAE6FD;
-  }
-  .hero-meta { display: flex; gap: 32px; flex-wrap: wrap; }
-  .hero-meta-item { font-size: 13px; color: rgba(255,255,255,.60); }
-  .hero-meta-item strong { display: block; color: white; font-size: 15px; margin-bottom: 2px; }
+/* ── Table ── */
+table  { width:100%; border-collapse:collapse; font-size:8pt; }
+th     { background:var(--navy); color:white; font-weight:600; padding:2.5mm 3mm; text-align:left; font-size:7.5pt; letter-spacing:.04em; }
+td     { padding:2mm 3mm; border-bottom:1px solid var(--g100); color:var(--g700); vertical-align:top; }
+tr:last-child td { border-bottom:none; }
+tr:nth-child(even) td { background:var(--g50); }
 
-  /* ── SECTION ── */
-  .section { margin-top: 48px; }
-  .section-label {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 12px; font-weight: 700; letter-spacing: .1em;
-    color: var(--blue); text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-  .section-label::after {
-    content: ''; flex: 1; height: 1px; background: var(--blue-lt);
-  }
-  .section-title {
-    font-size: 26px; font-weight: 800;
-    letter-spacing: -.02em; color: var(--slate-9);
-    margin-bottom: 24px;
-  }
+/* ── Callout ── */
+.callout      { border-radius:3px; padding:3mm 4mm; display:flex; gap:3mm; align-items:flex-start; }
+.callout-blue { background:var(--blue-lt); border-left:3px solid var(--blue); }
+.callout-grn  { background:var(--grn-lt); border-left:3px solid var(--green); }
+.callout-amb  { background:var(--amb-lt); border-left:3px solid var(--amber); }
+.callout-red  { background:var(--red-lt); border-left:3px solid var(--red); }
+.callout-icon { font-size:11pt; flex-shrink:0; }
+.callout-body { font-size:7.5pt; color:var(--g700); line-height:1.7; }
+.callout-body strong { color:var(--g900); }
 
-  /* ── CARD ── */
-  .card {
-    background: white;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    border: 1px solid #E2E8F0;
-    padding: 28px 32px;
-    margin-bottom: 16px;
-  }
-  .card-title {
-    font-size: 17px; font-weight: 700;
-    color: var(--slate-9); margin-bottom: 12px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .card-title .icon {
-    width: 32px; height: 32px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; flex-shrink: 0;
-  }
+/* ── Code ── */
+.code-wrap { background:#f1f5f9; border:1px solid var(--g200); border-radius:3px; overflow:hidden; margin:3mm 0; }
+.code-hdr  { background:#e2e8f0; padding:2mm 4mm; font-family:'Inter',sans-serif; font-size:6.5pt; font-weight:700; color:var(--g600); letter-spacing:.08em; }
+.code-body { font-family:'JetBrains Mono','Courier New',monospace; font-size:7pt; line-height:1.7; color:#1e293b; padding:3mm 4mm; white-space:pre; overflow-x:auto; }
+.code-body .cm { color:#94a3b8; }
+.code-body .kw { color:#7c3aed; font-weight:500; }
+.code-body .cl { color:#0369a1; }
+.code-body .fn { color:#059669; }
+.code-body .st { color:#b45309; }
+.code-body .nm { color:#dc2626; }
 
-  /* ── SUMMARY GRID ── */
-  .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-  .summary-card {
-    background: white; border-radius: var(--radius);
-    border: 1px solid #E2E8F0;
-    box-shadow: var(--shadow);
-    padding: 24px;
-    border-top: 3px solid var(--accent-color, var(--blue));
-  }
-  .summary-card .num { font-size: 32px; font-weight: 900; color: var(--accent-color, var(--blue)); line-height: 1; margin-bottom: 6px; }
-  .summary-card .label { font-size: 13px; font-weight: 600; color: var(--slate-5); }
-  .summary-card .desc { font-size: 13px; color: var(--slate-7); margin-top: 6px; }
+/* ── Arch box ── */
+.arch-box { border:1.5px solid var(--g200); border-radius:3px; padding:2.5mm 4mm; text-align:center; background:white; }
+.arch-box .lbl { font-family:'Inter',sans-serif; font-size:5.5pt; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--g400); margin-bottom:.8mm; }
+.arch-box .nm  { font-size:9.5pt; font-weight:800; color:var(--navy); }
+.arch-box .sub { font-size:6.5pt; color:var(--g500); margin-top:.5mm; }
+.arch-arr { text-align:center; font-size:14pt; color:var(--g300); line-height:1.2; margin:1.5mm 0; }
 
-  /* ── ARCH DIAGRAM ── */
-  .arch-diagram {
-    background: var(--slate-9);
-    border-radius: var(--radius);
-    padding: 32px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: #94A3B8;
-    line-height: 1.9;
-    overflow-x: auto;
-    margin-bottom: 16px;
-  }
-  .arch-diagram .hl-blue  { color: #60A5FA; }
-  .arch-diagram .hl-green { color: #4ADE80; }
-  .arch-diagram .hl-amber { color: #FCD34D; }
-  .arch-diagram .hl-pink  { color: #F472B6; }
-  .arch-diagram .hl-cyan  { color: #67E8F9; }
-  .arch-diagram .hl-white { color: #F8FAFC; font-weight: 600; }
+/* ── Badge ── */
+.badge { display:inline-block; font-size:6.5pt; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:.8mm 2.5mm; border-radius:2px; }
+.b-blue  { background:var(--blue-lt); color:var(--blue); }
+.b-grn   { background:var(--grn-lt); color:var(--green); }
+.b-amb   { background:var(--amb-lt); color:var(--amber); }
+.b-red   { background:var(--red-lt); color:var(--red); }
+.b-navy  { background:var(--navy); color:white; }
+.b-gray  { background:var(--g100); color:var(--g600); }
 
-  /* ── TABLE ── */
-  .tbl-wrap { overflow-x: auto; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; }
-  table { width: 100%; border-collapse: collapse; background: white; border-radius: var(--radius); overflow: hidden; }
-  thead { background: var(--slate-9); color: white; }
-  thead th { padding: 14px 18px; text-align: left; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
-  tbody tr { border-bottom: 1px solid #F1F5F9; }
-  tbody tr:last-child { border-bottom: none; }
-  tbody td { padding: 14px 18px; font-size: 14px; vertical-align: top; }
-  tbody tr:hover { background: #F8FAFC; }
-  .badge {
-    display: inline-block; padding: 2px 10px; border-radius: 20px;
-    font-size: 12px; font-weight: 600;
-  }
-  .badge-blue   { background: #DBEAFE; color: #1D4ED8; }
-  .badge-green  { background: #D1FAE5; color: #065F46; }
-  .badge-amber  { background: #FEF3C7; color: #92400E; }
-  .badge-red    { background: #FEE2E2; color: #991B1B; }
-  .badge-purple { background: #EDE9FE; color: #5B21B6; }
-  .badge-cyan   { background: #CFFAFE; color: #155E75; }
-  .badge-gray   { background: #F1F5F9; color: #475569; }
+/* ── Pipeline step ── */
+.pipe-row { display:flex; align-items:stretch; gap:0; border:1.5px solid var(--g200); border-radius:3px; overflow:hidden; }
+.pipe-step { flex:1; padding:3mm 2mm; text-align:center; background:var(--g50); border-right:1px solid var(--g200); position:relative; }
+.pipe-step:last-child { border-right:none; }
+.pipe-icon { font-size:14pt; margin-bottom:1mm; }
+.pipe-nm   { font-size:7pt; font-weight:700; color:var(--navy); margin-bottom:.5mm; }
+.pipe-ds   { font-size:6pt; color:var(--g500); }
 
-  /* ── CODE BLOCK ── */
-  .code-block {
-    background: #0F172A;
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin: 16px 0;
-    box-shadow: var(--shadow);
-  }
-  .code-header {
-    background: #1E293B;
-    padding: 10px 18px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .code-header .file { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #94A3B8; }
-  .code-header .dots { display: flex; gap: 6px; }
-  .code-header .dot { width: 10px; height: 10px; border-radius: 50%; }
-  .dot-r { background: #EF4444; }
-  .dot-y { background: #F59E0B; }
-  .dot-g { background: #10B981; }
-  .code-body { padding: 20px 24px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; color: #CBD5E1; overflow-x: auto; }
-  .code-body .kw  { color: #C084FC; }  /* keyword */
-  .code-body .cl  { color: #67E8F9; }  /* class */
-  .code-body .fn  { color: #86EFAC; }  /* function */
-  .code-body .st  { color: #FCD34D; }  /* string */
-  .code-body .cm  { color: #64748B; font-style: italic; }  /* comment */
-  .code-body .nm  { color: #F472B6; }  /* number */
-  .code-body .an  { color: #FB923C; }  /* annotation */
-
-  /* ── PIPELINE ── */
-  .pipeline {
-    display: flex; align-items: flex-start; gap: 0;
-    background: white; border-radius: var(--radius);
-    box-shadow: var(--shadow); border: 1px solid #E2E8F0;
-    overflow: hidden; margin-bottom: 16px;
-  }
-  .pipe-step {
-    flex: 1; padding: 22px 18px; text-align: center;
-    position: relative;
-    border-right: 1px solid #F1F5F9;
-  }
-  .pipe-step:last-child { border-right: none; }
-  .pipe-step::after {
-    content: '→';
-    position: absolute; right: -10px; top: 50%; transform: translateY(-50%);
-    color: var(--slate-3); font-size: 18px; z-index: 1;
-    background: white; padding: 0 2px;
-  }
-  .pipe-step:last-child::after { display: none; }
-  .pipe-icon { font-size: 24px; margin-bottom: 8px; }
-  .pipe-name { font-size: 13px; font-weight: 700; color: var(--slate-9); margin-bottom: 4px; }
-  .pipe-desc { font-size: 11px; color: var(--slate-5); }
-
-  /* ── CALLOUT ── */
-  .callout {
-    border-radius: var(--radius);
-    padding: 18px 22px;
-    margin: 16px 0;
-    display: flex; gap: 14px; align-items: flex-start;
-  }
-  .callout-blue   { background: #EFF6FF; border-left: 4px solid var(--blue); }
-  .callout-green  { background: #ECFDF5; border-left: 4px solid var(--green); }
-  .callout-amber  { background: #FFFBEB; border-left: 4px solid var(--amber); }
-  .callout-red    { background: #FEF2F2; border-left: 4px solid var(--red); }
-  .callout-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
-  .callout-body { font-size: 14px; color: var(--slate-7); }
-  .callout-body strong { color: var(--slate-9); }
-
-  /* ── TWO COL ── */
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-
-  /* ── TECH BADGE ── */
-  .tech-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-  .tech-pill {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--slate-1); border: 1px solid #E2E8F0;
-    border-radius: 8px; padding: 8px 14px;
-    font-size: 13px; font-weight: 600; color: var(--slate-7);
-  }
-
-  /* ── TIMELINE ── */
-  .timeline { position: relative; padding-left: 32px; }
-  .timeline::before { content: ''; position: absolute; left: 10px; top: 8px; bottom: 0; width: 2px; background: #E2E8F0; }
-  .timeline-item { position: relative; margin-bottom: 24px; }
-  .timeline-dot {
-    position: absolute; left: -32px; top: 4px;
-    width: 20px; height: 20px; border-radius: 50%;
-    border: 2px solid white;
-    box-shadow: 0 0 0 2px var(--dot-color, var(--blue));
-    background: var(--dot-color, var(--blue));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; color: white;
-  }
-  .timeline-title { font-size: 15px; font-weight: 700; color: var(--slate-9); margin-bottom: 6px; }
-  .timeline-body { font-size: 14px; color: var(--slate-7); }
-
-  /* ── HIGHLIGHT BOX ── */
-  .highlight-box {
-    background: linear-gradient(135deg, #1E3A5F, #1E40AF);
-    border-radius: var(--radius);
-    padding: 28px 32px;
-    color: white;
-    margin: 20px 0;
-  }
-  .highlight-box h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
-  .highlight-box p  { font-size: 14px; color: rgba(255,255,255,.80); line-height: 1.7; }
-
-  /* ── DIVIDER ── */
-  .divider { height: 1px; background: #E2E8F0; margin: 40px 0; }
-
-  /* ── FOOTER ── */
-  .footer {
-    background: var(--slate-9); color: rgba(255,255,255,.50);
-    text-align: center; padding: 32px; font-size: 13px;
-    margin-top: 0;
-  }
-  .footer a { color: #60A5FA; text-decoration: none; }
-
-  /* ── PRINT ── */
-  @media print {
-    body { background: white; font-size: 13px; }
-    .hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .card { box-shadow: none; border: 1px solid #E2E8F0; page-break-inside: avoid; }
-    .arch-diagram { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .section { page-break-before: auto; }
-  }
-
-  @media (max-width: 680px) {
-    .hero { padding: 48px 24px; }
-    .hero h1 { font-size: 32px; }
-    .summary-grid { grid-template-columns: 1fr; }
-    .two-col, .three-col { grid-template-columns: 1fr; }
-    .pipeline { flex-direction: column; }
-    .pipe-step::after { display: none; }
-  }
+/* ── Number bullet ── */
+.num-item { display:flex; gap:3mm; align-items:flex-start; margin-bottom:4mm; }
+.num-c    { flex-shrink:0; width:6mm; height:6mm; border-radius:50%; background:var(--blue-lt); display:flex; align-items:center; justify-content:center; font-family:'Inter',sans-serif; font-size:7pt; font-weight:800; color:var(--blue); }
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════ HERO ═══════════════════════ -->
-<div class="hero">
-  <div class="hero-inner">
-    <div class="hero-badge">🚇 프로젝트 포트폴리오 &nbsp;|&nbsp; 2025</div>
-    <h1>Metro<span>Hub</span></h1>
-    <p class="hero-sub">
-      서울 지하철 실시간 통합 플랫폼 — 혼잡도·열차 위치·경로 탐색·실시간 알림을
-      하나의 모바일 웹앱으로 통합한 풀스택 MSA 프로젝트
-    </p>
-    <div class="hero-tags">
-      <span class="hero-tag">Spring Boot 3</span>
-      <span class="hero-tag">Apache Kafka</span>
-      <span class="hero-tag">SvelteKit 5</span>
-      <span class="hero-tag">Kubernetes</span>
-      <span class="hero-tag">SSE</span>
-      <span class="hero-tag">0-1 BFS</span>
-      <span class="hero-tag">CI/CD</span>
-      <span class="hero-tag">Docker</span>
+<!-- ═══════════════ PAGE 1 — COVER ═══════════════ -->
+<div class="page">
+  <div style="height:5mm;background:var(--navy);"></div>
+  <div style="padding:12mm 18mm 0;">
+    <div style="display:flex;justify-content:space-between;align-items:center;font-family:'Inter',sans-serif;font-size:6.5pt;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--g400);">
+      <span>PORTFOLIO · 2026.06</span><span>JUNG JI SU</span>
     </div>
-    <div class="hero-meta">
-      <div class="hero-meta-item">
-        <strong>🌐 라이브 서비스</strong>
-        metro-hub-mu.vercel.app
+
+    <div style="margin-top:18mm;">
+      <div style="display:inline-block;font-family:'Inter',sans-serif;font-size:7pt;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--blue);border:1.5px solid var(--blue);padding:1.5mm 4mm;border-radius:2px;margin-bottom:5mm;">Backend · Infrastructure Project</div>
+      <div style="font-size:42pt;font-weight:900;color:var(--navy);line-height:1.1;letter-spacing:-.03em;margin-bottom:3mm;">Metro<span style="color:var(--blue);">Hub</span></div>
+      <div style="font-size:13pt;font-weight:700;color:var(--blue);margin-bottom:4mm;">서울 지하철 실시간 통합 플랫폼</div>
+      <p class="body" style="max-width:140mm;color:var(--g600);line-height:1.85;">
+        Kafka 스트림 파이프라인 · SSE 실시간 푸시 · MSA 2-서비스 분리 ·<br>
+        Kubernetes 멀티 컴포넌트 배포 · 이원화 CI/CD를 직접 설계·구현한<br>
+        서울 지하철 24개 전 노선 실시간 정보 서비스
+      </p>
+    </div>
+
+    <div style="margin-top:12mm;padding-top:5mm;border-top:1.5px solid var(--g200);display:flex;align-items:baseline;gap:5mm;">
+      <span style="font-size:17pt;font-weight:900;color:var(--navy);">정지수 · Jung Ji Su</span>
+      <span style="font-size:9pt;color:var(--g500);">Backend Developer</span>
+    </div>
+    <div style="margin-top:4mm;display:grid;grid-template-columns:repeat(3,auto);gap:2mm 12mm;">
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:6.5pt;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--g400);">Period</div>
+        <div style="font-size:9pt;font-weight:700;color:var(--navy);">2026.06 — Present</div>
       </div>
-      <div class="hero-meta-item">
-        <strong>🐙 GitHub</strong>
-        jung-ji-su/MetroHub
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:6.5pt;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--g400);">Architecture</div>
+        <div style="font-size:9pt;font-weight:700;color:var(--navy);">MSA · 4 Microservices</div>
       </div>
-      <div class="hero-meta-item">
-        <strong>🏗️ 아키텍처</strong>
-        MSA · 4개 마이크로서비스
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:6.5pt;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--g400);">Role</div>
+        <div style="font-size:9pt;font-weight:700;color:var(--navy);">Solo Full-Stack</div>
       </div>
-      <div class="hero-meta-item">
-        <strong>🛤️ 노선 지원</strong>
-        서울 지하철 24개 전 노선
+    </div>
+    <div style="margin-top:4mm;display:flex;gap:12mm;">
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:6.5pt;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--g400);">GitHub</div>
+        <div style="font-size:8.5pt;font-weight:700;color:var(--navy);">github.com/jung-ji-su/MetroHub</div>
+      </div>
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:6.5pt;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--g400);">Live Demo</div>
+        <div style="font-size:8.5pt;font-weight:700;color:var(--navy);">metro-hub-mu.vercel.app</div>
+      </div>
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:6.5pt;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--g400);">Email</div>
+        <div style="font-size:8.5pt;font-weight:700;color:var(--navy);">jjsu95@gmail.com</div>
+      </div>
+    </div>
+
+    <div style="margin-top:12mm;">
+      <div style="font-family:'Inter',sans-serif;font-size:7pt;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--g600);margin-bottom:3mm;">Core Stack</div>
+      <div style="display:flex;flex-wrap:wrap;gap:2mm;">
+        <span style="background:var(--navy);color:white;font-family:'Inter',sans-serif;font-size:7pt;font-weight:600;padding:1.5mm 3mm;border-radius:2px;">Spring Boot 3</span>
+        <span style="background:var(--navy);color:white;font-family:'Inter',sans-serif;font-size:7pt;font-weight:600;padding:1.5mm 3mm;border-radius:2px;">Apache Kafka</span>
+        <span style="background:var(--navy);color:white;font-family:'Inter',sans-serif;font-size:7pt;font-weight:600;padding:1.5mm 3mm;border-radius:2px;">SvelteKit 5</span>
+        <span style="background:var(--navy);color:white;font-family:'Inter',sans-serif;font-size:7pt;font-weight:600;padding:1.5mm 3mm;border-radius:2px;">Kubernetes</span>
+        <span style="background:var(--navy);color:white;font-family:'Inter',sans-serif;font-size:7pt;font-weight:600;padding:1.5mm 3mm;border-radius:2px;">MySQL 8</span>
+        <span style="background:var(--navy);color:white;font-family:'Inter',sans-serif;font-size:7pt;font-weight:600;padding:1.5mm 3mm;border-radius:2px;">SSE</span>
+        <span style="background:var(--navy);color:white;font-family:'Inter',sans-serif;font-size:7pt;font-weight:600;padding:1.5mm 3mm;border-radius:2px;">Docker</span>
+        <span style="background:var(--navy);color:white;font-family:'Inter',sans-serif;font-size:7pt;font-weight:600;padding:1.5mm 3mm;border-radius:2px;">Jenkins</span>
+        <span style="background:var(--navy);color:white;font-family:'Inter',sans-serif;font-size:7pt;font-weight:600;padding:1.5mm 3mm;border-radius:2px;">GitHub Actions</span>
+        <span style="background:var(--navy);color:white;font-family:'Inter',sans-serif;font-size:7pt;font-weight:600;padding:1.5mm 3mm;border-radius:2px;">JWT · Spring Security</span>
       </div>
     </div>
   </div>
+  <div style="position:absolute;bottom:0;right:0;width:55mm;height:40mm;background:var(--navy);clip-path:polygon(100% 0,100% 100%,0 100%);"></div>
 </div>
 
-<!-- ═══════════════════════ CONTENT ═══════════════════════ -->
+
+<!-- ═══════════════ PAGE 2 — EXECUTIVE SUMMARY ═══════════════ -->
 <div class="page">
+  <div class="ph"><span>01 &nbsp;Executive Summary</span><span>Jung Ji Su</span></div>
+  <div class="pb">
+    <div class="ts">01 &nbsp;Executive Summary</div>
+    <div class="h1">핵심 역량 3가지.</div>
+    <hr class="dv">
 
-  <!-- ── EXECUTIVE SUMMARY ── -->
-  <div class="section">
-    <div class="section-label">01 &nbsp; Executive Summary</div>
-    <h2 class="section-title">이 프로젝트로 증명하고자 한 세 가지 역량</h2>
-
-    <div class="summary-grid">
-      <div class="summary-card" style="--accent-color: #2563EB;">
-        <div class="num">24</div>
-        <div class="label">개 노선 실시간 처리</div>
-        <div class="desc">CompletableFuture 병렬 조회로 전체 역 동시 스캔, ConcurrentHashMap 중복 제거</div>
+    <div class="three" style="margin-bottom:5mm;">
+      <div class="stat-box">
+        <div class="stat-num" style="color:var(--blue);">24</div>
+        <div class="stat-lbl">개 노선 실시간 처리</div>
       </div>
-      <div class="summary-card" style="--accent-color: #059669;">
-        <div class="num">2</div>
-        <div class="label">개 CI/CD 파이프라인</div>
-        <div class="desc">GitHub Actions(클라우드) + Jenkins(로컬 k8s) 이원화 자동 배포 구축</div>
+      <div class="stat-box">
+        <div class="stat-num" style="color:var(--green);">2</div>
+        <div class="stat-lbl">개 CI/CD 파이프라인</div>
       </div>
-      <div class="summary-card" style="--accent-color: #7C3AED;">
-        <div class="num">6+</div>
-        <div class="label">k8s 예외 상황 해결</div>
-        <div class="desc">Kafka Lock 파일, PVC 권한, ServiceLink 충돌 등 실제 장애 대응 경험</div>
+      <div class="stat-box">
+        <div class="stat-num" style="color:var(--navy);">6+</div>
+        <div class="stat-lbl">k8s 실제 장애 해결</div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title">
-        <div class="icon" style="background:#EFF6FF;">🎯</div>
-        프로젝트 정의 및 핵심 역량
-      </div>
-      <p style="font-size:15px; color: var(--slate-7); margin-bottom:16px;">
-        <strong>MetroHub</strong>는 서울시 공공 API에서 수집한 실시간 지하철 데이터를 Kafka 스트림으로 처리하고,
-        SSE를 통해 클라이언트에 Push하는 <strong>이벤트 기반 실시간 플랫폼</strong>입니다.
-        단순 CRUD 서버를 넘어, <em>데이터 수집 → 스트림 처리 → 실시간 전달 → 프론트엔드 렌더링</em>까지
-        전체 파이프라인을 직접 설계하고 구현했습니다.
-      </p>
-      <div class="three-col">
-        <div class="callout callout-blue" style="margin:0;">
-          <div class="callout-icon">⚡</div>
-          <div class="callout-body">
-            <strong>대용량 실시간 처리</strong><br>
-            50-스레드 전용 I/O 풀로 수백 개 역 병렬 조회, Kafka 파티션 키로 이벤트 순서 보장
-          </div>
-        </div>
-        <div class="callout callout-green" style="margin:0;">
-          <div class="callout-icon">🏗️</div>
-          <div class="callout-body">
-            <strong>분산 인프라 설계</strong><br>
-            SSE 커넥션 격리를 위한 MSA 분리, k8s HPA·Ingress·PVC 포함 전체 인프라 구성
-          </div>
-        </div>
-        <div class="callout callout-amber" style="margin:0;">
-          <div class="callout-icon">🚀</div>
-          <div class="callout-body">
-            <strong>CI/CD 자동화</strong><br>
-            4개 서비스 테스트→빌드→배포 완전 자동화, 빌드 번호 태그 기반 롤백 전략 수립
-          </div>
+    <p class="body" style="max-width:165mm;margin-bottom:6mm;">
+      <strong>MetroHub</strong>는 서울시 공공 API에서 수집한 실시간 지하철 데이터를 Kafka 스트림으로 처리하고,
+      SSE를 통해 클라이언트에 Push하는 <strong>이벤트 기반 실시간 플랫폼</strong>입니다.
+      단순 CRUD 서버를 넘어, <em>데이터 수집 → 스트림 처리 → 실시간 전달 → 프론트엔드 렌더링</em>까지
+      전체 파이프라인을 직접 설계하고 구현했습니다.
+    </p>
+
+    <div style="display:flex;flex-direction:column;gap:3mm;">
+      <div class="num-item">
+        <div class="num-c">01</div>
+        <div>
+          <div class="h3">대용량 실시간 데이터 처리</div>
+          <p class="sm">24개 노선 × 수백 개 역을 <strong>CompletableFuture 50-스레드 병렬 조회</strong>로 처리하고, ConcurrentHashMap으로 중복 열차 데이터를 ETA 최솟값 기준 실시간 제거. Kafka 파티션 키(lineNumber)로 같은 호선 이벤트의 순서를 보장합니다.</p>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- ── ARCHITECTURE ── -->
-  <div class="section">
-    <div class="section-label">02 &nbsp; Architecture Rationale</div>
-    <h2 class="section-title">아키텍처 설계 — "왜 이렇게 만들었는가"</h2>
-
-    <!-- 전체 아키텍처 다이어그램 -->
-    <div class="arch-diagram">
-<span class="hl-amber">┌──────────────────────────────────────────────────────┐</span>
-<span class="hl-amber">│          서울시 열린데이터 API  (realtimeStationArrival)       │</span>
-<span class="hl-amber">└──────────────────────┬───────────────────────────────┘</span>
-                       <span class="hl-white">│ HTTP Polling (30초 / GitHub Actions 5분 One-shot)</span>
-                       ▼
-<span class="hl-green">  ┌─────────────────────────────────────┐</span>
-<span class="hl-green">  │         subway-collector             │  Python</span>
-<span class="hl-green">  │  kafka_producer.py → subway-realtime │──────────► Kafka Topic</span>
-<span class="hl-green">  └─────────────────────────────────────┘</span>
-                       <span class="hl-white">│</span>
-           <span class="hl-white">┌───────────┴────────────┐</span>
-           ▼                        ▼
-<span class="hl-blue">  ┌────────────────────┐    ┌──────────────────────────┐</span>
-<span class="hl-blue">  │     subway-api     │    │    subway-notification    │</span>
-<span class="hl-blue">  │  Spring Boot :8080 │    │    Spring Boot :8081      │</span>
-<span class="hl-blue">  │                    │    │                           │</span>
-<span class="hl-cyan">  │  ├ Kafka Consumer  │    │  ├ Kafka Consumer         │</span>
-<span class="hl-cyan">  │  ├ DB upsert       │    │  ├ 사용자별 SSE 스트림    │</span>
-<span class="hl-cyan">  │  ├ 혼잡 경보 판단  │    │  └ 호선 구독 관리        │</span>
-<span class="hl-cyan">  │  ├ Kafka Producer  │    └──────────────────────────┘</span>
-<span class="hl-cyan">  │  └ 공개 SSE 스트림 │         <span class="hl-white">↑ 개인화 SSE 격리</span></span>
-<span class="hl-blue">  └────────────────────┘</span>
-           <span class="hl-white">│</span>
-           ▼
-<span class="hl-pink">  ┌─────────────────────────────────────┐</span>
-<span class="hl-pink">  │          subway-web (SvelteKit 5)    │  Vercel CDN</span>
-<span class="hl-pink">  │   SSE 수신 → 실시간 UI 갱신          │  max-width 430px</span>
-<span class="hl-pink">  └─────────────────────────────────────┘</span>
-    </div>
-
-    <!-- MSA 분리 이유 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="icon" style="background:#EFF6FF;">🔀</div>
-        MSA 분리 결정 — SSE 커넥션 고갈 문제 해결
-      </div>
-      <div class="callout callout-red">
-        <div class="callout-icon">⚠️</div>
-        <div class="callout-body">
-          <strong>단일 서버의 함정:</strong> HTTP/1.1 기반 SSE는 클라이언트 연결 동안 서버 스레드를 점유합니다.
-          사용자가 증가할수록 SSE 커넥션이 쌓이고, 결국
-          <strong>Tomcat 스레드 풀 고갈 → 일반 REST 요청 타임아웃</strong>으로 이어집니다.
+      <div class="num-item">
+        <div class="num-c">02</div>
+        <div>
+          <div class="h3">분산 인프라 설계 · 운영</div>
+          <p class="sm">SSE Long-lived 커넥션 고갈 문제를 <strong>subway-notification 서비스 분리(MSA)</strong>로 해결. Kubernetes HPA · nginx Ingress · PVC 포함 전체 인프라를 직접 구성하고, Kafka 재시작 오류 · PVC 권한 문제 등 실제 장애 6종을 트러블슈팅했습니다.</p>
         </div>
       </div>
-
-      <div class="tbl-wrap" style="margin-top:16px;">
-        <table>
-          <thead>
-            <tr><th>서비스</th><th>역할</th><th>분리 이유</th><th>특성</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><span class="badge badge-blue">subway-api :8080</span></td>
-              <td>혼잡도 REST, 커뮤니티, 민원, 인증, 공개 SSE</td>
-              <td>빠른 트랜잭션 처리 최우선</td>
-              <td>Short-lived 연결</td>
-            </tr>
-            <tr>
-              <td><span class="badge badge-purple">subway-notification :8081</span></td>
-              <td>개인화 SSE, 구독 관리, 알림 이력</td>
-              <td>Long-lived 커넥션을 메인 API로부터 격리</td>
-              <td>Long-lived 연결</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="callout callout-green" style="margin-top:8px;">
-        <div class="callout-icon">✅</div>
-        <div class="callout-body">
-          <strong>결과:</strong> 알림 SSE 트래픽이 급증하더라도 메인 API 응답성이 보장되는
-          <strong>Fault Isolation(장애 격리)</strong> 구조를 확보했습니다.
+      <div class="num-item">
+        <div class="num-c">03</div>
+        <div>
+          <div class="h3">CI/CD 자동화 — 이원화 파이프라인</div>
+          <p class="sm">4개 서비스 테스트→빌드→배포를 <strong>GitHub Actions(클라우드)</strong>와 <strong>Jenkins + k8s(로컬)</strong>로 이원화 자동화. 이미지를 BUILD_NUMBER 태그로 누적 보관해 rollout undo 즉시 롤백 전략을 수립했습니다.</p>
         </div>
       </div>
-    </div>
-
-    <!-- Kafka 파이프라인 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="icon" style="background:#FEF3C7;">🌊</div>
-        Kafka 기반 파이프라인 — 왜 직접 API 호출이 아닌가
-      </div>
-
-      <div class="two-col" style="margin-bottom:16px;">
-        <div class="callout callout-red" style="margin:0;">
-          <div class="callout-icon">❌</div>
-          <div class="callout-body">
-            <strong>직접 호출 방식의 문제</strong><br>
-            클라이언트 요청 시마다 서울시 API 직접 호출 →
-            API 응답 지연이 서비스 지연으로 직결,
-            Rate Limit 소진 시 전면 장애,
-            인스턴스 증가 시 API 중복 호출 폭발
-          </div>
-        </div>
-        <div class="callout callout-green" style="margin:0;">
-          <div class="callout-icon">✅</div>
-          <div class="callout-body">
-            <strong>Kafka 파이프라인 방식</strong><br>
-            수집과 소비의 완전한 디커플링 →
-            외부 API 장애가 내부로 전파되지 않음,
-            단일 메시지로 DB upsert + 혼잡 경보 판단 동시 처리 (Single Source of Truth)
-          </div>
-        </div>
-      </div>
-
-      <div class="pipeline">
-        <div class="pipe-step">
-          <div class="pipe-icon">🐍</div>
-          <div class="pipe-name">Collector</div>
-          <div class="pipe-desc">Python 30초 폴링<br>GitHub Actions Cron</div>
-        </div>
-        <div class="pipe-step">
-          <div class="pipe-icon">📨</div>
-          <div class="pipe-name">Kafka</div>
-          <div class="pipe-desc">subway-realtime<br>lineNumber 파티션 키</div>
-        </div>
-        <div class="pipe-step">
-          <div class="pipe-icon">⚙️</div>
-          <div class="pipe-name">Consumer</div>
-          <div class="pipe-desc">DB upsert<br>혼잡 경보 판단</div>
-        </div>
-        <div class="pipe-step">
-          <div class="pipe-icon">📡</div>
-          <div class="pipe-name">SSE</div>
-          <div class="pipe-desc">경보 브로드캐스트<br>5분 자동 해제</div>
-        </div>
-        <div class="pipe-step">
-          <div class="pipe-icon">📱</div>
-          <div class="pipe-name">Frontend</div>
-          <div class="pipe-desc">경보 카드 표시<br>5분 타이머 자동 제거</div>
+      <div class="num-item">
+        <div class="num-c">04</div>
+        <div>
+          <div class="h3">0-1 BFS 알고리즘 — 최소 환승 경로 탐색</div>
+          <p class="sm">같은 노선 이동(비용 0)과 환승(비용 1)이 혼재하는 문제를 <strong>Deque 기반 0-1 BFS</strong>로 O(V+E) 시간 내 해결. Dijkstra보다 단순하고 이 문제 구조에 최적인 알고리즘을 선택해 24개 노선의 최소환승 경로를 실시간 계산합니다.</p>
         </div>
       </div>
     </div>
   </div>
+  <div class="pf"><span>JUNG JI SU · METROHUB PORTFOLIO 2026</span><span>02</span></div>
+</div>
 
-  <!-- ── DEEP DIVE ── -->
-  <div class="section">
-    <div class="section-label">03 &nbsp; Deep Dive & Troubleshooting</div>
-    <h2 class="section-title">엔지니어링 디테일 — 핵심 구현 분석</h2>
 
-    <!-- Kafka 혼잡 경보 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="icon" style="background:#FEF3C7;">🔔</div>
-        Kafka 스트림 처리 — 혼잡 경보 중복 억제 설계
+<!-- ═══════════════ PAGE 3 — SYSTEM ARCHITECTURE ═══════════════ -->
+<div class="page">
+  <div class="ph"><span>02 &nbsp;System Architecture</span><span>Jung Ji Su</span></div>
+  <div class="pb">
+    <div class="ts">02 &nbsp;System Architecture</div>
+    <div class="h1">시스템 구성.</div>
+    <hr class="dv">
+    <p class="body" style="max-width:165mm;margin-bottom:6mm;">
+      외부 API 수집부터 SSE 브로드캐스트까지 데이터 흐름을 단일 모노리스가 아닌
+      역할 별로 분리된 4개의 마이크로서비스와 Kafka 메시지 브로커로 구성했습니다.
+    </p>
+
+    <!-- Architecture Diagram -->
+    <div style="max-width:140mm;margin:0 auto 6mm;">
+      <div style="border:1.5px solid #c3d9ff;border-radius:3px;padding:2.5mm 4mm;text-align:center;background:var(--blue-lt);">
+        <div style="font-family:'Inter',sans-serif;font-size:5.5pt;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#4b72b5;margin-bottom:.8mm;">External Data</div>
+        <div style="font-size:10pt;font-weight:800;color:var(--navy);">서울시 열린데이터 API</div>
+        <div style="font-size:7pt;color:var(--g500);margin-top:.5mm;">realtimeStationArrival</div>
       </div>
+      <div class="arch-arr">↓</div>
 
-      <div class="callout callout-amber">
-        <div class="callout-icon">💡</div>
-        <div class="callout-body">
-          <strong>문제 정의:</strong> 혼잡도가 80% 이상인 역의 데이터는 30초마다 Kafka에 수신됩니다.
-          임계값 판단만 있으면 10분 지속 시 <strong>20번의 경보</strong>가 발송되어
-          사용자 알림 피로(Alert Fatigue)가 발생합니다.
+      <div style="border:1.5px solid var(--g200);border-radius:3px;padding:2.5mm 4mm;text-align:center;background:white;">
+        <div style="font-family:'Inter',sans-serif;font-size:5.5pt;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--g400);margin-bottom:.8mm;">Data Collector</div>
+        <div style="font-size:10pt;font-weight:800;color:var(--navy);">subway-collector &nbsp;<span style="font-size:7.5pt;font-weight:400;color:var(--g500);">(Python)</span></div>
+        <div style="font-size:7pt;color:var(--g500);margin-top:.5mm;">30초 주기 폴링 &nbsp;·&nbsp; GitHub Actions 5분 One-shot &nbsp;→&nbsp; Kafka: subway-realtime</div>
+      </div>
+      <div class="arch-arr">↓</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3mm;margin-bottom:3mm;">
+        <div style="border:1.5px solid var(--navy);border-radius:3px;padding:3mm 4mm;background:var(--navy);">
+          <div style="font-family:'Inter',sans-serif;font-size:5.5pt;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:1mm;">Main API</div>
+          <div style="font-size:10pt;font-weight:800;color:white;">subway-api</div>
+          <div style="font-size:6.5pt;color:rgba(255,255,255,.55);margin-top:1mm;line-height:1.6;">:8080 &nbsp;·&nbsp; Spring Boot<br>Kafka Consumer · DB upsert<br>혼잡 경보 판단 · 공개 SSE<br>커뮤니티 · 민원 · 인증</div>
+        </div>
+        <div style="border:1.5px solid var(--blue);border-radius:3px;padding:3mm 4mm;background:var(--blue-lt);">
+          <div style="font-family:'Inter',sans-serif;font-size:5.5pt;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#4b72b5;margin-bottom:1mm;">Notification Service</div>
+          <div style="font-size:10pt;font-weight:800;color:var(--navy);">subway-notification</div>
+          <div style="font-size:6.5pt;color:var(--g600);margin-top:1mm;line-height:1.6;">:8081 &nbsp;·&nbsp; Spring Boot<br>Kafka Consumer<br>사용자별 SSE 스트림<br>호선 구독 관리</div>
         </div>
       </div>
+      <div class="arch-arr">↓</div>
 
-      <div class="code-block">
-        <div class="code-header">
-          <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
-          <div class="file">CongestionAlertProducer.java</div>
-        </div>
-        <div class="code-body"><span class="an">@Service</span>
-<span class="kw">public class</span> <span class="cl">CongestionAlertProducer</span> {
+      <div style="border:1.5px solid #059669;border-radius:3px;padding:2.5mm 4mm;text-align:center;background:var(--grn-lt);">
+        <div style="font-family:'Inter',sans-serif;font-size:5.5pt;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:.8mm;">Frontend</div>
+        <div style="font-size:10pt;font-weight:800;color:var(--navy);">subway-web &nbsp;<span style="font-size:7.5pt;font-weight:400;color:var(--g600);">(SvelteKit 5)</span></div>
+        <div style="font-size:7pt;color:var(--g600);margin-top:.5mm;">SSE 수신 → 실시간 UI 갱신 &nbsp;·&nbsp; Vercel CDN &nbsp;·&nbsp; max-width 430px</div>
+      </div>
+    </div>
 
-    <span class="kw">private static final long</span> COOLDOWN_MS = <span class="nm">5 * 60 * 1000L</span>; <span class="cm">// 5분 쿨다운</span>
+    <!-- MSA Rationale -->
+    <div class="h3" style="margin-bottom:2mm;">MSA 분리를 선택한 기술적 이유</div>
+    <div class="callout callout-red" style="margin-bottom:3mm;">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body"><strong>단일 서버의 함정:</strong> HTTP/1.1 기반 SSE는 클라이언트 연결 동안 Tomcat 스레드를 점유합니다. 사용자 증가 시 <strong>SSE 커넥션 누적 → 스레드 풀 고갈 → 일반 REST 요청 타임아웃</strong>으로 이어집니다.</div>
+    </div>
+    <div class="two">
+      <div class="card">
+        <div style="font-size:7.5pt;font-weight:700;color:var(--navy);margin-bottom:1.5mm;">subway-api :8080</div>
+        <p class="xs">Short-lived 연결 최우선. 혼잡도 REST · 커뮤니티 · 민원 · 인증 · 공개 SSE. <span style="color:var(--g400);">빠른 트랜잭션 처리가 핵심.</span></p>
+      </div>
+      <div class="card">
+        <div style="font-size:7.5pt;font-weight:700;color:var(--navy);margin-bottom:1.5mm;">subway-notification :8081</div>
+        <p class="xs">Long-lived 연결 격리. 개인화 SSE · 구독 관리 · 알림 이력. <span style="color:var(--g400);">Fault Isolation으로 메인 API 보호.</span></p>
+      </div>
+    </div>
+  </div>
+  <div class="pf"><span>JUNG JI SU · METROHUB PORTFOLIO 2026</span><span>03</span></div>
+</div>
 
-    <span class="cm">// 역명:노선코드 복합 키 — 같은 역의 다른 호선은 독립 관리</span>
-    <span class="kw">private final</span> <span class="cl">ConcurrentHashMap</span>&lt;<span class="cl">String</span>, <span class="cl">Long</span>&gt; lastAlertTime = <span class="kw">new</span> <span class="cl">ConcurrentHashMap</span>&lt;&gt;();
 
-    <span class="kw">public void</span> <span class="fn">publishIfNeeded</span>(<span class="cl">String</span> stationName, <span class="cl">String</span> lineNumber, <span class="kw">int</span> congestionLevel) {
-        <span class="kw">if</span> (congestionLevel &lt; THRESHOLD_CROWDED) <span class="kw">return</span>;
+<!-- ═══════════════ PAGE 4 — KAFKA STREAM PROCESSING ═══════════════ -->
+<div class="page">
+  <div class="ph"><span>03 &nbsp;Kafka Stream Processing</span><span>Jung Ji Su</span></div>
+  <div class="pb">
+    <div class="ts">03 &nbsp;Kafka Stream Processing</div>
+    <div class="h1">Kafka 스트림 처리.</div>
+    <hr class="dv">
 
-        <span class="cl">String</span> key = stationName + <span class="st">":"</span> + lineNumber;
-        <span class="kw">long</span> now = <span class="cl">System</span>.<span class="fn">currentTimeMillis</span>();
-        <span class="cl">Long</span> last = lastAlertTime.<span class="fn">get</span>(key);
+    <!-- Pipeline Flow -->
+    <div class="pipe-row" style="margin-bottom:5mm;">
+      <div class="pipe-step"><div class="pipe-icon">🐍</div><div class="pipe-nm">Collector</div><div class="pipe-ds">Python 30초 폴링</div></div>
+      <div class="pipe-step" style="background:var(--navy);"><div class="pipe-icon" style="color:white;">📨</div><div class="pipe-nm" style="color:white;">Kafka</div><div class="pipe-ds" style="color:rgba(255,255,255,.55);">subway-realtime</div></div>
+      <div class="pipe-step"><div class="pipe-icon">⚙️</div><div class="pipe-nm">Consumer</div><div class="pipe-ds">DB upsert · 경보 판단</div></div>
+      <div class="pipe-step" style="background:var(--navy);"><div class="pipe-icon" style="color:white;">📨</div><div class="pipe-nm" style="color:white;">Kafka</div><div class="pipe-ds" style="color:rgba(255,255,255,.55);">congestion-alerts</div></div>
+      <div class="pipe-step"><div class="pipe-icon">📡</div><div class="pipe-nm">SSE</div><div class="pipe-ds">경보 브로드캐스트</div></div>
+      <div class="pipe-step"><div class="pipe-icon">📱</div><div class="pipe-nm">Frontend</div><div class="pipe-ds">5분 자동 해제</div></div>
+    </div>
 
-        <span class="cm">// 쿨다운 중이면 조기 반환 — Lock 없이 원자적 읽기</span>
-        <span class="kw">if</span> (last != <span class="kw">null</span> &amp;&amp; (now - last) &lt; COOLDOWN_MS) <span class="kw">return</span>;
-        lastAlertTime.<span class="fn">put</span>(key, now);
+    <p class="body" style="margin-bottom:4mm;">서울 지하철 데이터는 30초마다 Kafka에 수신됩니다. 임계값 초과 시마다 경보를 발행하면 10분 혼잡 지속 시 <strong>20번의 중복 경보</strong>가 발송되어 사용자 알림 피로(Alert Fatigue)가 발생합니다. <strong>ConcurrentHashMap 기반 5분 쿨다운</strong>으로 이를 해결했습니다.</p>
 
-        <span class="cm">// lineNumber 를 파티션 키로 지정 → 같은 호선 이벤트 순서 보장</span>
-        kafkaTemplate.<span class="fn">send</span>(TOPIC, lineNumber, payload);
-    }
+    <!-- Code Block -->
+    <div class="code-wrap">
+      <div class="code-hdr">CongestionAlertProducer.java — 혼잡 경보 중복 억제</div>
+      <div class="code-body"><span class="cm">// 역명:노선코드 복합 키 — 같은 역의 다른 호선은 독립 쿨다운 관리</span>
+<span class="kw">private final</span> <span class="cl">ConcurrentHashMap</span>&lt;<span class="cl">String</span>, <span class="cl">Long</span>&gt; lastAlertTime = <span class="kw">new</span> <span class="cl">ConcurrentHashMap</span>&lt;&gt;();
+<span class="kw">private static final long</span> COOLDOWN_MS = <span class="nm">5 * 60 * 1000L</span>;
+
+<span class="kw">public void</span> <span class="fn">publishIfNeeded</span>(<span class="cl">String</span> stationName, <span class="cl">String</span> lineNumber, <span class="kw">int</span> level) {
+    <span class="kw">if</span> (level &lt; THRESHOLD_CROWDED) <span class="kw">return</span>;
+    <span class="cl">String</span> key = stationName + <span class="st">":"</span> + lineNumber; <span class="cm">// 복합 키</span>
+    <span class="kw">long</span>   now = <span class="cl">System</span>.<span class="fn">currentTimeMillis</span>();
+    <span class="cl">Long</span>   last = lastAlertTime.<span class="fn">get</span>(key);
+    <span class="kw">if</span> (last != <span class="kw">null</span> &amp;&amp; (now - last) &lt; COOLDOWN_MS) <span class="kw">return</span>; <span class="cm">// 쿨다운 중 조기 반환</span>
+    lastAlertTime.<span class="fn">put</span>(key, now);
+    <span class="cm">// lineNumber 를 파티션 키로 지정 → 같은 호선 이벤트 순서 보장</span>
+    kafkaTemplate.<span class="fn">send</span>(TOPIC, lineNumber, payload);
 }</div>
-      </div>
+    </div>
 
-      <div class="tbl-wrap">
-        <table>
-          <thead>
-            <tr><th>설계 포인트</th><th>상세 구현</th><th>효과</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>복합 키 설계</strong></td>
-              <td><code>역명:노선코드</code> 조합 사용</td>
-              <td>강남역의 2호선/신분당선 독립 쿨다운 관리</td>
-            </tr>
-            <tr>
-              <td><strong>Lock-free 동시성</strong></td>
-              <td>ConcurrentHashMap 원자적 연산</td>
-              <td>Kafka Consumer 멀티 스레드 환경에서 synchronized 없이 스레드 안전성 확보</td>
-            </tr>
-            <tr>
-              <td><strong>파티션 키</strong></td>
-              <td>lineNumber → 같은 파티션 라우팅</td>
-              <td>동일 호선 이벤트 순서 보장 (Ordering Semantics)</td>
-            </tr>
-            <tr>
-              <td><strong>경보 등급</strong></td>
-              <td>≥90% VERY_CROWDED 🔴 / ≥80% CROWDED 🟠</td>
-              <td>프론트엔드 경보 카드 색상 차별화</td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Design Points Table -->
+    <table style="margin-bottom:4mm;">
+      <thead><tr><th style="width:38mm;">설계 포인트</th><th>상세</th><th style="width:55mm;">효과</th></tr></thead>
+      <tbody>
+        <tr><td><strong>복합 키 설계</strong></td><td><code>역명:노선코드</code> 조합</td><td>강남역 2호선·신분당선 독립 쿨다운 관리 가능</td></tr>
+        <tr><td><strong>Lock-free 동시성</strong></td><td>ConcurrentHashMap 원자적 연산</td><td>Kafka Consumer 멀티 스레드에서 synchronized 없이 스레드 안전성 확보</td></tr>
+        <tr><td><strong>파티션 키 설계</strong></td><td>lineNumber → 같은 파티션</td><td>동일 호선 이벤트 순서 보장 (Ordering Semantics)</td></tr>
+      </tbody>
+    </table>
+
+    <!-- Alert Level -->
+    <div class="h3" style="margin-bottom:2mm;">경보 등급 분류</div>
+    <div class="three">
+      <div class="card" style="border-top:2.5px solid var(--red);text-align:center;">
+        <div style="font-size:14pt;margin-bottom:1mm;">🚨</div>
+        <div style="font-size:8pt;font-weight:700;color:var(--red);">VERY_CROWDED</div>
+        <div class="xs">혼잡도 ≥ 90%</div>
+      </div>
+      <div class="card" style="border-top:2.5px solid var(--amber);text-align:center;">
+        <div style="font-size:14pt;margin-bottom:1mm;">🟠</div>
+        <div style="font-size:8pt;font-weight:700;color:var(--amber);">CROWDED</div>
+        <div class="xs">혼잡도 ≥ 80%</div>
+      </div>
+      <div class="card" style="border-top:2.5px solid var(--green);text-align:center;">
+        <div style="font-size:14pt;margin-bottom:1mm;">✅</div>
+        <div style="font-size:8pt;font-weight:700;color:var(--green);">정상</div>
+        <div class="xs">혼잡도 &lt; 80% · 이벤트 미발행</div>
       </div>
     </div>
 
-    <!-- 실시간 노선도 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="icon" style="background:#EDE9FE;">🗺️</div>
-        실시간 노선도 — 전체 역 병렬 조회 + 중복 제거 알고리즘
-      </div>
+    <div class="callout callout-grn" style="margin-top:4mm;">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body"><strong>직접 API 호출이 아닌 Kafka를 선택한 이유:</strong> 수집과 소비의 완전한 디커플링 → 외부 API 장애가 내부로 전파되지 않음. 단일 메시지로 DB upsert + 혼잡 경보 판단을 동시에 처리하는 Single Source of Truth 구조를 확보했습니다.</div>
+    </div>
+  </div>
+  <div class="pf"><span>JUNG JI SU · METROHUB PORTFOLIO 2026</span><span>04</span></div>
+</div>
 
-      <div class="callout callout-blue">
-        <div class="callout-icon">🔍</div>
-        <div class="callout-body">
-          <strong>문제 정의:</strong> 1호선은 소요산~신창까지 100개 이상의 역이 존재합니다.
-          순차 API 호출 시 <strong>수십 초 지연</strong>이 발생하며,
-          서울시 API는 동일 열차를 여러 역에서 중복 반환하여 <strong>열차 위치 특정이 불가</strong>합니다.
-        </div>
-      </div>
 
-      <div class="code-block">
-        <div class="code-header">
-          <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
-          <div class="file">SubwayLineService.java</div>
-        </div>
-        <div class="code-body"><span class="cm">// I/O 전용 50-스레드 풀 — ForkJoinPool.commonPool 미사용 (CPU 코어 수 제한 회피)</span>
-<span class="kw">private static final</span> <span class="cl">ExecutorService</span> FETCH_POOL =
-    <span class="cl">Executors</span>.<span class="fn">newFixedThreadPool</span>(<span class="nm">50</span>, r -&gt; {
-        <span class="cl">Thread</span> t = <span class="kw">new</span> <span class="cl">Thread</span>(r, <span class="st">"subway-fetch"</span>);
-        t.<span class="fn">setDaemon</span>(<span class="kw">true</span>);
-        <span class="kw">return</span> t;
-    });
+<!-- ═══════════════ PAGE 5 — ENGINEERING DEEP DIVE ═══════════════ -->
+<div class="page">
+  <div class="ph"><span>04 &nbsp;Engineering Deep Dive</span><span>Jung Ji Su</span></div>
+  <div class="pb">
+    <div class="ts">04 &nbsp;Engineering Deep Dive</div>
+    <div class="h1">핵심 알고리즘 설계.</div>
+    <hr class="dv">
 
-<span class="cm">// trainNo 기준 중복 제거 — ETA 최솟값 유지 (= 실제 다음 도착역)</span>
+    <!-- Realtime Map -->
+    <div class="h3" style="margin-bottom:2mm;">① 실시간 노선도 — 전체 역 병렬 조회 + ETA 기반 중복 제거</div>
+    <div class="callout callout-amb" style="margin-bottom:3mm;">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body"><strong>문제:</strong> 1호선은 100개 이상의 역이 존재 → 순차 API 호출 시 수십 초 지연 발생. 또한 서울시 API는 동일 열차를 여러 역에서 중복 반환하므로 실제 열차 위치를 특정할 수 없습니다.</div>
+    </div>
+
+    <div class="code-wrap" style="margin-bottom:3mm;">
+      <div class="code-hdr">SubwayLineService.java — 병렬 조회 + 중복 제거</div>
+      <div class="code-body"><span class="cm">// I/O 전용 50-스레드 풀 (ForkJoinPool.commonPool은 CPU 코어 수 제한)</span>
+<span class="kw">private static final</span> <span class="cl">ExecutorService</span> FETCH_POOL = <span class="cl">Executors</span>.<span class="fn">newFixedThreadPool</span>(<span class="nm">50</span>);
+
 <span class="cl">Map</span>&lt;<span class="cl">String</span>, <span class="cl">ArrivalDetail</span>&gt; trainMap = <span class="kw">new</span> <span class="cl">ConcurrentHashMap</span>&lt;&gt;();
-<span class="cl">List</span>&lt;<span class="cl">CompletableFuture</span>&lt;<span class="cl">Void</span>&gt;&gt; futures = stations.<span class="fn">stream</span>()
-    .<span class="fn">map</span>(station -&gt; <span class="cl">CompletableFuture</span>.<span class="fn">runAsync</span>(() -&gt; {
-        <span class="cl">List</span>&lt;<span class="cl">ArrivalDetail</span>&gt; details = seoulClient.<span class="fn">fetchArrivalDetails</span>(station);
-        <span class="kw">for</span> (<span class="cl">ArrivalDetail</span> d : details) {
-            <span class="kw">if</span> (!lineCode.<span class="fn">equals</span>(d.<span class="fn">getLineCode</span>())) <span class="kw">continue</span>;
-            <span class="cm">// 동일 열차는 ETA가 더 작은(가까운 역) 데이터로 교체</span>
-            trainMap.<span class="fn">merge</span>(d.<span class="fn">getTrainNo</span>(), d, (existing, newer) -&gt;
-                newer.<span class="fn">getEtaSeconds</span>() &lt; existing.<span class="fn">getEtaSeconds</span>() ? newer : existing);
-        }
-    }, FETCH_POOL))
-    .<span class="fn">collect</span>(<span class="cl">Collectors</span>.<span class="fn">toList</span>());
+stations.<span class="fn">stream</span>().<span class="fn">map</span>(station -&gt; <span class="cl">CompletableFuture</span>.<span class="fn">runAsync</span>(() -&gt; {
+    <span class="kw">for</span> (<span class="cl">ArrivalDetail</span> d : seoulClient.<span class="fn">fetchArrivalDetails</span>(station)) {
+        <span class="cm">// 동일 열차: ETA 최솟값(= 실제 다음 도착역) 만 유지</span>
+        trainMap.<span class="fn">merge</span>(d.<span class="fn">getTrainNo</span>(), d, (e, n) -&gt; n.<span class="fn">getEtaSeconds</span>() &lt; e.<span class="fn">getEtaSeconds</span>() ? n : e);
+    }
+}, FETCH_POOL)).<span class="fn">collect</span>(<span class="cl">Collectors</span>.<span class="fn">toList</span>());
 <span class="cl">CompletableFuture</span>.<span class="fn">allOf</span>(futures.<span class="fn">toArray</span>(<span class="kw">new</span> <span class="cl">CompletableFuture</span>[<span class="nm">0</span>])).<span class="fn">join</span>();</div>
-      </div>
-
-      <div class="tbl-wrap">
-        <table>
-          <thead>
-            <tr><th>기술 선택</th><th>이유</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>전용 50-스레드 I/O 풀</strong></td>
-              <td>ForkJoinPool.commonPool은 CPU 코어 수에 묶여 I/O 바운드 작업에 부적합. 명시적 풀 선언으로 네트워크 대기 중 다른 역 조회 블로킹 방지</td>
-            </tr>
-            <tr>
-              <td><strong>ETA 최솟값 중복 제거</strong></td>
-              <td>동일 열차가 여러 역에서 중복 반환 → ETA 최소값 역이 실제 "다음 도착역"임을 역산하여 위치 특정</td>
-            </tr>
-            <tr>
-              <td><strong>10초 서버사이드 캐시</strong></td>
-              <td>ConcurrentHashMap 캐시로 중복 요청 차단, 외부 API 과부하 방지</td>
-            </tr>
-            <tr>
-              <td><strong>급행·특급 통과역 필터링</strong></td>
-              <td>btrainSttus + arvlMsg2 교차 검증으로 정차하지 않는 역을 다음 역으로 표시하는 버그 원천 차단</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </div>
+
+    <table style="margin-bottom:5mm;">
+      <thead><tr><th>기술 선택</th><th>이유</th></tr></thead>
+      <tbody>
+        <tr><td><strong>전용 50-스레드 I/O 풀</strong></td><td>ForkJoinPool은 CPU 코어 수에 묶여 I/O 바운드 작업 부적합. 독립 풀 선언으로 네트워크 대기 중 병렬 조회 보장</td></tr>
+        <tr><td><strong>ETA 최솟값 중복 제거</strong></td><td>동일 열차가 여러 역에서 중복 반환 → ETA 최소 역이 실제 "다음 도착역". merge()의 remappingFunction으로 위치 특정</td></tr>
+        <tr><td><strong>급행·특급 통과역 필터링</strong></td><td>btrainSttus + arvlMsg2 교차 검증으로 정차하지 않는 역을 다음 역으로 표시하는 버그 원천 차단</td></tr>
+      </tbody>
+    </table>
 
     <!-- 0-1 BFS -->
-    <div class="card">
-      <div class="card-title">
-        <div class="icon" style="background:#ECFDF5;">🧭</div>
-        경로 탐색 알고리즘 — 왜 Dijkstra가 아닌 0-1 BFS인가
-      </div>
+    <div class="h3" style="margin-bottom:2mm;">② 경로 탐색 — 0-1 BFS로 최소 환승 경로 계산</div>
+    <div class="callout callout-blue" style="margin-bottom:3mm;">
+      <div class="callout-icon">🧭</div>
+      <div class="callout-body"><strong>선택 근거:</strong> 경로 비용은 <strong>환승 횟수</strong>입니다. 같은 노선 이동(비용 0)과 환승(비용 1)이 혼재하는 이 문제에서, Priority Queue가 필요한 Dijkstra보다 <strong>Deque 기반 0-1 BFS</strong>가 O(V+E)로 더 단순하고 효율적입니다.</div>
+    </div>
 
-      <div class="highlight-box">
-        <h3>📐 알고리즘 선택 근거</h3>
-        <p>
-          지하철 경로 탐색의 "비용"은 <strong>환승 횟수</strong>입니다.
-          같은 노선 내 이동(비용 0)과 환승(비용 1)이 혼재하는 이 문제는
-          Priority Queue가 필요한 Dijkstra보다 <strong>Deque 기반 0-1 BFS</strong>가
-          더 단순하고 O(V+E)로 더 효율적입니다.
-        </p>
-      </div>
-
-      <div class="code-block">
-        <div class="code-header">
-          <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
-          <div class="file">routeCalculator.js</div>
-        </div>
-        <div class="code-body"><span class="cm">// 상태 공간: (역명, 탑승 노선) 쌍 — 환승역에서 어느 노선 탑승 중인지 구분</span>
-<span class="kw">export function</span> <span class="fn">findRoute</span>(from, to) {
-  <span class="kw">const</span> dist  = <span class="kw">new</span> <span class="cl">Map</span>();  <span class="cm">// "역명:노선코드" → 최소 환승 횟수</span>
-  <span class="kw">const</span> deque = [];
-
-  <span class="cm">// 출발역의 모든 노선을 비용 0으로 초기화</span>
-  <span class="kw">for</span> (<span class="kw">const</span> line <span class="kw">of</span> STATION_LINES[from]) {
-    dist.<span class="fn">set</span>(`${from}:${line}`, <span class="nm">0</span>);
-    deque.<span class="fn">push</span>({ station: from, line, transfers: <span class="nm">0</span> });
-  }
-
-  <span class="kw">while</span> (deque.length &gt; <span class="nm">0</span>) {
-    <span class="kw">const</span> { station, line, transfers } = deque.<span class="fn">shift</span>();
-    <span class="kw">if</span> (station === to) <span class="kw">return</span> <span class="fn">buildSegments</span>(prev, `${station}:${line}`);
-
-    <span class="cm">// 같은 노선 인접 역 → 비용 0 → deque 앞에 삽입 (unshift)</span>
-    <span class="kw">for</span> (<span class="kw">const</span> delta <span class="kw">of</span> [-<span class="nm">1</span>, <span class="nm">1</span>]) {
-      <span class="kw">const</span> nk = `${ls[idx + delta]}:${line}`;
-      <span class="kw">if</span> (transfers &lt; (dist.<span class="fn">get</span>(nk) ?? <span class="cl">Infinity</span>)) {
-        dist.<span class="fn">set</span>(nk, transfers);
-        deque.<span class="fn">unshift</span>({ station: ls[idx+delta], line, transfers }); <span class="cm">// ← 비용 0</span>
-      }
+    <div class="code-wrap" style="margin-bottom:3mm;">
+      <div class="code-hdr">routeCalculator.js — 핵심 Deque 삽입 로직</div>
+      <div class="code-body"><span class="cm">// 같은 노선 인접 역 → 비용 0 → Deque 앞 삽입 (unshift)</span>
+<span class="kw">for</span> (<span class="kw">const</span> delta <span class="kw">of</span> [-<span class="nm">1</span>, <span class="nm">1</span>]) {
+    <span class="kw">if</span> (transfers &lt; (dist.<span class="fn">get</span>(`${ns}:${line}`) ?? <span class="cl">Infinity</span>)) {
+        deque.<span class="fn">unshift</span>({ station: ns, line, transfers }); <span class="cm">// ← 비용 0: 앞 삽입</span>
     }
-
-    <span class="cm">// 환승 → 비용 1 → deque 뒤에 삽입 (push)</span>
-    <span class="kw">for</span> (<span class="kw">const</span> otherLine <span class="kw">of</span> STATION_LINES[station] ?? []) {
-      <span class="kw">if</span> (otherLine === line) <span class="kw">continue</span>;
-      <span class="kw">const</span> ok = `${station}:${otherLine}`;
-      <span class="kw">if</span> (transfers + <span class="nm">1</span> &lt; (dist.<span class="fn">get</span>(ok) ?? <span class="cl">Infinity</span>)) {
-        dist.<span class="fn">set</span>(ok, transfers + <span class="nm">1</span>);
-        deque.<span class="fn">push</span>({ station, line: otherLine, transfers: transfers+<span class="nm">1</span> }); <span class="cm">// ← 비용 1</span>
-      }
+}
+<span class="cm">// 환승 → 비용 1 → Deque 뒤 삽입 (push)</span>
+<span class="kw">for</span> (<span class="kw">const</span> otherLine <span class="kw">of</span> STATION_LINES[station] ?? []) {
+    <span class="kw">if</span> (transfers + <span class="nm">1</span> &lt; (dist.<span class="fn">get</span>(`${station}:${otherLine}`) ?? <span class="cl">Infinity</span>)) {
+        deque.<span class="fn">push</span>({ station, line: otherLine, transfers: transfers+<span class="nm">1</span> }); <span class="cm">// ← 비용 1: 뒤 삽입</span>
     }
-  }
-  <span class="kw">return null</span>;
 }</div>
-      </div>
-
-      <div class="tbl-wrap">
-        <table>
-          <thead>
-            <tr><th>항목</th><th>0-1 BFS</th><th>Dijkstra</th><th>일반 BFS</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>시간 복잡도</strong></td>
-              <td><span class="badge badge-green">O(V+E)</span></td>
-              <td><span class="badge badge-amber">O(E log V)</span></td>
-              <td><span class="badge badge-red">최단 경로 보장 불가</span></td>
-            </tr>
-            <tr>
-              <td><strong>자료구조</strong></td>
-              <td>Deque (unshift/push)</td>
-              <td>Priority Queue</td>
-              <td>Queue</td>
-            </tr>
-            <tr>
-              <td><strong>비용 조건</strong></td>
-              <td>0 또는 1 (환승 여부)</td>
-              <td>임의 양수</td>
-              <td>균일 비용만 가능</td>
-            </tr>
-            <tr>
-              <td><strong>이 문제 적합성</strong></td>
-              <td><span class="badge badge-green">최적</span></td>
-              <td><span class="badge badge-gray">과도한 복잡도</span></td>
-              <td><span class="badge badge-red">부적합</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="callout callout-blue" style="margin-top:8px;">
-        <div class="callout-icon">📐</div>
-        <div class="callout-body">
-          <strong>소요 시간 추정:</strong> 경로 탐색 완료 후, 노선별 평균 역간 이동 시간
-          (GTX-A: 300초 / 경의중앙선: 200초 / 1~9호선: 90~130초)과 환승 시간(평균 3분)을
-          세그먼트별로 합산하여 총 소요 시간을 추정합니다.
-        </div>
-      </div>
     </div>
+
+    <table>
+      <thead><tr><th>항목</th><th>0-1 BFS <span class="badge b-grn">채택</span></th><th>Dijkstra</th><th>일반 BFS</th></tr></thead>
+      <tbody>
+        <tr><td><strong>시간 복잡도</strong></td><td>O(V+E)</td><td>O(E log V)</td><td>최단 보장 불가</td></tr>
+        <tr><td><strong>자료구조</strong></td><td>Deque (unshift/push)</td><td>Priority Queue</td><td>Queue</td></tr>
+        <tr><td><strong>구현 난이도</strong></td><td>단순</td><td>복잡 (비용 대비 과도)</td><td>부적합</td></tr>
+      </tbody>
+    </table>
   </div>
+  <div class="pf"><span>JUNG JI SU · METROHUB PORTFOLIO 2026</span><span>05</span></div>
+</div>
 
-  <!-- ── K8S ── -->
-  <div class="section">
-    <div class="section-label">04 &nbsp; Production-ready Kubernetes</div>
-    <h2 class="section-title">단순 배포를 넘어 — 인프라 예외 상황까지 고려한 세밀한 디테일</h2>
 
-    <div class="card">
-      <div class="card-title">
-        <div class="icon" style="background:#ECFDF5;">☸️</div>
-        Kubernetes 인프라 구성
-      </div>
-      <div class="arch-diagram">
-<span class="hl-white">Ingress (nginx)</span>
-  ├── /                    → <span class="hl-blue">subway-web</span>          (Deployment, replicas: 2)
-  ├── /api                 → <span class="hl-blue">subway-api</span>          (Deployment, replicas: 2)
-  │                                               <span class="hl-green">HPA: CPU 70% 기준, 2~5 replicas</span>
-  └── /api/notifications   → <span class="hl-blue">subway-notification</span> (Deployment, replicas: 1)
+<!-- ═══════════════ PAGE 6 — KUBERNETES ═══════════════ -->
+<div class="page">
+  <div class="ph"><span>05 &nbsp;Kubernetes Infrastructure</span><span>Jung Ji Su</span></div>
+  <div class="pb">
+    <div class="ts">05 &nbsp;Kubernetes Infrastructure</div>
+    <div class="h1">단순 배포를 넘어<br>인프라 예외 상황까지.</div>
+    <hr class="dv">
 
-<span class="hl-white">Persistent Storage</span>
-  ├── MySQL 8    PVC 10Gi  (ReadWriteOnce)
-  └── Kafka      PVC  5Gi  (<span class="hl-amber">ReadWriteOnce · Recreate 전략</span>)
-
-<span class="hl-white">Config</span>
-  ├── ConfigMap  DB URL, Kafka Bootstrap, 공통 환경변수
-  └── Secret     MySQL PW, JWT Secret, Seoul API Key  (<span class="hl-pink">base64 × 2)</span>
-      </div>
-    </div>
-
-    <!-- K8s 트러블슈팅 -->
-    <div class="card">
-      <div class="card-title">
-        <div class="icon" style="background:#FEE2E2;">🔧</div>
-        실제 장애 6종 — 원인 분석 및 해결책
-      </div>
-
-      <div class="tbl-wrap">
-        <table>
-          <thead>
-            <tr><th>#</th><th>장애 상황</th><th>원인 분석</th><th>적용한 해결책</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><span class="badge badge-red">01</span></td>
-              <td>Kafka 재시작 후 <code>.lock</code> 파일로 무한 CrashLoopBackOff</td>
-              <td>비정상 종료 시 PVC에 <code>.lock</code> 잔류</td>
-              <td><code>initContainer</code>에서 파드 시작 전 <code>.lock</code> 삭제 + <code>chown</code> 실행</td>
-            </tr>
-            <tr>
-              <td><span class="badge badge-red">02</span></td>
-              <td>Kafka 브로커 초기화 실패 — 자기 자신 Service 탐색 불가</td>
-              <td>k8s가 <code>KAFKA_*</code> 환경변수 자동 주입 → Confluent 설정값 덮어씌움</td>
-              <td><code>enableServiceLinks: false</code> 로 자동 주입 차단</td>
-            </tr>
-            <tr>
-              <td><span class="badge badge-amber">03</span></td>
-              <td>Kafka 파드 교체 시 신규 파드가 볼륨 마운트 실패</td>
-              <td>PVC <code>ReadWriteOnce</code> — 동시 마운트 불허</td>
-              <td>Deployment <code>strategy.type: Recreate</code> 적용 — 구 파드 완전 종료 후 기동</td>
-            </tr>
-            <tr>
-              <td><span class="badge badge-amber">04</span></td>
-              <td>Kafka PVC 쓰기 실패 (<code>Permission Denied</code>)</td>
-              <td>Confluent 이미지 프로세스가 <code>appuser (gid 1000)</code>으로 실행</td>
-              <td><code>securityContext.fsGroup: 1000</code> 설정으로 볼륨 그룹 소유권 부여</td>
-            </tr>
-            <tr>
-              <td><span class="badge badge-blue">05</span></td>
-              <td>Kafka 브로커가 자신의 Endpoint를 찾지 못해 기동 실패</td>
-              <td>파드가 준비되기 전 자기 자신에 연결 시도 (chicken-and-egg)</td>
-              <td>Service에 <code>publishNotReadyAddresses: true</code> 설정</td>
-            </tr>
-            <tr>
-              <td><span class="badge badge-purple">06</span></td>
-              <td>k8s 배포 환경에서만 JWT 검증 실패</td>
-              <td><code>JwtUtil</code>이 env를 base64 디코딩하는데, k8s Secret이 한 번 더 인코딩</td>
-              <td><code>secrets.yaml</code>에 JWT 시크릿을 <strong>double base64</strong> 인코딩하여 원본값 확보</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="callout callout-green" style="margin-top:8px;">
-        <div class="callout-icon">🎯</div>
-        <div class="callout-body">
-          <strong>원클릭 배포 스크립트 (<code>k8s-deploy.ps1</code>):</strong>
-          Namespace → Secret/ConfigMap → MySQL(<code>kubectl wait --for=condition=ready</code>) →
-          Zookeeper → Kafka(Ready 대기) → 애플리케이션 4종 → HPA/Ingress 순서를 자동 조율.
-          의존성 있는 컴포넌트를 동기화하여 <strong>타이밍 이슈를 원천 차단</strong>했습니다.
+    <!-- K8s structure -->
+    <div class="two" style="margin-bottom:5mm;">
+      <div>
+        <div class="card-navy" style="margin-bottom:3mm;">
+          <div style="font-family:'Inter',sans-serif;font-size:6.5pt;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2mm;">Ingress (nginx)</div>
+          <div style="font-size:8pt;color:rgba(255,255,255,.85);line-height:1.8;">/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ subway-web &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(replicas: 2)<br>/api &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ subway-api &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(HPA: 2~5)<br>/api/notif → subway-notification</div>
+        </div>
+        <div class="card">
+          <div style="font-size:7.5pt;font-weight:700;color:var(--navy);margin-bottom:1.5mm;">Persistent Storage</div>
+          <div class="xs" style="line-height:1.8;">MySQL 8 &nbsp;&nbsp;PVC 10Gi (ReadWriteOnce)<br>Kafka &nbsp;&nbsp;&nbsp;&nbsp;PVC 5Gi &nbsp;(ReadWriteOnce)<br><span style="color:var(--amber);">→ Recreate 전략 적용 필수</span></div>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- ── CI/CD ── -->
-  <div class="section">
-    <div class="section-label">05 &nbsp; CI/CD Pipeline</div>
-    <h2 class="section-title">이원화 CI/CD — 클라우드와 로컬 k8s 환경을 모두 커버</h2>
-
-    <div class="two-col">
-      <!-- GitHub Actions -->
-      <div class="card" style="margin-bottom:0;">
-        <div class="card-title">
-          <div class="icon" style="background:#EFF6FF;">⚡</div>
-          GitHub Actions — 클라우드 자동 배포
-        </div>
-        <div class="arch-diagram" style="font-size:12px; padding:20px;">
-<span class="hl-white">push to master</span>
-  │
-  ├──[병렬]──────────────────┐
-  │  <span class="hl-green">test-subway-api</span>          │
-  │  <span class="hl-green">test-subway-notification</span> │
-  │  <span class="hl-green">lint-collector</span>           │
-  │  <span class="hl-green">build-web</span>                │
-  └──────────────────────────┘
-           │ 4개 모두 통과
-           ▼
-  <span class="hl-blue">Docker Build &amp; Push</span>
-  → Docker Hub
-  │
-  ├─ <span class="hl-amber">Render Webhook</span>
-  │  → subway-api 재배포
-  └─ <span class="hl-amber">Render Webhook</span>
-     → subway-notification 재배포
-
-<span class="hl-pink">Vercel: GitHub 연동 자동 배포</span>
-<span class="hl-pink">(master push → 트리거)</span>
-        </div>
-        <div class="callout callout-blue" style="margin-top:8px;">
-          <div class="callout-icon">⏰</div>
-          <div class="callout-body" style="font-size:13px;">
-            <strong>keepalive.yml:</strong> Render 15분 슬립을 10분마다 ping으로 우회<br>
-            <strong>collector.yml:</strong> GitHub Actions cron 5분 주기로 데이터 수집 → 별도 서버 불필요
+      <div>
+        <div class="card-blue">
+          <div style="font-size:7.5pt;font-weight:700;color:var(--navy);margin-bottom:1.5mm;">배포 스크립트 — 의존성 순서 자동화</div>
+          <div class="xs" style="line-height:1.9;">
+            1. Namespace / Secret / ConfigMap 적용<br>
+            2. MySQL → <code>kubectl wait --for=condition=ready</code><br>
+            3. Zookeeper → Kafka → Ready 대기<br>
+            4. 애플리케이션 4종 / HPA / Ingress 적용
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Troubleshooting Table -->
+    <div class="h3" style="margin-bottom:2mm;">실제 장애 6종 — 원인 분석 및 해결</div>
+    <table>
+      <thead><tr><th style="width:7mm;">#</th><th style="width:52mm;">장애 상황</th><th>원인</th><th>해결책</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge b-red">01</span></td>
+          <td>Kafka 재시작 후 <code>.lock</code> 파일로 무한 CrashLoopBackOff</td>
+          <td>비정상 종료 시 PVC에 <code>.lock</code> 파일 잔류</td>
+          <td><code>initContainer</code>에서 파드 시작 전 <code>.lock</code> 삭제 + <code>chown</code> 실행</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-red">02</span></td>
+          <td>Kafka 브로커 초기화 실패 — 자기 자신 Service 탐색 불가</td>
+          <td>k8s가 <code>KAFKA_*</code> 환경변수 자동 주입 → Confluent 설정 덮어씌움</td>
+          <td><code>enableServiceLinks: false</code>로 자동 주입 차단</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-amb">03</span></td>
+          <td>파드 교체 시 신규 파드 볼륨 마운트 실패</td>
+          <td>PVC ReadWriteOnce — 동시 마운트 불허</td>
+          <td>Deployment <code>strategy.type: Recreate</code> 적용</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-amb">04</span></td>
+          <td>Kafka PVC 쓰기 Permission Denied</td>
+          <td>Confluent 이미지 프로세스가 <code>appuser (gid 1000)</code>으로 실행</td>
+          <td><code>securityContext.fsGroup: 1000</code> 설정</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-blue">05</span></td>
+          <td>브로커가 자신의 Endpoint 탐색 실패 (치킨-에그)</td>
+          <td>파드 준비 전 자기 자신에 연결 시도</td>
+          <td>Service에 <code>publishNotReadyAddresses: true</code> 설정</td>
+        </tr>
+        <tr>
+          <td><span class="badge b-blue">06</span></td>
+          <td>k8s 환경에서만 JWT 검증 실패</td>
+          <td>JwtUtil이 env를 base64 디코딩하는데 k8s Secret이 한 번 더 인코딩</td>
+          <td><code>secrets.yaml</code>에 double base64로 원본값 확보</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pf"><span>JUNG JI SU · METROHUB PORTFOLIO 2026</span><span>06</span></div>
+</div>
+
+
+<!-- ═══════════════ PAGE 7 — CI/CD ═══════════════ -->
+<div class="page">
+  <div class="ph"><span>06 &nbsp;CI/CD Pipeline</span><span>Jung Ji Su</span></div>
+  <div class="pb">
+    <div class="ts">06 &nbsp;CI/CD Pipeline</div>
+    <div class="h1">이원화 CI/CD.</div>
+    <hr class="dv">
+    <p class="body" style="margin-bottom:5mm;">
+      클라우드(Render / Vercel)와 로컬 Kubernetes, 두 환경 모두를 자동화된 파이프라인으로 관리합니다.
+    </p>
+
+    <div class="two" style="margin-bottom:5mm;">
+      <!-- GitHub Actions -->
+      <div class="card-navy" style="padding:4mm 5mm;">
+        <div style="font-family:'Inter',sans-serif;font-size:7pt;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:3mm;">GitHub Actions — 클라우드 자동 배포</div>
+        <div style="font-size:8pt;color:rgba(255,255,255,.85);line-height:2;font-family:'JetBrains Mono',monospace;">
+          push to master<br>
+          &nbsp;├──[병렬]<br>
+          &nbsp;│&nbsp;&nbsp;test-subway-api &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Maven JUnit)<br>
+          &nbsp;│&nbsp;&nbsp;test-notification &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Maven JUnit)<br>
+          &nbsp;│&nbsp;&nbsp;lint-collector &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Python flake8)<br>
+          &nbsp;│&nbsp;&nbsp;build-web &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(npm build)<br>
+          &nbsp;└──[4개 통과]<br>
+          &nbsp;&nbsp;&nbsp;Docker Build &amp; Push → Docker Hub<br>
+          &nbsp;&nbsp;&nbsp;Render Webhook → subway-api 재배포<br>
+          &nbsp;&nbsp;&nbsp;Render Webhook → subway-notif 재배포<br>
+          <br>
+          <span style="color:#4ade80;">Vercel: GitHub 연동 자동 배포</span>
         </div>
       </div>
 
       <!-- Jenkins -->
-      <div class="card" style="margin-bottom:0;">
-        <div class="card-title">
-          <div class="icon" style="background:#FEF3C7;">🏭</div>
-          Jenkins — 로컬 Kubernetes 자동 배포
-        </div>
-        <div class="arch-diagram" style="font-size:12px; padding:20px;">
-<span class="hl-white">GitHub Push</span>
-  │ Webhook (ngrok 터널)
-  ▼
-<span class="hl-blue">Jenkins :8090</span>
-  │
-  ├──[병렬]──────────────────┐
-  │  <span class="hl-green">subway-api JUnit</span>         │
-  │  <span class="hl-green">subway-notification JUnit</span>│
-  │  <span class="hl-green">subway-collector flake8</span>  │
-  │  <span class="hl-green">subway-web npm build</span>     │
-  └──────────────────────────┘
-           │ 전체 통과
-           ▼
-  <span class="hl-blue">Docker Build &amp; Push</span>
-  → <span class="hl-cyan">GHCR (ghcr.io/jung-ji-su)</span>
-    태그: :BUILD_NUMBER + :latest
-           │
-           ▼
-  <span class="hl-amber">kubectl set image</span> (버전 태그)
-  <span class="hl-amber">kubectl rollout status</span>
-  → 배포 완료 대기
-
-<span class="hl-pink">rollout undo → 즉시 롤백 가능</span>
-        </div>
-        <div class="callout callout-amber" style="margin-top:8px;">
-          <div class="callout-icon">🔄</div>
-          <div class="callout-body" style="font-size:13px;">
-            <strong>롤백 전략:</strong> 이미지를 <code>:BUILD_NUMBER</code> 태그로 GHCR에 누적 보관.
-            <code>kubectl rollout undo</code> 또는 이전 빌드 번호 태그로 즉시 이전 버전 복구 가능
-          </div>
+      <div class="card" style="padding:4mm 5mm;">
+        <div style="font-family:'Inter',sans-serif;font-size:7pt;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--g500);margin-bottom:3mm;">Jenkins — 로컬 Kubernetes 자동 배포</div>
+        <div style="font-size:8pt;color:var(--g700);line-height:2;font-family:'JetBrains Mono',monospace;">
+          GitHub Push<br>
+          &nbsp;↓ Webhook (ngrok 터널)<br>
+          Jenkins :8090<br>
+          &nbsp;├──[병렬]<br>
+          &nbsp;│&nbsp;&nbsp;subway-api &nbsp;&nbsp;&nbsp;&nbsp;JUnit<br>
+          &nbsp;│&nbsp;&nbsp;notification &nbsp;&nbsp;JUnit<br>
+          &nbsp;│&nbsp;&nbsp;collector &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;flake8<br>
+          &nbsp;│&nbsp;&nbsp;subway-web &nbsp;&nbsp;&nbsp;&nbsp;npm build<br>
+          &nbsp;└──[전체 통과]<br>
+          &nbsp;&nbsp;&nbsp;Docker Build → GHCR<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;태그: :BUILD_NUMBER + :latest<br>
+          &nbsp;&nbsp;&nbsp;kubectl set image (버전 태그)<br>
+          &nbsp;&nbsp;&nbsp;kubectl rollout status
         </div>
       </div>
     </div>
 
-    <div class="tbl-wrap" style="margin-top:16px;">
-      <table>
-        <thead>
-          <tr><th>항목</th><th>GitHub Actions</th><th>Jenkins + k8s</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><strong>배포 대상</strong></td><td>Render (클라우드) + Vercel CDN</td><td>로컬 Kubernetes (Docker Desktop)</td></tr>
-          <tr><td><strong>이미지 레지스트리</strong></td><td>Docker Hub</td><td>GHCR (ghcr.io)</td></tr>
-          <tr><td><strong>외부 접근</strong></td><td>GitHub 인프라 직접 활용</td><td>ngrok 터널로 로컬 Jenkins 노출</td></tr>
-          <tr><td><strong>롤백</strong></td><td>Render 대시보드 / 새 push</td><td><code>kubectl rollout undo</code> / 빌드 번호 태그</td></tr>
-          <tr><td><strong>장점</strong></td><td>설정 최소화, 클라우드 가용성</td><td>k8s 롤링 배포, 세밀한 인프라 제어</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+    <!-- Comparison Table -->
+    <div class="h3" style="margin-bottom:2mm;">두 파이프라인 비교</div>
+    <table style="margin-bottom:4mm;">
+      <thead><tr><th>항목</th><th>GitHub Actions (클라우드)</th><th>Jenkins + k8s (로컬)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>배포 대상</strong></td><td>Render + Vercel CDN</td><td>로컬 Kubernetes</td></tr>
+        <tr><td><strong>이미지 레지스트리</strong></td><td>Docker Hub</td><td>GHCR (ghcr.io)</td></tr>
+        <tr><td><strong>롤백 방법</strong></td><td>Render 대시보드 / 새 push</td><td><code>kubectl rollout undo</code> / 빌드 번호 태그</td></tr>
+        <tr><td><strong>외부 접근</strong></td><td>GitHub 인프라 직접 활용</td><td>ngrok 터널로 로컬 노출</td></tr>
+        <tr><td><strong>장점</strong></td><td>설정 최소화, 클라우드 가용성</td><td>세밀한 인프라 제어, k8s 롤링 배포</td></tr>
+      </tbody>
+    </table>
 
-  <!-- ── TECH STACK ── -->
-  <div class="section">
-    <div class="section-label">06 &nbsp; Tech Stack</div>
-    <h2 class="section-title">기술 스택 — 선택 이유와 함께</h2>
-
-    <div class="tbl-wrap">
-      <table>
-        <thead>
-          <tr><th>분류</th><th>기술</th><th>선택 이유</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><span class="badge badge-blue">Frontend</span></td>
-            <td>SvelteKit 5 · Svelte Runes · Tailwind CSS v4</td>
-            <td>컴파일 타임 반응성 ($state/$derived/$effect), 런타임 없는 최소 번들</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-green">Backend</span></td>
-            <td>Java 17 · Spring Boot 3.2 · MyBatis (XML Mapper)</td>
-            <td>타입 안전성, 복잡한 집계 쿼리를 XML로 분리하여 가독성 확보</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-amber">Messaging</span></td>
-            <td>Apache Kafka (Confluent) · Zookeeper</td>
-            <td>수집·처리 디커플링, 파티션 키 기반 이벤트 순서 보장</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-purple">Database</span></td>
-            <td>MySQL 8</td>
-            <td><code>ON DUPLICATE KEY UPDATE</code>로 시간대별 이동 평균 집계 (congestion_hourly)</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-cyan">Realtime</span></td>
-            <td>SSE (Spring SseEmitter)</td>
-            <td>단방향 서버→클라이언트 푸시에 WebSocket 대비 구현 단순, HTTP 호환</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-gray">Infra</span></td>
-            <td>Docker Compose · Kubernetes · nginx Ingress · HPA</td>
-            <td>개발-스테이징-운영 환경 일관성, CPU 기반 자동 스케일링</td>
-          </tr>
-          <tr>
-            <td><span class="badge badge-red">Auth</span></td>
-            <td>Spring Security + JWT</td>
-            <td>Stateless 인증으로 서비스 간 토큰 재사용, SSE 연결 인증 지원</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ── FEATURES ── -->
-  <div class="section">
-    <div class="section-label">07 &nbsp; Implemented Features</div>
-    <h2 class="section-title">구현 기능 전체 목록</h2>
-
-    <div class="three-col">
-      <div class="card" style="padding:20px;">
-        <div style="font-size:24px; margin-bottom:8px;">⚡</div>
-        <div style="font-weight:700; margin-bottom:6px;">실시간 혼잡도</div>
-        <div style="font-size:13px; color:var(--slate-5);">즐겨찾기 역 카드, 역 검색, 시간대별 바차트</div>
+    <div class="two">
+      <div class="callout callout-grn">
+        <div class="callout-icon">⏰</div>
+        <div class="callout-body"><strong>keepalive.yml:</strong> Render 15분 슬립 정책을 GitHub Actions cron으로 10분마다 헬스체크 ping을 보내 우회합니다.</div>
       </div>
-      <div class="card" style="padding:20px;">
-        <div style="font-size:24px; margin-bottom:8px;">🗺️</div>
-        <div style="font-weight:700; margin-bottom:6px;">실시간 노선도</div>
-        <div style="font-size:13px; color:var(--slate-5);">열차 위치, 계통 필터, 30초 자동 갱신, 급행 표시</div>
-      </div>
-      <div class="card" style="padding:20px;">
-        <div style="font-size:24px; margin-bottom:8px;">🧭</div>
-        <div style="font-weight:700; margin-bottom:6px;">경로 탐색</div>
-        <div style="font-size:13px; color:var(--slate-5);">0-1 BFS 최소환승, 소요시간 추정, 노선도 연동</div>
-      </div>
-      <div class="card" style="padding:20px;">
-        <div style="font-size:24px; margin-bottom:8px;">🚨</div>
-        <div style="font-weight:700; margin-bottom:6px;">혼잡 경보</div>
-        <div style="font-size:13px; color:var(--slate-5);">Kafka 스트림 처리, 5분 쿨다운, 자동 해제</div>
-      </div>
-      <div class="card" style="padding:20px;">
-        <div style="font-size:24px; margin-bottom:8px;">🔔</div>
-        <div style="font-weight:700; margin-bottom:6px;">개인화 알림</div>
-        <div style="font-size:13px; color:var(--slate-5);">호선별 구독, SSE 실시간 수신, 알림 이력</div>
-      </div>
-      <div class="card" style="padding:20px;">
-        <div style="font-size:24px; margin-bottom:8px;">💬</div>
-        <div style="font-weight:700; margin-bottom:6px;">커뮤니티</div>
-        <div style="font-size:13px; color:var(--slate-5);">24개 호선 게시판, 검색 필터, 댓글·좋아요</div>
-      </div>
-      <div class="card" style="padding:20px;">
-        <div style="font-size:24px; margin-bottom:8px;">📋</div>
-        <div style="font-weight:700; margin-bottom:6px;">민원 접수</div>
-        <div style="font-size:13px; color:var(--slate-5);">민원 등록·상태 추적·관리자 처리</div>
-      </div>
-      <div class="card" style="padding:20px;">
-        <div style="font-size:24px; margin-bottom:8px;">⭐</div>
-        <div style="font-weight:700; margin-bottom:6px;">즐겨찾기</div>
-        <div style="font-size:13px; color:var(--slate-5);">역 추가·삭제, 혼잡도 미리보기</div>
-      </div>
-      <div class="card" style="padding:20px;">
-        <div style="font-size:24px; margin-bottom:8px;">🎓</div>
-        <div style="font-weight:700; margin-bottom:6px;">온보딩</div>
-        <div style="font-size:13px; color:var(--slate-5);">첫 방문 3슬라이드, localStorage 완료 기록</div>
+      <div class="callout callout-blue">
+        <div class="callout-icon">🔄</div>
+        <div class="callout-body"><strong>collector.yml:</strong> subway-collector를 5분 주기 GitHub Actions cron으로 실행. 별도 서버 없이 데이터 수집 자동화를 달성합니다.</div>
       </div>
     </div>
   </div>
-
-  <div class="divider"></div>
-
-  <!-- ── DB SCHEMA ── -->
-  <div class="section" style="margin-top:0;">
-    <div class="section-label">08 &nbsp; Database Schema</div>
-    <h2 class="section-title">핵심 DB 설계</h2>
-
-    <div class="tbl-wrap">
-      <table>
-        <thead>
-          <tr><th>테이블</th><th>설명</th><th>주요 설계 포인트</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>users</code></td>
-            <td>회원 (username, password_hash, nickname)</td>
-            <td>BCrypt 해시, JWT Stateless 인증</td>
-          </tr>
-          <tr>
-            <td><code>congestion_data</code></td>
-            <td>실시간 혼잡도 캐시</td>
-            <td>역별·호선별 upsert로 항상 최신 상태 유지</td>
-          </tr>
-          <tr>
-            <td><code>congestion_hourly</code></td>
-            <td>시간대별 누적 평균 (0~23시)</td>
-            <td><code>ON DUPLICATE KEY UPDATE</code>로 이동 평균 점진적 집계</td>
-          </tr>
-          <tr>
-            <td><code>community_posts</code></td>
-            <td>게시글 (호선 태그, 공지 플래그)</td>
-            <td>line_number 인덱스로 호선별 필터 성능 확보</td>
-          </tr>
-          <tr>
-            <td><code>post_likes</code></td>
-            <td>좋아요</td>
-            <td><code>user_id + post_id UNIQUE</code> 제약으로 중복 좋아요 DB 레벨 차단</td>
-          </tr>
-          <tr>
-            <td><code>complaints</code></td>
-            <td>민원 (상태 머신)</td>
-            <td>RECEIVED → IN_PROGRESS → COMPLETED 상태 전이</td>
-          </tr>
-          <tr>
-            <td><code>notifications</code></td>
-            <td>알림 이력</td>
-            <td>user_id nullable = 전체 공지 / not null = 개인 알림</td>
-          </tr>
-          <tr>
-            <td><code>subscriptions</code></td>
-            <td>호선 구독</td>
-            <td><code>user_id + line_number UNIQUE</code>로 중복 구독 차단</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
+  <div class="pf"><span>JUNG JI SU · METROHUB PORTFOLIO 2026</span><span>07</span></div>
 </div>
 
-<!-- ═══════════════════════ FOOTER ═══════════════════════ -->
-<div class="footer">
-  <div style="font-size:15px; color:rgba(255,255,255,.80); font-weight:600; margin-bottom:8px;">MetroHub — 서울 지하철 실시간 통합 플랫폼</div>
-  <div>
-    🌐 <a href="https://metro-hub-mu.vercel.app">metro-hub-mu.vercel.app</a>
-    &nbsp;·&nbsp;
-    🐙 <a href="https://github.com/jung-ji-su/MetroHub">github.com/jung-ji-su/MetroHub</a>
+
+<!-- ═══════════════ PAGE 8 — TECH STACK + FEATURES ═══════════════ -->
+<div class="page">
+  <div class="ph"><span>07 &nbsp;Tech Stack &amp; Features</span><span>Jung Ji Su</span></div>
+  <div class="pb">
+    <div class="ts">07 &nbsp;Tech Stack &amp; Features</div>
+    <div class="h1">기술 스택과 구현 기능.</div>
+    <hr class="dv">
+
+    <!-- Tech Stack -->
+    <div class="h3" style="margin-bottom:2mm;">기술 스택</div>
+    <table style="margin-bottom:5mm;">
+      <thead><tr><th style="width:28mm;">분류</th><th>기술</th><th style="width:60mm;">선택 이유</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge b-blue">Frontend</span></td><td>SvelteKit 5 · Svelte Runes · Tailwind CSS v4</td><td>컴파일 타임 반응성, 런타임 없는 최소 번들</td></tr>
+        <tr><td><span class="badge b-navy">Backend</span></td><td>Java 17 · Spring Boot 3.2 · MyBatis (XML Mapper)</td><td>타입 안전성, 복잡한 집계 쿼리를 XML로 분리</td></tr>
+        <tr><td><span class="badge b-amb">Messaging</span></td><td>Apache Kafka (Confluent) · Zookeeper</td><td>수집·처리 디커플링, 파티션 키 기반 순서 보장</td></tr>
+        <tr><td><span class="badge b-grn">Database</span></td><td>MySQL 8</td><td>ON DUPLICATE KEY UPDATE로 시간대별 이동 평균 집계</td></tr>
+        <tr><td><span class="badge b-gray">Realtime</span></td><td>SSE (Spring SseEmitter)</td><td>단방향 Push에 WebSocket 대비 구현 단순, HTTP 호환</td></tr>
+        <tr><td><span class="badge b-gray">Infra</span></td><td>Docker · Kubernetes · nginx Ingress · HPA</td><td>개발-스테이징-운영 환경 일관성, CPU 자동 스케일링</td></tr>
+        <tr><td><span class="badge b-gray">Auth</span></td><td>Spring Security + JWT</td><td>Stateless 인증, SSE 연결 인증 지원</td></tr>
+      </tbody>
+    </table>
+
+    <!-- Features -->
+    <div class="h3" style="margin-bottom:2mm;">구현 기능 목록</div>
+    <div class="three" style="margin-bottom:5mm;">
+      <div class="card"><div style="font-size:11pt;margin-bottom:1mm;">⚡</div><div style="font-size:7.5pt;font-weight:700;margin-bottom:1mm;">실시간 혼잡도</div><div class="xs">즐겨찾기 카드·검색·시간대별 바차트</div></div>
+      <div class="card"><div style="font-size:11pt;margin-bottom:1mm;">🗺️</div><div style="font-size:7.5pt;font-weight:700;margin-bottom:1mm;">실시간 노선도</div><div class="xs">열차 위치·계통 필터·30초 자동 갱신</div></div>
+      <div class="card"><div style="font-size:11pt;margin-bottom:1mm;">🧭</div><div style="font-size:7.5pt;font-weight:700;margin-bottom:1mm;">경로 탐색</div><div class="xs">0-1 BFS 최소환승·소요시간 추정</div></div>
+      <div class="card"><div style="font-size:11pt;margin-bottom:1mm;">🚨</div><div style="font-size:7.5pt;font-weight:700;margin-bottom:1mm;">혼잡 경보</div><div class="xs">Kafka 스트림·5분 쿨다운·자동 해제</div></div>
+      <div class="card"><div style="font-size:11pt;margin-bottom:1mm;">🔔</div><div style="font-size:7.5pt;font-weight:700;margin-bottom:1mm;">개인화 알림</div><div class="xs">호선 구독·SSE 수신·알림 이력</div></div>
+      <div class="card"><div style="font-size:11pt;margin-bottom:1mm;">💬</div><div style="font-size:7.5pt;font-weight:700;margin-bottom:1mm;">커뮤니티</div><div class="xs">24개 호선 게시판·검색·댓글·좋아요</div></div>
+      <div class="card"><div style="font-size:11pt;margin-bottom:1mm;">📋</div><div style="font-size:7.5pt;font-weight:700;margin-bottom:1mm;">민원 접수</div><div class="xs">등록·상태 추적·관리자 처리</div></div>
+      <div class="card"><div style="font-size:11pt;margin-bottom:1mm;">⭐</div><div style="font-size:7.5pt;font-weight:700;margin-bottom:1mm;">즐겨찾기</div><div class="xs">역 추가·삭제·혼잡도 미리보기</div></div>
+      <div class="card"><div style="font-size:11pt;margin-bottom:1mm;">🎓</div><div style="font-size:7.5pt;font-weight:700;margin-bottom:1mm;">온보딩</div><div class="xs">첫 방문 3슬라이드·localStorage 기록</div></div>
+    </div>
+
+    <!-- DB Schema -->
+    <div class="h3" style="margin-bottom:2mm;">핵심 DB 스키마</div>
+    <table>
+      <thead><tr><th style="width:40mm;">테이블</th><th>설명</th><th style="width:65mm;">주요 설계 포인트</th></tr></thead>
+      <tbody>
+        <tr><td><code>congestion_hourly</code></td><td>시간대별(0~23시) 누적 혼잡도</td><td><code>ON DUPLICATE KEY UPDATE</code>로 이동 평균 점진적 집계</td></tr>
+        <tr><td><code>post_likes</code></td><td>게시글 좋아요</td><td><code>user_id + post_id UNIQUE</code>로 DB 레벨 중복 차단</td></tr>
+        <tr><td><code>complaints</code></td><td>민원</td><td>RECEIVED → IN_PROGRESS → COMPLETED 상태 머신</td></tr>
+        <tr><td><code>notifications</code></td><td>알림 이력</td><td>user_id nullable = 전체 공지 / not null = 개인 알림</td></tr>
+        <tr><td><code>subscriptions</code></td><td>호선 구독</td><td><code>user_id + line_number UNIQUE</code>로 중복 구독 차단</td></tr>
+      </tbody>
+    </table>
   </div>
-  <div style="margin-top:12px; font-size:12px;">
-    Spring Boot 3 · Apache Kafka · SvelteKit 5 · Kubernetes · GitHub Actions · Jenkins
-  </div>
+  <div class="pf"><span>JUNG JI SU · METROHUB PORTFOLIO 2026</span><span>08</span></div>
 </div>
 
 </body>
